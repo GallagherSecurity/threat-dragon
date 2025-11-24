@@ -15,6 +15,8 @@ export const THREATMODEL_SAVE = 'THREATMODEL_SAVE';
 export const THREATMODEL_SELECTED = 'THREATMODEL_SELECTED';
 export const THREATMODEL_STASH = 'THREATMODEL_STASH';
 export const THREATMODEL_UPDATE = 'THREATMODEL_UPDATE';
+export const THREATMODEL_TEMPLATE_SAVE = 'THREATMODEL_TEMPLATE_SAVE';   // model → template, save
+export const THREATMODEL_TEMPLATE_LOAD = 'THREATMODEL_TEMPLATE_LOAD';   // load template, convert → model
 
 export default {
     clear: THREATMODEL_CLEAR,
@@ -33,5 +35,7 @@ export default {
     saveModel: THREATMODEL_SAVE,
     selected: THREATMODEL_SELECTED,
     stash: THREATMODEL_STASH,
-    update: THREATMODEL_UPDATE
+    update: THREATMODEL_UPDATE,
+    templateSave: THREATMODEL_TEMPLATE_SAVE,
+    templateLoad: THREATMODEL_TEMPLATE_LOAD
 };

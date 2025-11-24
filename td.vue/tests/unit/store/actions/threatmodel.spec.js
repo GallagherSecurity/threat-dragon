@@ -12,7 +12,9 @@ import {
     THREATMODEL_RESTORE,
     THREATMODEL_STASH,
     THREATMODEL_SAVE,
-    THREATMODEL_UPDATE
+    THREATMODEL_UPDATE, 
+    THREATMODEL_TEMPLATE_SAVE,
+    THREATMODEL_TEMPLATE_LOAD
 } from '@/store/actions/threatmodel.js';
 
 describe('store/actions/threatmodel.js', () => {
@@ -70,5 +72,13 @@ describe('store/actions/threatmodel.js', () => {
 
     it('defines an update action', () => {
         expect(THREATMODEL_UPDATE).not.toBeUndefined();
+    });
+
+    it('defines an save action', () => {
+        expect(THREATMODEL_TEMPLATE_SAVE).not.toBeUndefined();
+    });
+
+    it('defines an fetch action', () => {
+        expect(THREATMODEL_TEMPLATE_LOAD).not.toBeUndefined();
     });
 });

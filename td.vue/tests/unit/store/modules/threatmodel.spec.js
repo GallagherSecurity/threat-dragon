@@ -13,7 +13,9 @@ import {
     THREATMODEL_SAVE,
     THREATMODEL_SELECTED,
     THREATMODEL_STASH,
-    THREATMODEL_UPDATE
+    THREATMODEL_UPDATE,
+    THREATMODEL_TEMPLATE_SAVE,
+    THREATMODEL_TEMPLATE_LOAD
 } from '@/store/actions/threatmodel.js';
 import threatmodelModule, { clearState } from '@/store/modules/threatmodel.js';
 import threatmodelApi from '@/service/api/threatmodelApi.js';
@@ -310,6 +312,174 @@ describe('store/modules/threatmodel.js', () => {
             const update = { foo: 'bar' };
             threatmodelModule.actions[THREATMODEL_UPDATE](mocks, update);
             expect(mocks.commit).toHaveBeenCalledWith(THREATMODEL_UPDATE, update);
+        });
+    });
+
+    describe('template actions', () => {
+        describe('saving a template', () => {
+            const templateInfo = {
+                name: 'Test Template',
+                description: 'A test template',
+                author: 'Test Author',
+                tags: ['test']
+            };
+
+            beforeEach(() => {
+                Vue.$toast = {
+                    success: jest.fn(),
+                    error: jest.fn()
+                };
+                mocks.state.data = {
+                    summary: {
+                        id: 123,
+                        owner: 'Original Owner',
+                        title: 'Test Model'
+                    },
+                    detail: {
+                        reviewer: 'Test Reviewer',
+                        diagrams: []
+                    }
+                };
+            });
+
+            describe('local provider', () => {
+                beforeEach(async () => {
+                    save.local = jest.fn().mockResolvedValue(true);
+                    mocks.rootState.provider.selected = 'local';
+                    await threatmodelModule.actions[THREATMODEL_TEMPLATE_SAVE](mocks, templateInfo);
+                });
+
+                it('saves the template locally', () => {
+                    expect(save.local).toHaveBeenCalledTimes(1);
+                });
+
+                it('removes model-specific metadata', () => {
+                    const savedState = save.local.mock.calls[0][0];
+                    expect(savedState.data.summary.id).toBeUndefined();
+                    expect(savedState.data.summary.owner).toBeUndefined();
+                    expect(savedState.data.detail.reviewer).toBeUndefined();
+                });
+
+                it('adds template metadata', () => {
+                    const savedState = save.local.mock.calls[0][0];
+                    expect(savedState.data.templateMetadata).toBeDefined();
+                    expect(savedState.data.templateMetadata.name).toBe('Test Template');
+                    expect(savedState.data.templateMetadata.author).toBe('Test Author');
+                });
+            });
+        });
+
+        describe('THREATMODEL_TEMPLATE_LOAD', () => {
+            const templateData = {
+                templateMetadata: {
+                    name: 'Test Template',
+                    author: 'Test Author'
+                },
+                summary: {
+                    title: 'Template Title'
+                },
+                detail: {
+                    diagrams: [
+                        {
+                            id: 'old-diagram-id',
+                            cells: [
+                                {
+                                    id: 'old-cell-id-1',
+                                    shape: 'process',
+                                    ports: {
+                                        items: [
+                                            { id: 'old-port-id-1' }
+                                        ]
+                                    }
+                                },
+                                {
+                                    id: 'old-cell-id-2',
+                                    shape: 'flow',
+                                    source: {
+                                        cell: 'old-cell-id-1',
+                                        port: 'old-port-id-1'
+                                    },
+                                    target: {
+                                        cell: 'old-cell-id-1',
+                                        port: 'old-port-id-1'
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            };
+
+            const modelInfo = {
+                title: 'New Model',
+                owner: 'New Owner',
+                reviewer: 'New Reviewer'
+            };
+
+            let result;
+
+            beforeEach(async () => {
+                result = await threatmodelModule.actions[THREATMODEL_TEMPLATE_LOAD](mocks, { 
+                    templateData, 
+                    modelInfo 
+                });
+            });
+
+            it('commits the selected action', () => {
+                expect(mocks.commit).toHaveBeenCalledWith(
+                    THREATMODEL_SELECTED,
+                    expect.any(Object)
+                );
+            });
+
+            it('removes template metadata', () => {
+                expect(result.templateMetadata).toBeUndefined();
+            });
+
+            it('adds model metadata', () => {
+                expect(result.summary.id).toBe(0);
+                expect(result.summary.owner).toBe('New Owner');
+                expect(result.summary.title).toBe('New Model');
+                expect(result.detail.reviewer).toBe('New Reviewer');
+            });
+
+            it('regenerates diagram IDs', () => {
+                const newDiagramId = result.detail.diagrams[0].id;
+                expect(newDiagramId).not.toBe('old-diagram-id');
+                expect(newDiagramId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+            });
+
+            it('regenerates cell IDs', () => {
+                const cells = result.detail.diagrams[0].cells;
+                expect(cells[0].id).not.toBe('old-cell-id-1');
+                expect(cells[1].id).not.toBe('old-cell-id-2');
+            });
+
+            it('regenerates port IDs', () => {
+                const port = result.detail.diagrams[0].cells[0].ports.items[0];
+                expect(port.id).not.toBe('old-port-id-1');
+            });
+
+            it('updates flow references to new IDs', () => {
+                const flow = result.detail.diagrams[0].cells[1];
+                const processCell = result.detail.diagrams[0].cells[0];
+            
+                expect(flow.source.cell).toBe(processCell.id);
+                expect(flow.target.cell).toBe(processCell.id);
+                expect(flow.source.port).toBe(processCell.ports.items[0].id);
+                expect(flow.target.port).toBe(processCell.ports.items[0].id);
+            });
+
+            it('throws error if not a template', async () => {
+                const notATemplate = { summary: {}, detail: {} };
+            
+                await expect(
+                    threatmodelModule.actions[THREATMODEL_TEMPLATE_LOAD](mocks, { 
+                        templateData: notATemplate, 
+                        modelInfo 
+                    })
+                ).rejects.toThrow('Invalid template: missing templateMetadata');
+            });
         });
     });
 
