@@ -48,5 +48,10 @@ export const gitRoutes = [
         path: `/${providerType}/:provider/:repository/:branch/:threatmodel/report`,
         name: `${providerType}Report`,
         component: () => import(/* webpackChunkName: "report-model" */ '../views/ReportModel.vue')
+    },
+    {
+        path: `/${providerType}/template`,
+        name: `${providerType}TemplateSelect`,
+        component: () => import(/* webpackChunkName: "template-select" */ '../views/TemplateSelect.vue')
     }
 ];

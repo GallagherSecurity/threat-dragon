@@ -43,10 +43,11 @@ const eng = {
             description: 'You\'re ready to start making your application designs more secure. You can open an existing threat model or create a new one by choosing one of the options below. '
         },
         actions: {
-            openExisting: 'Open an existing threat model',
-            createNew: 'Create a new, empty threat model',
-            readDemo: 'Explore a sample threat model',
-            importExisting: 'Import a threat model via JSON'
+            openExisting: 'model',
+            createNew: ' model',
+            readDemo: 'model',
+            importExisting: 'Import a threat  via JSON',
+            template: 'Create from Template'
         }
     },
     demo: {

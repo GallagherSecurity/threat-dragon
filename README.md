@@ -5,8 +5,8 @@
 
 [![GitHub license](https://img.shields.io/github/license/owasp/threat-dragon.svg)](license.txt)
 [![Build status](https://github.com/OWASP/threat-dragon/actions/workflows/push.yaml/badge.svg?event=push)][build]
-[![GitHub release](https://img.shields.io/github/release/owasp/threat-dragon.svg)][latest]
-[![OWASP Lab](https://img.shields.io/badge/owasp-lab%20project-f7b73c.svg)](https://owasp.org/projects)
+[![GitHub release](https://img.shields.io/github/v/release/owasp/threat-dragon.svg)][latest]
+[![OWASP Lab](https://img.shields.io/badge/owasp-lab%20project-f7b73c.svg)](https://owasp.org/projects/)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9266/badge)][practices]
 
 # OWASP Threat Dragon
@@ -71,11 +71,11 @@ This means that versions 1.x of Threat Dragon are no longer actively maintained
 and versions 2.x have been re-written to use Vue.js.
 
 For more information on building/running version 1.x,
-please see the [legacy-v1.x branch](https://github.com/OWASP/threat-dragon/tree/legacy-v1.x).
+please see the [legacy-v1.x branch](https://github.com/OWASP/threat-dragon/tree/archive-legacy-v1.x).
 
 ### Building version 2.x
 
-Install [git](https://git-scm.com/downloads) and [node.js][download] which includes the node package manager npm
+Install [git](https://git-scm.com/downloads/) and [node.js][node] which includes the node package manager npm
 
 Clone the repository using: `git clone https://github.com/owasp/threat-dragon.git`
 
@@ -173,17 +173,17 @@ Threat Dragon: _making threat modeling less threatening_
 [contributors]: https://github.com/OWASP/threat-dragon/graphs/contributors
 [demo]: https://www.threatdragon.com/#/
 [docs]: https://www.threatdragon.com/docs/
-[download]: https://nodejs.org/en/download/package-manager
 [config]: https://www.threatdragon.com/docs/configure/configure.html
 [github]: https://www.threatdragon.com/docs/configure/github.html
 [gitlab]: https://www.threatdragon.com/docs/configure/gitlab.html
 [latest]: https://github.com/owasp/threat-dragon/releases/latest
 [license]: https://github.com/OWASP/threat-dragon/blob/v2.2.0/license.txt
 [manifesto]: https://www.threatmodelingmanifesto.org/
+[node]: https://nodejs.org/en/download
 [notes]: https://www.threatdragon.com/docs/development/development.html
 [owasp]: https://owasp.org/
 [practices]: https://www.bestpractices.dev/en/projects/9266
-[project]: https://owasp.org/www-project-threat-dragon
+[project]: https://owasp.org/www-project-threat-dragon/
 [releases]: https://github.com/OWASP/threat-dragon/releases
 [subscribe]: https://owasp.org/slack/invite
 [td-slack]: https://owasp.slack.com/messages/CURE8PQ68

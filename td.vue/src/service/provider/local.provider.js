@@ -17,6 +17,11 @@ const getDashboardActions = () => ([
         to: '/demo/select',
         key: 'readDemo',
         icon: 'cloud-download-alt'
+    },
+    {
+        to: `/${providerType}/template`,
+        key: 'template',
+        icon: 'file-template'
     }
 ]);
 
