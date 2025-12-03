@@ -3,6 +3,33 @@ import { providerTypes } from '../service/provider/providerTypes.js';
 const providerType = providerTypes.local;
 
 export const localRoutes = [
+    // Specific routes first
+    {
+        path: `/${providerType}/threatmodel/import`,
+        name: `${providerType}ThreatModelImport`,
+        component: () => import(/* webpackChunkName: "threatmodel-import" */ '../views/ImportModel.vue')
+    },
+    {
+        path: `/${providerType}/threatmodel/new`,
+        name: `${providerType}NewThreatModel`,
+        component: () => import(/* webpackChunkName: "new-threatmodel" */ '../views/NewThreatModel.vue')
+    },
+    {
+        path: `/${providerType}/templates`,  // Move this up and make it plural to avoid conflicts
+        name: `${providerType}TemplateGallery`,
+        component: () => import(/* webpackChunkName: "template-gallery" */ '../views/TemplateGallery.vue')
+    },
+    {
+        path: `/${providerType}/:threatmodel/export-template`,
+        name: `${providerType}ThreatModelExportTemplate`,
+        component: () => import(/* webpackChunkName: "export-template" */ '../views/ExportTemplate.vue')
+    },
+    {
+        path: '/admin/templates',
+        name: 'AdminManageTemplates',
+        component: () => import(/* webpackChunkName: "admin-templates" */ '../views/ManageTemplates.vue')
+    },
+    // Dynamic routes last
     {
         path: `/${providerType}/:threatmodel`,
         name: `${providerType}ThreatModel`,
@@ -19,23 +46,8 @@ export const localRoutes = [
         component: () => import(/* webpackChunkName: "diagram-edit" */ '../views/DiagramEdit.vue')
     },
     {
-        path: `/${providerType}/threatmodel/import`,
-        name: `${providerType}ThreatModelImport`,
-        component: () => import(/* webpackChunkName: "threatmodel-import" */ '../views/ImportModel.vue')
-    },
-    {
-        path: `/${providerType}/threatmodel/new`,
-        name: `${providerType}NewThreatModel`,
-        component: () => import(/* webpackChunkName: "new-threatmodel" */ '../views/NewThreatModel.vue')
-    },
-    {
         path: `/${providerType}/:threatmodel/report`,
         name: `${providerType}Report`,
         component: () => import(/* webpackChunkName: "report-model" */ '../views/ReportModel.vue')
-    },
-    {
-        path: `/${providerType}/template`,
-        name: `${providerType}TemplateSelect`,
-        component: () => import(/* webpackChunkName: "template-select" */ '../views/TemplateSelect.vue')
     }
 ];

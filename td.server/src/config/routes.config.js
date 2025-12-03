@@ -1,12 +1,13 @@
-import express from 'express';
-
 import auth from '../controllers/auth.js';
 import bearer from './bearer.config.js';
 import configController from "../controllers/configcontroller";
+import express from 'express';
 import googleProviderThreatmodelController from '../controllers/googleProviderThreatmodelController.js';
 import healthcheck from '../controllers/healthz.js';
 import homeController from '../controllers/homecontroller.js';
+import templateController from '../controllers/templateController.js';
 import threatmodelController from '../controllers/threatmodelcontroller.js';
+
 
 /**
  * Routes that do **NOT** require authentication
@@ -25,6 +26,13 @@ const unauthRoutes = (router) => {
     router.get('/api/logout', auth.logout);
     router.get('/api/oauth/return', auth.oauthReturn);
     router.get('/api/oauth/:provider', auth.completeLogin);
+
+     // Template routes (unauthenticated for MVP)
+    router.get('/api/templates/metadata', templateController.metadata);
+    router.get('/api/templates/:id', templateController.getById);
+    router.post('/api/templates', templateController.create);
+    router.put('/api/templates/:id', templateController.update);
+    router.delete('/api/templates/:id', templateController.remove);
 };
 
 /**

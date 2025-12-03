@@ -1,10 +1,28 @@
 const eng = {
+    
+    template: {
+        select: 'Select a Template',
+        selectDescription: 'Choose a template to start your threat model',
+        search: 'Search templates...',
+        noTemplates: 'No templates available. Contact your administrator to add templates.',
+        tags: 'Tags',
+        tagsPlaceholder: 'Start typing to add tags',
+        exportTemplate: 'Export as Template',
+        name: 'Template Name',
+        description: 'Template Description',
+        saveTemplate: 'Save',
+        downloadSuccess: 'Template downloaded successfully!',
+        addNew: 'Import Template',
+        manage: 'Manage Templates',
+        manageDescription: 'Add, remove, or modify threat model templates'
+    },
     auth: {
         sessionExpired: 'Your session has expired. Please log in again to continue.'
     },
     nav: {
         loggedInAs: 'Logged in as',
-        logOut: 'Log out'
+        logOut: 'Log out',
+        manageTemplates: 'Manage Templates'
     },
     home: {
         title: 'OWASP Threat Dragon',
@@ -43,11 +61,11 @@ const eng = {
             description: 'You\'re ready to start making your application designs more secure. You can open an existing threat model or create a new one by choosing one of the options below. '
         },
         actions: {
-            openExisting: 'model',
-            createNew: ' model',
-            readDemo: 'model',
-            importExisting: 'Import a threat  via JSON',
-            template: 'Create from Template'
+            openExisting: 'Open an existing threat model',
+            createNew: 'Create a new, empty threat model',
+            readDemo: 'Explore a sample threat model',
+            importExisting: 'Import a threat model via JSON',
+            template: 'Create model from a template'
         }
     },
     demo: {
@@ -299,7 +317,9 @@ const eng = {
         saveModelAs: 'Save Model As',
         search: 'Search',
         next:'Next',
-        previous:'Previous'
+        previous:'Previous',
+        exportTemplate: 'Export As Template',
+        manage: 'Manage...'
     },
     threats: {
         model: {

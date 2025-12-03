@@ -35,8 +35,21 @@ const putAsync = async (url, body) => {
     return res.data;
 };
 
+/**
+ * Does a DELETE request to the given resource
+ * Will apply bearer token authorization if a token is provided
+ * @param {String} url
+ * @returns Promise
+ */
+const deleteAsync = async (url) => {
+    const res = await clientFactory.get().delete(url);
+    return res.data;
+};
+
+
 export default {
     getAsync,
     postAsync,
-    putAsync
+    putAsync,
+    deleteAsync  
 };

@@ -10,6 +10,7 @@ import locale from './modules/locale.js';
 import provider from './modules/provider.js';
 import repo from './modules/repository.js';
 import folder from './modules/folder.js';
+import template from './modules/template.js'; 
 import threatmodel from './modules/threatmodel.js';
 import vuexPersist from '../plugins/vuex-persist.js';
 
@@ -35,7 +36,8 @@ const get = () => {
                 provider,
                 repo,
                 folder,
-                threatmodel
+                threatmodel,
+                template
             },
             plugins: [vuexPersist.session.plugin]
         });

@@ -33,15 +33,18 @@ const googleCreate = async (rootState, state) => {
 
 const local = async (state) => {
     let result = false;
+    // Use provided fileName, or default to summary.title
+    const fileName = state.fileName || `${state.data.summary.title}.json`;
+    
     if ('showSaveFilePicker' in self) {
-        result = await writeFile(state.data, `${state.data.summary.title}.json`);
+        result = await writeFile(state.data, fileName);
         if ( result ) {
             Vue.$toast.success(i18n.get().t('threatmodel.prompts.saved'));
         } else {
             Vue.$toast.warning(i18n.get().t('threatmodel.warnings.save'));
         }
     } else {
-        result = await downloadFile(state.data, `${state.data.summary.title}.json`);
+        result = await downloadFile(state.data, fileName);
         Vue.$toast.success(i18n.get().t('threatmodel.prompts.downloading'));
     }
     return result;

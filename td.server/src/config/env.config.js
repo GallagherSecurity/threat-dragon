@@ -1,4 +1,5 @@
 import BitbucketEnv from '../env/Bitbucket.js';
+import DatabaseEnv from '../env/Database.js';
 import EncryptionEnv from '../env/Encryption.js';
 import env from '../env/Env.js';
 import GithubEnv from '../env/Github.js';
@@ -12,8 +13,10 @@ const tryLoadDotEnv = () => {
     const bitbucket = new BitbucketEnv();
     const encryption = new EncryptionEnv();
     const threatDragon = new ThreatDragonEnv();
+    const database = new DatabaseEnv();
     const google = new GoogleEnv();
     env.get().addProvider(github);
+    env.get().addProvider(database);
     env.get().addProvider(gitlab);
     env.get().addProvider(encryption);
     env.get().addProvider(bitbucket);

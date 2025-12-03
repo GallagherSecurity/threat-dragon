@@ -19,9 +19,9 @@ const getDashboardActions = () => ([
         icon: 'cloud-download-alt'
     },
     {
-        to: `/${providerType}/template`,
+        to: `/${providerType}/templates`,
         key: 'template',
-        icon: 'file-template'
+        icon: 'file-alt'
     }
 ]);
 

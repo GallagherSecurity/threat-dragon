@@ -52,6 +52,6 @@ export const gitRoutes = [
     {
         path: `/${providerType}/template`,
         name: `${providerType}TemplateSelect`,
-        component: () => import(/* webpackChunkName: "template-select" */ '../views/TemplateSelect.vue')
+        component: () => import(/* webpackChunkName: "template-select" */ '../views/ImportModel.vue')
     }
 ];

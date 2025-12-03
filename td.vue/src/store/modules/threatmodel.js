@@ -24,7 +24,8 @@ import {
     THREATMODEL_STASH,
     THREATMODEL_UPDATE,
     THREATMODEL_TEMPLATE_SAVE,
-    THREATMODEL_TEMPLATE_LOAD
+    THREATMODEL_TEMPLATE_LOAD,
+    THREATMODEL_TEMPLATE_DOWNLOAD
 } from '@/store/actions/threatmodel';
 import save from '@/service/save';
 import threatmodelApi from '@/service/api/threatmodelApi';
@@ -146,14 +147,14 @@ const actions = {
     [THREATMODEL_STASH]: ({ commit }) => commit(THREATMODEL_STASH),
     [THREATMODEL_NOT_MODIFIED]: ({ commit }) => commit(THREATMODEL_NOT_MODIFIED),
     [THREATMODEL_UPDATE]: ({ commit }, update) => commit(THREATMODEL_UPDATE, update),
-    
+
     // Template actions
     [THREATMODEL_TEMPLATE_SAVE]: async ({ dispatch, state, rootState }, templateInfo) => {
         console.debug('Save template action');
-        
+
         // convert model → template, save
         const template = JSON.parse(JSON.stringify(state.data)); // deep clone
-        
+
         // remove model-specific data
         delete template.summary.id;
         delete template.summary.owner;
@@ -194,70 +195,100 @@ const actions = {
         }
     },
 
-    [THREATMODEL_TEMPLATE_LOAD]: async ({ commit }, { templateData, modelInfo }) => {
-        console.debug('Load template action');
-    
-        // Validate it's a template
-        if (!templateData.templateMetadata) {
-            throw new Error('Invalid template: missing templateMetadata');
+    [THREATMODEL_TEMPLATE_DOWNLOAD]: async ({ state, rootState }, templateMetadata) => {
+        console.debug('Download template action');
+
+        const model = JSON.parse(JSON.stringify(state.data));
+
+        // Blank out instance-specific fields
+        model.summary.id = '';
+        model.summary.owner = '';
+        model.summary.title = templateMetadata.name||'';
+        model.summary.description = templateMetadata.description || '';
+
+        if (model.detail.reviewer !== undefined) {
+            model.detail.reviewer = '';
         }
-    
+
+        if (model.detail.contributors) {
+            model.detail.contributors = [];
+        }
+
+        // Create the template structure
+        const template = {
+            name: templateMetadata.name,
+            description: templateMetadata.description,
+            tags: templateMetadata.tags,
+            content: model
+        };
+
+        const tempState = {
+            data: template,
+            fileName: `${templateMetadata.name}.json`
+        };
+
+        // Always save locally for templates (portable files)
+        if (getProviderType(rootState.provider.selected) === providerTypes.desktop) {
+            window.electronAPI.templateSave(template, `${templateMetadata.name}.json`);
+            return true;
+        } else {
+            return await save.local(tempState);
+        }
+
+    },
+    [THREATMODEL_TEMPLATE_LOAD]: async ({ commit }, { templateData }) => {
+        console.debug('Load template action');
+
         // Convert template → model
         const model = JSON.parse(JSON.stringify(templateData)); // deep clone
-    
-        // Remove template metadata
-        delete model.templateMetadata;
-    
-        // Add model metadata
-        model.summary.id = 0;
-        model.summary.owner = modelInfo.owner || '';
-        model.detail.reviewer = modelInfo.reviewer || '';
-        model.summary.title = modelInfo.title || 'Untitled Model'; 
-    
+
+
         // Regenerate all IDs
         const idMap = {};
-    
+
         model.detail.diagrams.forEach(diagram => {
-        // Map diagram ID
+            // Map diagram ID
             idMap[diagram.id] = v4();
             diagram.id = idMap[diagram.id];
-        
+
             // First pass: map all cell and port IDs
-            diagram.cells.forEach(cell => {
-                idMap[cell.id] = v4();
-            
-                if (cell.ports?.items) {
-                    cell.ports.items.forEach(port => {
-                        idMap[port.id] = v4();
-                    });
-                }
-            });
-        
-            // Second pass: apply new IDs and update references
-            diagram.cells.forEach(cell => {
-                cell.id = idMap[cell.id];
-            
-                if (cell.ports?.items) {
-                    cell.ports.items.forEach(port => {
-                        port.id = idMap[port.id];
-                    });
-                }
-            
-                if (cell.source?.cell) {
-                    cell.source.cell = idMap[cell.source.cell];
-                    cell.source.port = idMap[cell.source.port];
-                }
-            
-                if (cell.target?.cell) {
-                    cell.target.cell = idMap[cell.target.cell];
-                    cell.target.port = idMap[cell.target.port];
-                }
-            });
+            if (diagram.cells && Array.isArray(diagram.cells)) {
+                diagram.cells.forEach(cell => {
+                    idMap[cell.id] = v4();
+
+                    if (cell.ports?.items) {
+                        cell.ports.items.forEach(port => {
+                            idMap[port.id] = v4();
+                        });
+                    }
+                });
+
+                // Second pass: apply new IDs and update references
+                diagram.cells.forEach(cell => {
+                    cell.id = idMap[cell.id];
+
+                    if (cell.ports?.items) {
+                        cell.ports.items.forEach(port => {
+                            port.id = idMap[port.id];
+                        });
+                    }
+
+                    if (cell.source?.cell) {
+                        cell.source.cell = idMap[cell.source.cell];
+                        cell.source.port = idMap[cell.source.port];
+                    }
+
+                    if (cell.target?.cell) {
+                        cell.target.cell = idMap[cell.target.cell];
+                        cell.target.port = idMap[cell.target.port];
+                    }
+                });
+            }
         });
-    
+
         // Set as current model (reuse existing mutation)
         commit(THREATMODEL_SELECTED, model);
-    
+
         return model;
     }
 };

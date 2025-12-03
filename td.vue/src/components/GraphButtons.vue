@@ -144,7 +144,7 @@ export default {
         },
         exportSVG() {
             this.graph.exportSVG(`${this.diagram.title}.svg`);
-        }
+        },
     }
 };
 
