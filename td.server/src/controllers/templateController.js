@@ -1,63 +1,93 @@
-import {validateTemplateContent, validateTemplateName} from '../helpers/template.helper.js';
-
-import loggerHelper from '../helpers/logger.helper.js';
-import responseWrapper from './responseWrapper.js';
-import { serverError } from './errors.js';
 import templateRepository from '../repositories/templateRepository.js';
 
 
 
-const logger = loggerHelper.get('controllers/templateController.js');
-
-const metadata = (req, res) => responseWrapper.sendResponseAsync(async () => {
-    const filters = {
-        search: req.query.search || '',
-        tags: req.query.tags ? req.query.tags.split(',') : [],
-        sortBy: req.query.sortBy || 'created_at',
-        sortOrder: req.query.sortOrder || 'desc'
-    };
-    
-    const pagination = {
-        page: parseInt(req.query.page, 10) || 1,
-        limit: Math.min(parseInt(req.query.limit, 10) || 20, 100)
-    };
-
-    const metadata = await templateRepository.findAllMetadata(filters, pagination); 
-    
-    logger.debug(`API template metadata request: ${logger.transformToString(req)}`);
-    
-    return metadata;
-}, req, res, logger);
-
-const getById = (req, res) => responseWrapper.sendResponseAsync(async () => {
-    const { id } = req.params;
-    logger.debug(`API template getById request: ${logger.transformToString(req)}`);
-    
-    const template = await templateRepository.findById(id); 
-    
-    if (!template) {
-        const error = new Error('Template not found');
-        error.statusCode = 404;
-        throw error;
+const metadata = async (req, res) => {
+    try {
+        const filters = {
+            search: req.query.search || '',
+            tags: req.query.tags ? req.query.tags.split(',') : [],
+            sortBy: req.query.sortBy || 'created_at',
+            sortOrder: req.query.sortOrder || 'desc'
+        };
+        
+        const pagination = {
+            page: parseInt(req.query.page,10) || 1,
+            limit: Math.min(parseInt(req.query.limit,10) || 20, 100)
+        };
+        
+        const result = await templateRepository.findAllMetadata(filters, pagination);
+        res.json(result);
+    } catch (error) {
+        console.error('Error fetching template metadata:', error);
+        res.status(500).json({ 
+            error: { 
+                code: 'INTERNAL_ERROR', 
+                message: 'Failed to fetch templates' 
+            } 
+        });
     }
-    
-    return template; 
-}, req, res, logger);
+};
+
+const getById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const template = await templateRepository.findById(id);
+        
+        if (!template) {
+            return res.status(404).json({ 
+                error: { 
+                    code: 'TEMPLATE_NOT_FOUND', 
+                    message: 'Template not found' 
+                } 
+            });
+        }
+        
+        res.json(template);
+    } catch (error) {
+        console.error('Error fetching template by ID:', error);
+        res.status(500).json({ 
+            error: { 
+                code: 'INTERNAL_ERROR', 
+                message: 'Failed to fetch template' 
+            } 
+        });
+    }
+};
 
 const create = async (req, res) => {
     try {
         const { name, description, tags, content } = req.body;
-        logger.debug(`API template create request: ${logger.transformToString(req)}`);
         
-        // Validation using helper method
-        const nameError = validateTemplateName(name);
-        if (nameError) {
-            return res.status(400).json(nameError);
+        // Validation
+        if (!name || name.trim().length === 0) {
+            return res.status(400).json({ 
+                error: { 
+                    code: 'VALIDATION_ERROR', 
+                    message: 'Name is required',
+                    details: { field: 'name' }
+                } 
+            });
         }
         
-        const contentError = validateTemplateContent(content);
-        if (contentError) {
-            return res.status(400).json(contentError);
+        if (name.length > 255) {
+            return res.status(400).json({ 
+                error: { 
+                    code: 'VALIDATION_ERROR', 
+                    message: 'Name must be 255 characters or less',
+                    details: { field: 'name' }
+                } 
+            });
+        }
+        
+        if (!content) {
+            return res.status(400).json({ 
+                error: { 
+                    code: 'VALIDATION_ERROR', 
+                    message: 'Content is required',
+                    details: { field: 'content' }
+                } 
+            });
         }
         
         // Check for duplicate name
@@ -75,10 +105,15 @@ const create = async (req, res) => {
         const metadata = { name: name.trim(), description, tags };
         const result = await templateRepository.create(metadata, content);
         
-        return res.status(201).json(result);
-    } catch (err) {
-        logger.error(err);
-        return serverError('Error creating template', res, logger);
+        res.status(201).json(result);
+    } catch (error) {
+        console.error('Error creating template:', error);
+        res.status(500).json({ 
+            error: { 
+                code: 'INTERNAL_ERROR', 
+                message: 'Failed to create template' 
+            } 
+        });
     }
 };
 
@@ -86,13 +121,28 @@ const update = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, tags } = req.body;
-        logger.debug(`API template update request: ${logger.transformToString(req)}`);
         
         // Validation
-        const nameError = validateTemplateName(name);
-        if (nameError) {
-            return res.status(400).json(nameError);
+        if (!name || name.trim().length === 0) {
+            return res.status(400).json({ 
+                error: { 
+                    code: 'VALIDATION_ERROR', 
+                    message: 'Name is required',
+                    details: { field: 'name' }
+                } 
+            });
         }
+        
+        if (name.length > 255) {
+            return res.status(400).json({ 
+                error: { 
+                    code: 'VALIDATION_ERROR', 
+                    message: 'Name must be 255 characters or less',
+                    details: { field: 'name' }
+                } 
+            });
+        }
+    
         
         // Check for duplicate name (excluding current template)
         const exists = await templateRepository.existsByName(name, id);
@@ -118,19 +168,22 @@ const update = async (req, res) => {
             });
         }
         
-        return res.json(result);
-    } catch (err) {
-        logger.error(err);
-        return serverError('Error updating template', res, logger);
+        res.json(result);
+    } catch (error) {
+        console.error('Error updating template:', error);
+        res.status(500).json({ 
+            error: { 
+                code: 'INTERNAL_ERROR', 
+                message: 'Failed to update template' 
+            } 
+        });
     }
 };
 
 const remove = async (req, res) => {
     try {
         const { id } = req.params;
-        logger.debug(`API template delete request: ${logger.transformToString(req)}`);
-        
-        const deleted = await templateRepository.softDelete(id);
+        const deleted = await templateRepository.deleteById(id);
         
         if (!deleted) {
             return res.status(404).json({ 
@@ -141,10 +194,15 @@ const remove = async (req, res) => {
             });
         }
         
-        return res.status(204).send();
-    } catch (err) {
-        logger.error(err);
-        return serverError('Error deleting template', res, logger);
+        res.status(204).send();
+    } catch (error) {
+        console.error('Error deleting template:', error);
+        res.status(500).json({ 
+            error: { 
+                code: 'INTERNAL_ERROR', 
+                message: 'Failed to delete template' 
+            } 
+        });
     }
 };
 

@@ -1,70 +1,58 @@
 import database from '../config/database.config.js';
 
-// Private helper - builds WHERE clause for filtering
-const buildWhereClause = (filters = {}) => {
-    const { search = '', tags = [] } = filters;
-    const conditions = ['is_active = true'];
-    const params = [];
-    let paramCount = 1;
-
-    if (search) {
-        conditions.push(`(name ILIKE $${paramCount} OR description ILIKE $${paramCount})`);
-        params.push(`%${search}%`);
-        paramCount++;
-    }
-
-    if (tags.length > 0) {
-        conditions.push(`tags && $${paramCount}`);
-        params.push(tags);
-        paramCount++;
-    }
-
-    return {
-        whereClause: conditions.join(' AND '),
-        params,
-        nextParamIndex: paramCount
-    };
-};
-
 const findAllMetadata = async (filters = {}, pagination = {}) => {
     const pool = database.getPool();
-    const { sortBy = 'created_at', sortOrder = 'desc' } = filters;
+    const { search = '', tags = [], sortBy = 'created_at', sortOrder = 'desc' } = filters;
     const { page = 1, limit = 20 } = pagination;
     const offset = (page - 1) * limit;
 
-    // Build WHERE clause once
-    const { whereClause, params, nextParamIndex } = buildWhereClause(filters);
-
-    // Main query
-    const query = `
-        SELECT id, name, description, tags, created_by, created_at, updated_at 
-        FROM template_metadata 
-        WHERE ${whereClause}
-        ORDER BY ${sortBy} ${sortOrder}
-        LIMIT $${nextParamIndex} OFFSET $${nextParamIndex + 1}
-    `;
-    const queryParams = [...params, limit, offset];
-
-    // Count query
-    const countQuery = `
-        SELECT COUNT(*) 
-        FROM template_metadata 
-        WHERE ${whereClause}
-    `;
-
-    // Execute in parallel
+    // Build WHERE conditions
+    const whereConditions = [];
+    const params = [];
+    let paramCount = 1;
+    
+    if (search) {
+        whereConditions.push(`(name ILIKE $${paramCount} OR description ILIKE $${paramCount})`);
+        params.push(`%${search}%`);
+        paramCount++;
+    }
+    
+    if (tags.length > 0) {
+        whereConditions.push(`tags && $${paramCount}`);
+        params.push(tags);
+        paramCount++;
+    }
+    
+    // Build main query
+    let query = 'SELECT id, name, description, tags, created_at, updated_at FROM template_metadata';
+    if (whereConditions.length > 0) {
+        query += ' WHERE ' + whereConditions.join(' AND ');
+    }
+    query += ` ORDER BY ${sortBy} ${sortOrder}`;
+    query += ` LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
+    params.push(limit, offset);
+    
+    // Build count query
+    let countQuery = 'SELECT COUNT(*) FROM template_metadata';
+    if (whereConditions.length > 0) {
+        countQuery += ' WHERE ' + whereConditions.join(' AND ');
+    }
+    
+    // Execute both queries in parallel
     const [result, countResult] = await Promise.all([
-        pool.query(query, queryParams),
-        pool.query(countQuery, params)
+        pool.query(query, params),
+        pool.query(countQuery, params.slice(0, paramCount - 1)) // Don't include limit/offset
     ]);
-
+    
+    const total = parseInt(countResult.rows[0].count, 10);
+    
     return {
         data: result.rows,
         pagination: {
             page,
             limit,
-            total: parseInt(countResult.rows[0].count, 10),
-            totalPages: Math.ceil(parseInt(countResult.rows[0].count, 10) / limit)
+            total,
+            totalPages: Math.ceil(total / limit)
         }
     };
 };
@@ -72,16 +60,8 @@ const findAllMetadata = async (filters = {}, pagination = {}) => {
 const findById = async (id) => {
     const pool = database.getPool();
     
-    const metadataQuery = `
-        SELECT * 
-        FROM template_metadata 
-        WHERE id = $1 AND is_active = true
-    `;
-    const contentQuery = `
-        SELECT json_data 
-        FROM template_content 
-        WHERE template_id = $1
-    `;
+    const metadataQuery = 'SELECT * FROM template_metadata WHERE id = $1';
+    const contentQuery = 'SELECT json_data FROM template_content WHERE template_id = $1';
     
     const [metadataResult, contentResult] = await Promise.all([
         pool.query(metadataQuery, [id]),
@@ -106,15 +86,14 @@ const create = async (metadata, content) => {
         await client.query('BEGIN');
         
         const metadataQuery = `
-            INSERT INTO template_metadata (name, description, tags, created_by)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO template_metadata (name, description, tags)
+            VALUES ($1, $2, $3)
             RETURNING *
         `;
         const metadataResult = await client.query(metadataQuery, [
             metadata.name,
             metadata.description || null,
             metadata.tags || [],
-            metadata.created_by || null
         ]);
         
         const templateId = metadataResult.rows[0].id;
@@ -149,7 +128,7 @@ const update = async (id, metadata) => {
                 description = $2, 
                 tags = $3, 
                 updated_at = CURRENT_TIMESTAMP
-            WHERE id = $4 AND is_active = true
+            WHERE id = $4
             RETURNING *
         `;
         const result = await client.query(query, [
@@ -175,26 +154,39 @@ const update = async (id, metadata) => {
     }
 };
 
-const softDelete = async (id) => {
+const deleteById = async (id) => {
     const pool = database.getPool();
+    const client = await pool.connect();
     
-    const query = `
-        UPDATE template_metadata
-        SET is_active = false, 
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = $1 AND is_active = true
-        RETURNING id
-    `;
-    const result = await pool.query(query, [id]);
-    return result.rows.length > 0;
+    try {
+        await client.query('BEGIN');
+        
+        // Delete content first (foreign key constraint)
+        await client.query('DELETE FROM template_content WHERE template_id = $1', [id]);
+        
+        // Then delete metadata
+        const result = await client.query(
+            'DELETE FROM template_metadata WHERE id = $1 RETURNING id',
+            [id]
+        );
+        
+        await client.query('COMMIT');
+        return result.rows.length > 0;
+        
+    } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+    } finally {
+        client.release();
+    }
 };
 
 const existsByName = async (name, excludeId = null) => {
     const pool = database.getPool();
     
     const query = excludeId
-        ? 'SELECT id FROM template_metadata WHERE name = $1 AND is_active = true AND id != $2'
-        : 'SELECT id FROM template_metadata WHERE name = $1 AND is_active = true';
+        ? 'SELECT id FROM template_metadata WHERE name = $1 AND id != $2'
+        : 'SELECT id FROM template_metadata WHERE name = $1';
     
     const params = excludeId ? [name, excludeId] : [name];
     const result = await pool.query(query, params);
@@ -207,6 +199,6 @@ export default {
     findById,
     create,
     update,
-    softDelete,
+    deleteById,
     existsByName
 };
