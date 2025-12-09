@@ -122,16 +122,7 @@ export default {
             
             await this.$store.dispatch(tmActions.templateDownload, templateMetadata);
             
-            // Show success message
-            this.$bvToast.toast(
-                this.$t('template.downloadSuccess'),
-                {
-                    title: this.$t('forms.success'),
-                    variant: 'success',
-                    solid: true
-                }
-            );
-            
+           
             // Navigate back to threat model view
             this.$router.push({ 
                 name: `${this.providerType}ThreatModel`, 

@@ -13,10 +13,8 @@ const tryLoadDotEnv = () => {
     const bitbucket = new BitbucketEnv();
     const encryption = new EncryptionEnv();
     const threatDragon = new ThreatDragonEnv();
-    const database = new DatabaseEnv();
     const google = new GoogleEnv();
     env.get().addProvider(github);
-    env.get().addProvider(database);
     env.get().addProvider(gitlab);
     env.get().addProvider(encryption);
     env.get().addProvider(bitbucket);

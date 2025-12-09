@@ -1,4 +1,4 @@
-import database from '../config/database.config.js';
+import database from '../helpers/database.connection.js';
 
 const findAllMetadata = async (filters = {}, pagination = {}) => {
     const pool = database.getPool();
@@ -47,7 +47,7 @@ const findAllMetadata = async (filters = {}, pagination = {}) => {
     const total = parseInt(countResult.rows[0].count, 10);
     
     return {
-        data: result.rows,
+        templates: result.rows,
         pagination: {
             page,
             limit,

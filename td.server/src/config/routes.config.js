@@ -28,11 +28,11 @@ const unauthRoutes = (router) => {
     router.get('/api/oauth/:provider', auth.completeLogin);
 
      // Template routes (unauthenticated for MVP)
-    router.get('/api/templates/metadata', templateController.metadata);
-    router.get('/api/templates/:id', templateController.getById);
-    router.post('/api/templates', templateController.create);
-    router.put('/api/templates/:id', templateController.update);
-    router.delete('/api/templates/:id', templateController.remove);
+    router.get('/api/templates/metadata', templateController.getTemplateMetadata);
+    router.get('/api/templates/:id', templateController.getTemplateById);
+    router.post('/api/templates', templateController.createTemplate);
+    router.put('/api/templates/:id', templateController.updateTemplate);
+    router.delete('/api/templates/:id', templateController.removeTemplate);
 };
 
 /**

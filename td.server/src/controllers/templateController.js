@@ -1,9 +1,13 @@
 import templateRepository from '../repositories/templateRepository.js';
+import loggerHelper from '../helpers/logger.helper.js';
 
+import responseWrapper from './responseWrapper.js';
+import errors from './errors.js';
 
+const logger = loggerHelper.get('controllers/templateController.js');
 
-const metadata = async (req, res) => {
-    try {
+const getTemplateMetadata = async (req, res) => responseWrapper.sendResponseAsync(async () => {
+
         const filters = {
             search: req.query.search || '',
             tags: req.query.tags ? req.query.tags.split(',') : [],
@@ -17,45 +21,30 @@ const metadata = async (req, res) => {
         };
         
         const result = await templateRepository.findAllMetadata(filters, pagination);
-        res.json(result);
-    } catch (error) {
-        console.error('Error fetching template metadata:', error);
-        res.status(500).json({ 
-            error: { 
-                code: 'INTERNAL_ERROR', 
-                message: 'Failed to fetch templates' 
-            } 
-        });
-    }
-};
+        return result;
+    }, req, res, logger);
 
-const getById = async (req, res) => {
+
+const getTemplateById = async (req, res) => {
     try {
         const { id } = req.params;
         const template = await templateRepository.findById(id);
         
         if (!template) {
             return res.status(404).json({ 
-                error: { 
-                    code: 'TEMPLATE_NOT_FOUND', 
-                    message: 'Template not found' 
-                } 
+                error: { code: 'TEMPLATE_NOT_FOUND', message: 'Template not found' } 
             });
         }
         
-        res.json(template);
+        return res.json(template);
     } catch (error) {
-        console.error('Error fetching template by ID:', error);
-        res.status(500).json({ 
-            error: { 
-                code: 'INTERNAL_ERROR', 
-                message: 'Failed to fetch template' 
-            } 
-        });
+        logger.error(error);
+        return errors.serverError('Failed to fetch template', res, logger);
     }
 };
 
-const create = async (req, res) => {
+
+const createTemplate = async (req, res) => {
     try {
         const { name, description, tags, content } = req.body;
         
@@ -107,17 +96,12 @@ const create = async (req, res) => {
         
         res.status(201).json(result);
     } catch (error) {
-        console.error('Error creating template:', error);
-        res.status(500).json({ 
-            error: { 
-                code: 'INTERNAL_ERROR', 
-                message: 'Failed to create template' 
-            } 
-        });
+         logger.error(error);
+         return errors.serverError('Error creating template', res, logger);
     }
 };
 
-const update = async (req, res) => {
+const updateTemplate = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, tags } = req.body;
@@ -170,17 +154,12 @@ const update = async (req, res) => {
         
         res.json(result);
     } catch (error) {
-        console.error('Error updating template:', error);
-        res.status(500).json({ 
-            error: { 
-                code: 'INTERNAL_ERROR', 
-                message: 'Failed to update template' 
-            } 
-        });
+        logger.error('Error updating template:', error);
+        return errors.serverError('Failed to update template', res, logger);
     }
 };
 
-const remove = async (req, res) => {
+const removeTemplate = async (req, res) => {
     try {
         const { id } = req.params;
         const deleted = await templateRepository.deleteById(id);
@@ -196,20 +175,15 @@ const remove = async (req, res) => {
         
         res.status(204).send();
     } catch (error) {
-        console.error('Error deleting template:', error);
-        res.status(500).json({ 
-            error: { 
-                code: 'INTERNAL_ERROR', 
-                message: 'Failed to delete template' 
-            } 
-        });
+        logger.error(error);
+        return errors.serverError('Error deleting template', res, logger);
     }
 };
 
 export default {
-    metadata,
-    getById,
-    create,
-    update,
-    remove
+    getTemplateMetadata,
+    getTemplateById,
+    createTemplate,
+    updateTemplate,
+    removeTemplate
 };

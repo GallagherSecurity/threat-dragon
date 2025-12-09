@@ -33,8 +33,8 @@ const actions = {
         commit('SET_LOADING', true);
         try {
             const response = await templateApi.fetchAllAsync(state.filters, state.pagination);
-            commit('SET_TEMPLATES', response.data);
-            commit('SET_PAGINATION', response.pagination);
+            commit('SET_TEMPLATES', response.data.templates);
+            commit('SET_PAGINATION', response.data.pagination);
         } catch (error) {
             console.error('Error fetching templates:', error);
             throw error;
