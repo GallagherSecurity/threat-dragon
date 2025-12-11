@@ -36,18 +36,20 @@
 </style>
 
 <script>
-import { mapState } from 'vuex';
+
 
 import TdDashboardAction from '@/components/DashboardAction.vue';
-import { getDashboardActions } from '@/service/provider/providers.js';
+import {mapGetters} from 'vuex';
 
 export default {
     name: 'MainDashboard',
     components: {
         TdDashboardAction
     },
-    computed: mapState({
-        actions: (state) => getDashboardActions(state.provider.selected)
-    })
+    computed: {
+    ...mapGetters({
+            actions: 'dashboardActions' 
+        })},
+   
 };
 </script>
