@@ -18,15 +18,15 @@ const getClient = (accessToken) => {
 };
 
 const reposAsync = (page, accessToken) => getClient(accessToken).me().
-reposAsync(page);
+    reposAsync(page);
 
-const searchAsync = (page, accessToken, searchQuerys= []) => getClient(accessToken).search().
+const searchAsync = (page, accessToken, searchQuerys = []) => getClient(accessToken).search().
     reposAsync({ page: page, q: searchQuerys });
 
 const userAsync = async (accessToken) => {
 
     const resp = await getClient(accessToken).me().
-infoAsync();
+        infoAsync();
     return resp[0];
 };
 
@@ -80,6 +80,31 @@ const deleteAsync = async (modelInfo, accessToken) => {
             modelInfo.branch
         );
 };
+const listTemplatesAsync = async (accessToken) => getClient(accessToken)
+    .repo(env.get().config.GITHUB_CONTENT_REPO).
+    contentsAsync('templates/template_info.json');
+
+
+
+
+const getTemplateAsync = async (name, accessToken) => {
+    // Fetch a specific template by name
+    // return client.repo(repo).contentsAsync(`templates/${name}.json`)
+}
+const createTemplateAsync = async (templateInfo, accessToken) => {
+    // Add a new template to the repo
+    // return client.repo(repo).createContentsAsync(`templates/${templateInfo.name}.json`, 'Created template', JSON.stringify(templateInfo.body, null, '  '), branch)
+}
+const updateTemplateAsync = async (templateInfo, accessToken) => {
+    // Edit template metadata
+    // const original = await getTemplateAsync(templateInfo.name)
+    // return client.repo(repo).updateContentsAsync(`templates/${templateInfo.name}.json`, 'Updated template', JSON.stringify(templateInfo.body, null, '  '), original[0].sha, branch)
+}
+const deleteTemplateAsync = async (name, accessToken) => { }
+// Delete a template from the repo
+// const content = await    }
+// getTemplateAsync(name)
+// return client.repo(repo).deleteContentsAsync(`templates/${name}.json`, 'Deleted template', content[0].sha, branch)   
 
 const createBranchAsync = async (repoInfo, accessToken) => {
     const client = getClient(accessToken);
@@ -91,7 +116,13 @@ const createBranchAsync = async (repoInfo, accessToken) => {
 
 const getRepoFullName = (info) => `${info.organisation}/${info.repo}`;
 const getModelPath = (modelInfo) => `${repoRootDirectory()}/${modelInfo.model}/${modelInfo.model}.json`;
+const getTemplateMetadataPath = (name) => `templates/${name}.json`;
 const getModelContent = (modelInfo) => JSON.stringify(modelInfo.body, null, '  ');
+const getRepoPermissionsAsync = async (accessToken, repoName) => {
+    const client = getClient(accessToken); // Your existing client creator
+    const info = await client.repo(repoName).infoAsync();
+    return info[0].permissions;
+};
 
 export default {
     branchesAsync,
@@ -103,5 +134,7 @@ export default {
     searchAsync,
     updateAsync,
     userAsync,
-    createBranchAsync
+    createBranchAsync,
+    getRepoPermissionsAsync,
+    listTemplatesAsync,
 };

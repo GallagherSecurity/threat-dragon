@@ -10,6 +10,7 @@
             </b-col>
         </b-row>
         <b-row >
+            
             <td-dashboard-action class="dashboard-action"
                 v-for="(action, idx) in actions"
                 :key="idx"

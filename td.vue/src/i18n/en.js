@@ -46,7 +46,8 @@ const eng = {
             openExisting: 'Open an existing threat model',
             createNew: 'Create a new, empty threat model',
             readDemo: 'Explore a sample threat model',
-            importExisting: 'Import a threat model via JSON'
+            importExisting: 'Import a threat model via JSON',
+            createFromTemplate: 'Create model from a Template'
         }
     },
     demo: {

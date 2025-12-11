@@ -11,6 +11,7 @@ export const getConfig = () => ({
     githubEnabled: env.get().config.GITHUB_CLIENT_ID !== undefined && env.get().config.GITHUB_CLIENT_ID !== null,
     gitlabEnabled: env.get().config.GITLAB_CLIENT_ID !== undefined && env.get().config.GITLAB_CLIENT_ID !== null,
     googleEnabled: env.get().config.GOOGLE_CLIENT_ID !== undefined && env.get().config.GOOGLE_CLIENT_ID !== null,
+    contentEnabled: env.get().config.CONTENT_REPO !== undefined && env.get().config.CONTENT_REPO !== null,
     localEnabled: true,
 });
 

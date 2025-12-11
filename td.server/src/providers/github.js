@@ -14,7 +14,7 @@ const name = 'github';
  * @returns {Boolean}
  */
 const isConfigured = () => Boolean(env.get().config.GITHUB_CLIENT_ID);
-
+const isContentConfigured = () => Boolean(env.get().config.CONTENT_REPO);
 /**
  * Gets the Github endpoint, which will be github.com by default OR a custom endpoint for Github enterprise
  * @returns {String}
@@ -74,9 +74,29 @@ const completeLoginAsync = async (code) => {
     repositories.set("githubrepo");
     const repo = repositories.get();
     const fullUser = await repo.userAsync(providerResp.data.access_token);
+    const contentRepoName = env.get().config.GITHUB_CONTENT_REPO;
+    let isAdmin = false;
+    if (contentRepoName) {
+        try {
+            // We need a helper in your 'repositories' file that does:
+            // client.repo(name).infoAsync()
+            const permissions = await repo.getRepoPermissionsAsync(providerResp.data.access_token, contentRepoName);
+            
+            // If they can push (write), they are an admin
+            if (permissions && (permissions.push || permissions.admin)) {
+                isAdmin = true;
+               
+            }
+        } catch (err) {
+            // If 404/403, they definitely aren't an admin.
+            // We just log it and move on (isAdmin remains false).
+            console.warn(`Admin check failed for ${contentRepoName}:`, err.message);
+        }
+    }
     const user = {
         username: fullUser.login,
-        repos_url: fullUser.repos_url
+        repos_url: fullUser.repos_url,
+        isAdmin: isAdmin
     };
     return {
         user,
@@ -89,5 +109,6 @@ export default {
     getOauthReturnUrl,
     getOauthRedirectUrl,
     isConfigured,
+    isContentConfigured,
     name
 };
