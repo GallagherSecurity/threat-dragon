@@ -38,7 +38,7 @@ const unauthRoutes = (router) => {
 const routes = (router) => {
     router.post('/api/logout', auth.logout);
     router.post('/api/token/refresh', auth.refresh);
-    router.get('/api/templates', templateController.listTemplates);
+    router.get('/api/templates/', templateController.listTemplates);
 
     router.get('/api/threatmodel/repos', threatmodelController.repos);
     router.get('/api/threatmodel/:organisation/:repo/branches', threatmodelController.branches);

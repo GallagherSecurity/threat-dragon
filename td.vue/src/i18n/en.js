@@ -111,6 +111,12 @@ const eng = {
         repo: 'repo',
         newThreatModel: 'Create a New Threat Model'
     },
+    template:{
+        select: 'Select a Template from the list below',
+        selectDescription: 'Templates provide a starting point for new threat models, pre-populated with relevant components and threats.',
+        noTemplates: 'No templates found',
+        search: 'Search templates...'
+    },
     threatmodel: {
         contributors: 'Contributors',
         contributorsPlaceholder: 'Start typing to add a contributor',

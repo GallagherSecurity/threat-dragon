@@ -10,6 +10,11 @@ export const gitRoutes = [
         component: () => import(/* webpackChunkName: "repository-access" */ '../views/git/RepositoryAccess.vue')
     },
     {
+        path: `/${providerType}/:provider/templates`, 
+        name: `${providerType}TemplateGallery`,
+        component: () => import(/* webpackChunkName: "template-gallery" */ '../views/TemplateGallery.vue')
+    },
+    {
         path: `/${providerType}/:provider/:repository/branch`,
         name: `${providerType}Branch`,
         component: () => import(/* webpackChunkName: "branch-access" */ '../views/git/BranchAccess.vue')
@@ -49,4 +54,5 @@ export const gitRoutes = [
         name: `${providerType}Report`,
         component: () => import(/* webpackChunkName: "report-model" */ '../views/ReportModel.vue')
     }
+   
 ];

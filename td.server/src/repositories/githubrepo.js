@@ -1,6 +1,8 @@
 import env from '../env/Env.js';
 import github from 'octonode';
 
+
+
 const repoRootDirectory = () => env.get().config.GITHUB_REPO_ROOT_DIRECTORY || env.get().config.REPO_ROOT_DIRECTORY;
 
 const getClient = (accessToken) => {
@@ -116,13 +118,13 @@ const createBranchAsync = async (repoInfo, accessToken) => {
 
 const getRepoFullName = (info) => `${info.organisation}/${info.repo}`;
 const getModelPath = (modelInfo) => `${repoRootDirectory()}/${modelInfo.model}/${modelInfo.model}.json`;
-const getTemplateMetadataPath = (name) => `templates/${name}.json`;
 const getModelContent = (modelInfo) => JSON.stringify(modelInfo.body, null, '  ');
 const getRepoPermissionsAsync = async (accessToken, repoName) => {
     const client = getClient(accessToken); // Your existing client creator
     const info = await client.repo(repoName).infoAsync();
     return info[0].permissions;
 };
+
 
 export default {
     branchesAsync,
@@ -138,3 +140,4 @@ export default {
     getRepoPermissionsAsync,
     listTemplatesAsync,
 };
+

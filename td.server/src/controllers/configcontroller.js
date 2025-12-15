@@ -1,6 +1,5 @@
 import env from "../env/Env";
 import loggerHelper from '../helpers/logger.helper.js';
-import googledrive from "../repositories/googledrive.js";
 import responseWrapper from "./responseWrapper";
 
 const logger = loggerHelper.get('controllers/configcontroller.js');

@@ -8,20 +8,66 @@ const logger = loggerHelper.get('controllers/templateController.js');
 
 const listTemplates = async (req, res) => responseWrapper.sendResponseAsync(async () => {
     const repository = repositories.get();
-    logger.debug(`API listTemplates request: ${logger.transformToString(req)}`);
+    
+    
+    // Extract query params
+    const filters = {
+        search: req.query.searchQuery || req.query.search || '',
+        tags: req.query.tags ? req.query.tags.split(',') : []
+    };
+    
+    const pagination = {
+        page: parseInt(req.query.page, 10) || 1,
+        limit: parseInt(req.query.limit, 10) || 20
+    };
+    
+    logger.debug(`API listTemplates request with filters: ${JSON.stringify(filters)}`);
 
     let templatesResp;
     try {
         templatesResp = await repository.listTemplatesAsync(req.provider.access_token);
     } catch (e) {
         if (e.statusCode === 404) {
-            return [];
+            return { templates: [], pagination: { page: 1, total: 0, totalPages: 0 } };
         }
         throw e;
     }
-    return (JSON.parse(Buffer.from(templatesResp[0].content, 'base64').toString('utf8'))).templates;
+    
+    const decoded = Buffer.from(templatesResp[0].content, 'base64').toString('utf8');
+    const parsed = JSON.parse(decoded);
+    let templates = parsed.templates;
+    
+    // Apply filters
+    if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        templates = templates.filter(t => 
+            t.name.toLowerCase().includes(searchLower) ||
+            t.description.toLowerCase().includes(searchLower)
+        );
+    }
+    
+    if (filters.tags && filters.tags.length > 0) {
+        templates = templates.filter(t =>
+            filters.tags.some(tag => t.tags.includes(tag))
+        );
+    }
+    
+    // Apply pagination
+    const total = templates.length;
+    const totalPages = Math.ceil(total / pagination.limit);
+    const start = (pagination.page - 1) * pagination.limit;
+    const paginatedTemplates = templates.slice(start, start + pagination.limit);
+    
+    return {
+        templates: paginatedTemplates,
+        pagination: {
+            page: pagination.page,
+            limit: pagination.limit,
+            total: total,
+            totalPages: totalPages
+        }
+    };
 }, req, res, logger);
-
 
 const repos = (req, res) => responseWrapper.sendResponseAsync(async () => {
     const repository = repositories.get();
