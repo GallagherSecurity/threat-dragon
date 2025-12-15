@@ -21,12 +21,14 @@ import {
     THREATMODEL_SAVE,
     THREATMODEL_SELECTED,
     THREATMODEL_STASH,
-    THREATMODEL_UPDATE
+    THREATMODEL_UPDATE,
+    THREATMODEL_TEMPLATE_DOWNLOAD
 } from '@/store/actions/threatmodel';
 import save from '@/service/save';
 import threatmodelApi from '@/service/api/threatmodelApi';
 import googleDriveApi from '@/service/api/googleDriveApi';
 import { FOLDER_SELECTED } from '../actions/folder';
+import { v4 as uuidv4 } from 'uuid';
 
 const state = {
     all: [],
@@ -142,7 +144,46 @@ const actions = {
     [THREATMODEL_SELECTED]: ({ commit }, threatModel) => commit(THREATMODEL_SELECTED, threatModel),
     [THREATMODEL_STASH]: ({ commit }) => commit(THREATMODEL_STASH),
     [THREATMODEL_NOT_MODIFIED]: ({ commit }) => commit(THREATMODEL_NOT_MODIFIED),
-    [THREATMODEL_UPDATE]: ({ commit }, update) => commit(THREATMODEL_UPDATE, update)
+    [THREATMODEL_UPDATE]: ({ commit }, update) => commit(THREATMODEL_UPDATE, update),
+    [THREATMODEL_TEMPLATE_DOWNLOAD]: async ({ state }, templateMetadata) => {
+        console.debug('Download template action');
+
+        const model = JSON.parse(JSON.stringify(state.data));
+
+        // Blank out instance-specific fields
+        model.summary.id = '';
+        model.summary.owner = '';
+        model.summary.title = templateMetadata.name || '';
+        model.summary.description = templateMetadata.description || '';
+
+        if (model.detail.reviewer !== undefined) {
+            model.detail.reviewer = '';
+        }
+
+        if (model.detail.contributors) {
+            model.detail.contributors = [];
+        }
+
+        // Create the template structure
+        const templateData = {
+            templateMetadata: {
+                id: uuidv4(), // Don't forget the GUID!
+                name: templateMetadata.name,
+                description: templateMetadata.description,
+                tags: templateMetadata.tags
+            },
+            model: model
+        };
+
+        // Calculate filename once
+        const fileName = `${templateMetadata.name}.json`;
+
+        // CALL THE NEW FUNCTION
+        // Pass data and filename explicitly. No confusing 'state' wrapper needed.
+        return await save.template(templateData, fileName);
+
+
+    },
 };
 
 const mutations = {

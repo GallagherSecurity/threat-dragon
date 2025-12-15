@@ -115,7 +115,20 @@ const eng = {
         select: 'Select a Template from the list below',
         selectDescription: 'Templates provide a starting point for new threat models, pre-populated with relevant components and threats.',
         noTemplates: 'No templates found',
-        search: 'Search templates...'
+        search: 'Search templates...',
+        exportTemplate: 'Export as Template',
+        tags: 'Tags',
+        name: 'Template Name',
+        description: 'Template Description',
+        saveTemplate: 'Save Template',
+        warnings: {
+            templateSave: 'Could not save the template. Check the developer console for more information'
+        },
+        prompts: {
+            templateSaved: 'Template successfully saved',
+            templateDownloading: 'Downloading template'
+        }
+
     },
     threatmodel: {
         contributors: 'Contributors',
@@ -305,7 +318,10 @@ const eng = {
         saveModelAs: 'Save Model As',
         search: 'Search',
         next:'Next',
-        previous:'Previous'
+        previous:'Previous',
+        manage : 'Manage...',
+
+        exportTemplate: 'Export As Template',
     },
     threats: {
         model: {

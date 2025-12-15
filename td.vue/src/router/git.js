@@ -10,7 +10,12 @@ export const gitRoutes = [
         component: () => import(/* webpackChunkName: "repository-access" */ '../views/git/RepositoryAccess.vue')
     },
     {
-        path: `/${providerType}/:provider/templates`, 
+        path: `/${providerType}/:provider/export-template`,
+        name: `${providerType}ThreatModelExportTemplate`,
+        component: () => import(/* webpackChunkName: "export-template" */ '../views/ExportTemplate.vue'),
+    },
+    {
+        path: `/${providerType}/:provider/templates`,
         name: `${providerType}TemplateGallery`,
         component: () => import(/* webpackChunkName: "template-gallery" */ '../views/TemplateGallery.vue')
     },
@@ -54,5 +59,5 @@ export const gitRoutes = [
         name: `${providerType}Report`,
         component: () => import(/* webpackChunkName: "report-model" */ '../views/ReportModel.vue')
     }
-   
+
 ];

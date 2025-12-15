@@ -9,6 +9,11 @@ export const localRoutes = [
         component: () => import(/* webpackChunkName: "threatmodel" */ '../views/ThreatModel.vue')
     },
     {
+        path: `/${providerType}/export-template`,
+        name: `${providerType}ThreatModelExportTemplate`,
+        component: () => import(/* webpackChunkName: "export-template" */ '../views/ExportTemplate.vue')
+    },
+    {
         path: `/${providerType}/:threatmodel/edit`,
         name: `${providerType}ThreatModelEdit`,
         component: () => import(/* webpackChunkName: "threatmodel-edit" */ '../views/ThreatModelEdit.vue')

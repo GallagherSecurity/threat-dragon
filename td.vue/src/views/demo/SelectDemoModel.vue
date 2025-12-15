@@ -41,7 +41,7 @@ export default {
     },
     mounted() {
         this.$store.dispatch(tmActions.clear);
-        this.$store.dispatch(tmActions.fetchAll);
+
     },
     methods: {
         onModelClick(model) {

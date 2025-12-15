@@ -47,6 +47,27 @@ const local = async (state) => {
     return result;
 };
 
+//method used to save the tempalte locally
+const template = async (data, filename) => {
+    let result = false;
+    if ('showSaveFilePicker' in self) {
+        result = await writeFile(data, filename);
+        
+        if (result) {
+            Vue.$toast.success(i18n.get().t('template.prompts.templateSaved'));
+        } else {
+            Vue.$toast.warning(i18n.get().t('template.warnings.templateSave'));
+        }
+    } 
+   
+    else {
+        result = await downloadFile(data, filename);
+        Vue.$toast.success(i18n.get().t('template.prompts.templateDownloading'));
+    }
+
+    return result;
+};
+
 const repo = async (rootState, state) => {
     try {
         await threatmodelApi.updateAsync(
@@ -159,5 +180,6 @@ export default {
     googleCreate,
     local,
     repo,
-    repoCreate
+    repoCreate,
+    template
 };
