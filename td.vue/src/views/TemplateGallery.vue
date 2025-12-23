@@ -8,48 +8,35 @@
                 </b-jumbotron>
             </b-col>
         </b-row>
-        
+
         <!-- Search bar -->
         <b-row>
             <b-col md="6" offset-md="3">
                 <b-form-group>
                     <b-input-group>
-                        <b-form-input
-                            v-model="searchQuery"
-                            :placeholder="$t('template.search')"
-                            @input="onSearchChange"
-                        />
+                        <b-form-input v-model="searchQuery" :placeholder="$t('template.search')"
+                            @input="onSearchChange" />
                     </b-input-group>
                 </b-form-group>
             </b-col>
         </b-row>
 
-        
+
 
         <!-- Template list -->
-        <b-row >
+        <b-row>
             <b-col md="6" offset-md="3">
                 <b-list-group v-if="templates.length > 0">
-                    <b-list-group-item
-                        v-for="template in templates"
-                        :key="template.id"
-                        href="javascript:void(0)"
-                        @click="onTemplateClick(template)"
-                        :data-template-id="template.id"
-                    >
+                    <b-list-group-item v-for="template in templates" :key="template.id" href="javascript:void(0)"
+                        @click="onTemplateClick(template)" :data-template-id="template.id">
                         <h5>{{ template.name }}</h5>
                         <p class="mb-1 text-muted">{{ template.description }}</p>
-                        <b-badge
-                            v-for="tag in template.tags"
-                            :key="tag"
-                            variant="primary"
-                            class="mr-1"
-                        >
+                        <b-badge v-for="tag in template.tags" :key="tag" variant="primary" class="mr-1">
                             {{ tag }}
                         </b-badge>
                     </b-list-group-item>
                 </b-list-group>
-                
+
                 <b-alert v-else show variant="info">
                     {{ $t('template.noTemplates') }}
                 </b-alert>
@@ -81,42 +68,30 @@ export default {
     },
     methods: {
         async onTemplateClick(template) {
-            try {
-                // Fetch full template (with content)
-                const fullTemplate = await this.$store.dispatch(
-                    templateActions.fetchById, 
-                    template.id
-                );
+    try {
+        // Store template context in Vuex
+        await this.$store.dispatch(templateActions.setTemplateContext, template.id);
+
+        // Extract provider from route params
+        console.log('Template selected:', this.$route.name);
+        const { provider } = this.$route.params;
         
-                // Convert template to model with UUID regeneration
-                const newModel = await this.$store.dispatch(tmActions.templateLoad, {
-                    templateData: fullTemplate.content,
-           
-                });
+        // Detect provider type from route name (e.g., 'gitTemplateGallery' → 'git')
+        const providerType = this.$route.name.replace('TemplateGallery', '');
         
-                // Update with a filename
-                this.$store.dispatch(tmActions.update, {
-                    fileName: `${template.name}-${Date.now()}.json`
-                });
-        
-                // Navigate to threat model view
-                const params = { 
-                    threatmodel: newModel.summary.title 
-                };
-                this.$router.push({ 
-                    name: 'localThreatModel',
-                    params 
-                });
-            } catch (error) {
-                console.error('Error loading template:', error);
-                this.$bvToast.toast('Failed to load template', {
-                    title: 'Error',
-                    variant: 'danger',
-                    solid: true
-                });
-            }
-        },
-        
+        // Route to repository selection
+        this.$router.push({
+            name: `${providerType}Repository`,
+            params: { provider },
+            query: { action: 'create' }
+        });
+
+    } catch (error) {
+        console.error('Error setting template context:', error);
+        this.$toast.error('Failed to load template');
+    }
+},
+
         onSearchChange() {
             // Debounce search
             clearTimeout(this.searchTimeout);

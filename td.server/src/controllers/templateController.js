@@ -1,302 +1,381 @@
-import env from '../env/Env.js';
+
 import loggerHelper from '../helpers/logger.helper.js';
 import repositories from "../repositories";
-import responseWrapper from './responseWrapper.js';
-import { serverError } from './errors.js';
+import { serverError, badRequest, notFound } from './errors.js';
 
 const logger = loggerHelper.get('controllers/templateController.js');
 
-const listTemplates = async (req, res) => responseWrapper.sendResponseAsync(async () => {
+const listTemplates = async (req, res) => {
     const repository = repositories.get();
     
-    
-    // Extract query params
-    const filters = {
-        search: req.query.searchQuery || req.query.search || '',
-        tags: req.query.tags ? req.query.tags.split(',') : []
-    };
-    
-    const pagination = {
-        page: parseInt(req.query.page, 10) || 1,
-        limit: parseInt(req.query.limit, 10) || 20
-    };
-    
-    logger.debug(`API listTemplates request with filters: ${JSON.stringify(filters)}`);
-
-    let templatesResp;
     try {
-        templatesResp = await repository.listTemplatesAsync(req.provider.access_token);
-    } catch (e) {
-        if (e.statusCode === 404) {
-            return { templates: [], pagination: { page: 1, total: 0, totalPages: 0 } };
+        // Extract and validate query params
+        const filters = {
+            search: (req.query.searchQuery || req.query.search || '').trim(),
+            tags: req.query.tags ? req.query.tags.split(',').filter(t => t.trim()) : []
+        };
+        
+        const pagination = {
+            page: parseInt(req.query.page, 10) || 1,
+            limit: parseInt(req.query.limit, 10) || 20
+        };
+        
+        // Validate pagination bounds
+        if (pagination.page < 1 || pagination.limit < 1 || pagination.limit > 100) {
+            return badRequest('Invalid pagination parameters: page and limit must be positive, limit max 100', res, logger);
         }
-        throw e;
-    }
-    
-    const decoded = Buffer.from(templatesResp[0].content, 'base64').toString('utf8');
-    const parsed = JSON.parse(decoded);
-    let templates = parsed.templates;
-    
-    // Apply filters
-    if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        templates = templates.filter(t => 
-            t.name.toLowerCase().includes(searchLower) ||
-            t.description.toLowerCase().includes(searchLower)
-        );
-    }
-    
-    if (filters.tags && filters.tags.length > 0) {
-        templates = templates.filter(t =>
-            filters.tags.some(tag => t.tags.includes(tag))
-        );
-    }
-    
-    // Apply pagination
-    const total = templates.length;
-    const totalPages = Math.ceil(total / pagination.limit);
-    const start = (pagination.page - 1) * pagination.limit;
-    const paginatedTemplates = templates.slice(start, start + pagination.limit);
-    
-    return {
-        templates: paginatedTemplates,
-        pagination: {
-            page: pagination.page,
-            limit: pagination.limit,
-            total: total,
-            totalPages: totalPages
-        }
-    };
-}, req, res, logger);
+        
+        logger.debug(`API listTemplates request: ${logger.transformToString(req)}`);
 
-const repos = (req, res) => responseWrapper.sendResponseAsync(async () => {
-    const repository = repositories.get();
-
-    const page = req.query.page || 1;
-    const searchQuerys = req.query.searchQuery || [];
-    let reposResp;
-    let repos;
-    // backwardly compatible with previous use of env vars GITHUB_USE_SEARCH and GITHUB_SEARCH_QUERY
-    if (env.get().config.REPO_USE_SEARCH === 'true' || env.get().config.GITHUB_USE_SEARCH === 'true') {
-        logger.debug('Using searchAsync');
-        const searchQuery = env.get().config.REPO_SEARCH_QUERY ?? env.get().config.GITHUB_SEARCH_QUERY;
-        reposResp = await repository.searchAsync(page, req.provider.access_token, [searchQuery, ...searchQuerys]);
-        repos = reposResp[0].items ?? reposResp[0];
-    } else {
-        logger.debug('Using reposAsync');
-        reposResp = await repository.reposAsync(page, req.provider.access_token, [searchQuerys]);
-        repos = reposResp[0];
-    }
-    const headers = reposResp[1];
-    const pageLinks = reposResp[2];
-    logger.debug(`API repos request: ${logger.transformToString(req)}`);
-
-    const pagination = getPagination(headers, pageLinks, page);
-
-    return {
-        repos: repos.map((x) => x.full_name),
-        pagination: pagination
-    };
-}, req, res, logger);
-
-
-
-const branches = (req, res) => responseWrapper.sendResponseAsync(async () => {
-
-    const repository = repositories.get();
-
-    const repoInfo = {
-        organisation: req.params.organisation,
-        repo: req.params.repo,
-        page: req.query.page || 1
-    };
-    logger.debug(`API branches request: ${logger.transformToString(req)}`);
-
-    const branchesResp = await repository.branchesAsync(repoInfo, req.provider.access_token);
-    const branches = branchesResp[0];
-    const headers = branchesResp[1];
-    const pageLinks = branchesResp[2];
-
-    const branchNames = branches.map((x) => ({
-        name: x.name,
-        // Protected branches are not so easy to determine from the API on Bitbucket
-        protected: x.protected||false
-    }));
-
-    const pagination = getPagination(headers, pageLinks, repoInfo.page);
-
-    return {
-        branches: branchNames,
-        pagination: pagination
-    };
-}, req, res, logger);
-
-const models = (req, res) => responseWrapper.sendResponseAsync(async () => {
-    const repository = repositories.get();
-
-    const branchInfo = {
-        organisation: req.params.organisation,
-        repo: req.params.repo,
-        branch: req.params.branch
-    };
-    logger.debug(`API models request: ${logger.transformToString(req)}`);
-
-    let modelsResp;
-    try {
-        modelsResp = await repository.modelsAsync(branchInfo, req.provider.access_token);
-    } catch (e) {
-        if (e.statusCode === 404) {
-            return [];
-        }
-
-        throw e;
-    }
-    return modelsResp[0].map((x) => x.name);
-}, req, res, logger);
-
-const model = (req, res) => responseWrapper.sendResponseAsync(async () => {
-    const repository = repositories.get();
-    const modelInfo = {
-        organisation: req.params.organisation,
-        repo: req.params.repo,
-        branch: req.params.branch,
-        model: req.params.model
-    };
-    logger.debug(`API model request: ${logger.transformToString(req)}`);
-
-    const modelResp = await repository.modelAsync(modelInfo, req.provider.access_token);
-    return JSON.parse(Buffer.from(modelResp[0].content, 'base64').toString('utf8'));
-}, req, res, logger);
-
-const create = async (req, res) => {
-    const repository = repositories.get();
-
-    const modelBody = {
-        organisation: req.params.organisation,
-        repo: req.params.repo,
-        branch: req.params.branch,
-        model: req.params.model,
-        body: req.body
-    };
-    logger.debug(`API create request: ${logger.transformToString(req)}`);
-
-    try {
-        const createResp = await repository.createAsync(modelBody, req.provider.access_token);
-        return res.status(201).send(createResp);
-    } catch (err) {
-        logger.error(err);
-        return serverError('Error creating model', res, logger);
-    }
-};
-
-const update = async (req, res) => {
-    const repository = repositories.get();
-
-    const modelBody = {
-        organisation: req.params.organisation,
-        repo: req.params.repo,
-        branch: req.params.branch,
-        model: req.params.model,
-        body: req.body
-    };
-    logger.debug(`API update request: ${logger.transformToString(req)}`);
-
-    try {
-        const updateResp = await repository.updateAsync(modelBody, req.provider.access_token);
-        return res.send(updateResp);
-    } catch (err) {
-        logger.error(err);
-        return serverError('Error updating model', res, logger);
-    }
-};
-
-const deleteModel = async (req, res) => {
-    const repository = repositories.get();
-
-    const modelInfo = {
-        organisation: req.params.organisation,
-        repo: req.params.repo,
-        branch: req.params.branch,
-        model: req.params.model
-    };
-    logger.debug(`API deleteModel request: ${logger.transformToString(req)}`);
-
-    try {
-        const deleteResp = await repository.deleteAsync(modelInfo, req.provider.access_token);
-        return res.send(deleteResp);
-    } catch (err) {
-        logger.error(err);
-        return serverError('Error deleting model', res, logger);
-    }
-};
-
-const getPagination = (headers, pageLinks, page) => {
-
-    if(headers === undefined || headers === null || (Object.keys(headers).length === 0) || headers?.link === null){
-        if (pageLinks === undefined || pageLinks === null || (Object.keys(pageLinks).length === 0)) {
-            return {page, next: false, prev: false};
-        }
-        return getPaginationFromPageLinks(pageLinks, page);
-    } 
-        return getPaginationFromHeaders(headers, page);
-    
-};
-
-const getPaginationFromPageLinks = (pageLinks, page) => {
-    const pagination = {page, next: false, prev: false};
-    pagination.next = pageLinks.next;
-    pagination.prev = pageLinks.prev;
-    return pagination;
-};
-
-const getPaginationFromHeaders = (headers, page) => {
-    const pagination = {page, next: false, prev: false};
-    const linkHeader = headers.link;
-    if (linkHeader) {
-        linkHeader.split(',').forEach((link) => {
-            const isLinkType = (type) => link.split(';')[1].split('=')[1] === type;
-
-            if (isLinkType('"next"')) {
-                pagination.next = true;
+        let templatesResp;
+        try {
+            templatesResp = await repository.listTemplatesAsync(req.provider.access_token);
+        } catch (e) {
+            if (e.statusCode === 404) {
+                return res.status(200).json({
+                    status: 200,
+                    data: {
+                        templates: [],
+                        pagination: { page: 1, limit: pagination.limit, total: 0, totalPages: 0 }
+                    }
+                });
             }
+            throw e;
+        }
+        
+        let templates;
+        try {
+            const decoded = Buffer.from(templatesResp[0].content, 'base64').toString('utf8');
+            const parsed = JSON.parse(decoded);
+            templates = Array.isArray(parsed) ? parsed : (parsed.templates || []);
+        } catch (parseErr) {
+            logger.error('Failed to parse template metadata:', parseErr);
+            return serverError('Invalid template data format', res, logger);
+        }
+        
+        if (filters.search) {
+            const searchLower = filters.search.toLowerCase();
+            templates = templates.filter(t => 
+                (t.name || '').toLowerCase().includes(searchLower) ||
+                (t.description || '').toLowerCase().includes(searchLower)
+            );
+        }
+        
+        if (filters.tags && filters.tags.length > 0) {
+            templates = templates.filter(t =>
+                filters.tags.some(tag => (t.tags || []).includes(tag))
+            );
+        }
+        
+        const total = templates.length;
+        const totalPages = Math.ceil(total / pagination.limit);
+        const start = (pagination.page - 1) * pagination.limit;
+        const paginatedTemplates = templates.slice(start, start + pagination.limit);
 
-            if (isLinkType('"prev"')) {
-                pagination.prev = true;
+        return res.status(200).json({
+            status: 200,
+            data: {
+                templates: paginatedTemplates,
+                pagination: {
+                    page: pagination.page,
+                    limit: pagination.limit,
+                    total: total,
+                    totalPages: totalPages
+                }
             }
         });
+    } catch (err) {
+        logger.error(err);
+        return serverError(err.message || 'Failed to retrieve templates', res, logger);
     }
-    return pagination;
+};
+
+const importTemplate = async (req, res) => {
+    const repository = repositories.get();
+    const accessToken = req.provider.access_token;
+    
+    try {
+        // Extract and validate template data
+        const {  templateMetadata,  model } = req.body;
+        const effectiveTemplate = { 
+            metadata: templateMetadata,
+            model:  model
+        };
+
+        // Validate payload
+        if (!effectiveTemplate || !effectiveTemplate.metadata || !effectiveTemplate.model) {
+            return badRequest('Invalid template payload: expected metadata and model', res, logger);
+        }
+
+        const { metadata, model: templateModel } = effectiveTemplate;
+        
+        if (!metadata.name || !metadata.modelRef) {
+            return badRequest('Template metadata must include name and modelRef', res, logger);
+        }
+        
+        logger.debug(`API importTemplate request: ${logger.transformToString(req)}`);
+
+        try {
+            // Fetch existing metadata file
+            const result = await repository.listTemplatesAsync(accessToken);
+            const currentSha = result[0].sha;
+            
+            let existingTemplates;
+            try {
+                const decoded = Buffer.from(result[0].content, 'base64').toString('utf8');
+                const parsed = JSON.parse(decoded);
+                existingTemplates = Array.isArray(parsed) ? parsed : (parsed.templates || []);
+            } catch (parseErr) {
+                logger.error('Failed to parse existing templates:', parseErr);
+                return serverError('Invalid existing template data format', res, logger);
+            }
+
+            // Duplicate check
+            const isDuplicate = existingTemplates.some(t => 
+                (t.name || '').toLowerCase() === metadata.name.toLowerCase()
+            );
+
+            if (isDuplicate) {
+                return badRequest(`A template with the name "${metadata.name}" already exists`, res, logger);
+            }
+
+            // Add new template metadata
+            const newMetadataEntry = { ...metadata };
+            existingTemplates.push(newMetadataEntry);
+
+            // Update metadata file and create content file
+            await repository.updateMetadataAsync(accessToken, existingTemplates, currentSha);
+            await repository.createContentFileAsync(accessToken, metadata.modelRef, templateModel);
+
+            return res.status(201).json({ 
+                status: 201, 
+                message: "Template imported successfully" 
+            });
+
+        } catch (error) {
+            if (error.statusCode === 404) {
+                logger.debug('Index not found, creating new one...');
+                
+                try {
+                    const newTemplates = [{ ...metadata }];
+                    await repository.addTemplateMetadataAsync(accessToken, newTemplates, null);
+                    await repository.createContentFileAsync(accessToken, metadata.modelRef, templateModel);
+                    return res.status(201).json({ 
+                        status: 201, 
+                        message: "Template imported successfully (new index created)" 
+                    });
+                } catch (bootstrapError) {
+                    logger.error('Failed to bootstrap templates:', bootstrapError);
+                    return serverError(`Failed to create template index: ${bootstrapError.message}`, res, logger);
+                }
+            }
+            
+            throw error;
+        }
+    } catch (error) {
+        logger.error('Import template error:', error);
+        return serverError(error.message || 'Failed to import template', res, logger);
+    }
+};
+
+const deleteTemplate = async (req, res) => {
+    const repository = repositories.get();
+    const accessToken = req.provider.access_token;
+    const { id } = req.params;
+    
+    try {
+        if (!id) {
+            return badRequest('Template ID is required', res, logger);
+        }
+        
+        logger.debug(`API deleteTemplate request: ${logger.transformToString(req)}`);
+
+        // 1. Fetch current metadata
+        let result, sha, existingTemplates;
+        try {
+            result = await repository.listTemplatesAsync(accessToken);
+            const file = result[0];
+            sha = file.sha;
+            
+            const decoded = Buffer.from(file.content, 'base64').toString('utf8');
+            const parsed = JSON.parse(decoded);
+            existingTemplates = Array.isArray(parsed) ? parsed : (parsed.templates || []);
+        } catch (parseErr) {
+            logger.error('Failed to parse template metadata:', parseErr);
+            return serverError('Invalid template data format', res, logger);
+        }
+        
+        // 2. Find and remove the template
+        const templateToDelete = existingTemplates.find(t => t.id === id);
+        if (!templateToDelete) {
+            return notFound(`Template with ID "${id}" not found`, res, logger);
+        }
+
+        const updatedTemplates = existingTemplates.filter(t => t.id !== id);
+
+        // 3. Delete content file and update metadata
+        await repository.deleteContentFileAsync(accessToken, templateToDelete.modelRef);
+        await repository.updateMetadataAsync(accessToken, updatedTemplates, sha);
+        
+        return res.status(200).json({ 
+            status: 200, 
+            message: 'Template deleted successfully' 
+        });
+    } catch (err) {
+        logger.error(err);
+        return serverError(err.message || 'Failed to delete template', res, logger);
+    }
 };
 
 
-const createBranch = async (req, res) => {
+const updateTemplate = async (req, res) => {
     const repository = repositories.get();
-
-    const branchInfo = {
-        organisation: req.params.organisation,
-        repo: req.params.repo,
-        branch: req.params.branch,
-        ref: req.body.refBranch
-    };
-    logger.debug(`API createBranch request: ${logger.transformToString(req)}`);
-
+    const accessToken = req.provider.access_token;
+    const { id } = req.params; 
+    const { name, description, tags } = req.body; 
+    
     try {
-        const createBranchResp = await repository.createBranchAsync(branchInfo, req.provider.access_token);
-        return res.status(201).send(createBranchResp);
+        if (!id) {
+            return badRequest('Template ID is required', res, logger);
+        }
+        
+        if (!name || typeof name !== 'string') {
+            return badRequest('Template name is required and must be a string', res, logger);
+        }
+        
+        logger.debug(`API updateTemplate request: ${logger.transformToString(req)}`);
+
+        let result, sha, existingTemplates;
+        try {
+            result = await repository.listTemplatesAsync(accessToken);
+            const file = result[0];
+            sha = file.sha;
+
+            const decoded = Buffer.from(file.content, 'base64').toString('utf8');
+            const parsed = JSON.parse(decoded);
+            existingTemplates = Array.isArray(parsed) ? parsed : (parsed.templates || []);
+        } catch (parseErr) {
+            logger.error('Failed to parse template metadata:', parseErr);
+            return serverError('Invalid template data format', res, logger);
+        }
+
+        const templateIndex = existingTemplates.findIndex(t => t.id === id);
+        if (templateIndex === -1) {
+            return notFound(`Template with ID "${id}" not found`, res, logger);
+        }
+
+        // Update metadata but preserve id and modelRef
+        existingTemplates[templateIndex] = {
+            ...existingTemplates[templateIndex],
+            name: name.trim(),
+            ...(description && { description: description.trim() }),
+            ...(Array.isArray(tags) && { tags }),
+            id: id,  // Preserve original id
+            modelRef: existingTemplates[templateIndex].modelRef  // Preserve original modelRef
+        };
+
+        await repository.updateMetadataAsync(accessToken, existingTemplates, sha);
+
+        return res.status(200).json({ 
+            status: 200, 
+            message: 'Template updated successfully' 
+        });
     } catch (err) {
         logger.error(err);
-        return serverError('Error creating branch', res, logger);
+        return serverError(err.message || 'Failed to update template', res, logger);
+    }
+};
+
+const getTemplateContent = async (req, res) => {
+    const repository = repositories.get();
+    const accessToken = req.provider.access_token;
+    const { id } = req.params;
+
+    try {
+        if (!id) {
+            return badRequest('Template ID is required', res, logger);
+        }
+
+        logger.debug(`API getTemplateContent request: ${logger.transformToString(req)}`);
+
+        // 1. Fetch metadata to get modelRef
+        let result, existingTemplates;
+        try {
+            result = await repository.listTemplatesAsync(accessToken);
+            const file = result[0];
+
+            const decoded = Buffer.from(file.content, 'base64').toString('utf8');
+            const parsed = JSON.parse(decoded);
+            existingTemplates = Array.isArray(parsed) ? parsed : (parsed.templates || []);
+        } catch (parseErr) {
+            logger.error('Failed to parse template metadata:', parseErr);
+            return serverError('Invalid template data format', res, logger);
+        }
+
+        // 2. Find template by id
+        const template = existingTemplates.find(t => t.id === id);
+        if (!template) {
+            return notFound(`Template with ID "${id}" not found`, res, logger);
+        }
+
+        // 3. Fetch content file using modelRef
+        try {
+            const contentResult = await repository.getContentFileAsync(accessToken, template.modelRef);
+            const contentFile = contentResult[0];
+
+            let templateContent;
+            try {
+                const decoded = Buffer.from(contentFile.content, 'base64').toString('utf8');
+                templateContent = JSON.parse(decoded);
+            } catch (parseErr) {
+                logger.error('Failed to parse template content:', parseErr);
+                return serverError('Invalid template content format', res, logger);
+            }
+
+            return res.status(200).json({
+                status: 200,
+                data: {
+                    content: templateContent,
+                    metadata: template
+                }
+            });
+        } catch (error) {
+            if (error.statusCode === 404) {
+                return notFound(`Template content for "${template.name}" not found`, res, logger);
+            }
+            throw error;
+        }
+    } catch (err) {
+        logger.error(err);
+        return serverError(err.message || 'Failed to retrieve template content', res, logger);
+    }
+};
+
+const bootstrapTemplateRepository = async (req, res) => {
+    const repository = repositories.get();
+    const accessToken = req.provider.access_token;
+
+    try {
+        logger.debug(`API bootstrapTemplateRepository request: ${logger.transformToString(req)}`);
+
+        // Create empty template_info.json file
+        await repository.createMetadataAsync(accessToken);
+
+        return res.status(201).json({
+            status: 201,
+            message: 'Template repository initialized successfully'
+        });
+    } catch (err) {
+        logger.error(err);
+        return serverError(err.message || 'Failed to initialize template repository', res, logger);
     }
 };
 
 export default {
     listTemplates,
-    branches,
-    create,
-    deleteModel,
-    model,
-    models,
-    repos,
-    update,
-    createBranch
+    importTemplate,
+    deleteTemplate,
+    updateTemplate,
+    getTemplateContent,
+    bootstrapTemplateRepository
 };

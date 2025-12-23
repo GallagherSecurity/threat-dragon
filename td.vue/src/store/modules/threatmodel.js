@@ -22,13 +22,16 @@ import {
     THREATMODEL_SELECTED,
     THREATMODEL_STASH,
     THREATMODEL_UPDATE,
-    THREATMODEL_TEMPLATE_DOWNLOAD
+    THREATMODEL_TEMPLATE_DOWNLOAD,
+    THREATMODEL_TEMPLATE_LOAD,
+    THREATMODEL_TEMPLATE_CONTEXT_SET,
+    THREATMODEL_TEMPLATE_CONTEXT_CLEAR
 } from '@/store/actions/threatmodel';
 import save from '@/service/save';
 import threatmodelApi from '@/service/api/threatmodelApi';
 import googleDriveApi from '@/service/api/googleDriveApi';
 import { FOLDER_SELECTED } from '../actions/folder';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 } from 'uuid';
 
 const state = {
     all: [],
@@ -37,7 +40,8 @@ const state = {
     stash: '',
     modified: false,
     modifiedDiagram: {},
-    selectedDiagram: {}
+    selectedDiagram: {},
+    templateContext: null
 };
 
 const stashThreatModel = (theState, threatModel) => {
@@ -167,10 +171,11 @@ const actions = {
         // Create the template structure
         const templateData = {
             templateMetadata: {
-                id: uuidv4(), // Don't forget the GUID!
+                id: v4(), // Don't forget the GUID!
                 name: templateMetadata.name,
                 description: templateMetadata.description,
-                tags: templateMetadata.tags
+                tags: templateMetadata.tags,
+                modelRef: v4()
             },
             model: model
         };
@@ -184,6 +189,61 @@ const actions = {
 
 
     },
+    [THREATMODEL_TEMPLATE_LOAD]: async ({ commit }, { templateData }) => {
+        console.debug('Load template action');
+
+        // Convert template → model
+        const model = JSON.parse(JSON.stringify(templateData)); // deep clone
+
+
+        // Regenerate all IDs
+        const idMap = {};
+
+        model.detail.diagrams.forEach(diagram => {
+            // Map diagram ID
+            idMap[diagram.id] = v4();
+            diagram.id = idMap[diagram.id];
+
+            // First pass: map all cell and port IDs
+            if (diagram.cells && Array.isArray(diagram.cells)) {
+                diagram.cells.forEach(cell => {
+                    idMap[cell.id] = v4();
+
+                    if (cell.ports?.items) {
+                        cell.ports.items.forEach(port => {
+                            idMap[port.id] = v4();
+                        });
+                    }
+                });
+
+                // Second pass: apply new IDs and update references
+                diagram.cells.forEach(cell => {
+                    cell.id = idMap[cell.id];
+
+                    if (cell.ports?.items) {
+                        cell.ports.items.forEach(port => {
+                            port.id = idMap[port.id];
+                        });
+                    }
+
+                    if (cell.source?.cell) {
+                        cell.source.cell = idMap[cell.source.cell];
+                        cell.source.port = idMap[cell.source.port];
+                    }
+
+                    if (cell.target?.cell) {
+                        cell.target.cell = idMap[cell.target.cell];
+                        cell.target.port = idMap[cell.target.port];
+                    }
+                });
+            }
+        });
+
+        // Set as current model (reuse existing mutation)
+        commit(THREATMODEL_SELECTED, model);
+
+        return model;
+    }
 };
 
 const mutations = {

@@ -27,7 +27,7 @@
           </template>
 
           <!-- Dropdown items -->
-          <b-dropdown-item to="/admin/templates">
+          <b-dropdown-item @click="onManageTemplates">
             Manage Templates
           </b-dropdown-item>
         </b-nav-item-dropdown>
@@ -134,7 +134,14 @@ export default {
           throw error;
         }
       });
-    }
+    },
+     onManageTemplates() {
+            this.$router.push('/admin/templates').catch(error => {
+                if (error.name != 'NavigationDuplicated') {
+                    throw error;
+                }
+            });
   }
+}
 };
 </script>

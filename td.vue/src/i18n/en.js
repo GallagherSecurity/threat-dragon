@@ -121,6 +121,9 @@ const eng = {
         name: 'Template Name',
         description: 'Template Description',
         saveTemplate: 'Save Template',
+        addNew: 'Add New Template',
+        manage: 'Manage Templates',
+        manageDescription: 'Import, export, and manage your threat model templates here.',
         warnings: {
             templateSave: 'Could not save the template. Check the developer console for more information'
         },

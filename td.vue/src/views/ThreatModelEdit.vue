@@ -249,6 +249,10 @@ export default {
         },
         async onCloseClick(evt) {
             evt.preventDefault();
+            if (this.providerType === 'local') {
+        this.$router.push({ name: 'localThreatModel', params: { threatmodel: this.model.summary.title } });
+        return;
+    }
             if (await this.restoreAsync()) {
                 this.$router.push({ name: `${this.providerType}ThreatModel`, params: this.$route.params });
             }

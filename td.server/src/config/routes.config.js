@@ -38,7 +38,13 @@ const unauthRoutes = (router) => {
 const routes = (router) => {
     router.post('/api/logout', auth.logout);
     router.post('/api/token/refresh', auth.refresh);
+    // Template routes
+    router.post('/api/templates/bootstrap', templateController.bootstrapTemplateRepository);
     router.get('/api/templates/', templateController.listTemplates);
+    router.post('/api/templates/import', templateController.importTemplate);
+    router.delete('/api/templates/:id', templateController.deleteTemplate);
+    router.put('/api/templates/:id', templateController.updateTemplate);
+    router.get('/api/templates/:id/content', templateController.getTemplateContent);
 
     router.get('/api/threatmodel/repos', threatmodelController.repos);
     router.get('/api/threatmodel/:organisation/:repo/branches', threatmodelController.branches);

@@ -17,7 +17,7 @@ const createAsync = async (providerName, providerOptions, user) => {
     const refreshToken = jsonwebtoken.sign({ provider, user }, env.get().config.ENCRYPTION_JWT_REFRESH_SIGNING_KEY, {
         expiresIn: '7d'
     });
-
+    console.log('Generated tokens:', { accessToken });
 
     return { accessToken, refreshToken };
 };

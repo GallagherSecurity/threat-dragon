@@ -34,7 +34,53 @@ const fetchByIdAsync = (templateId) => {
     return api.getAsync(`${resource}/${encodedTemplateId}`);
 };
 
+/**
+ * Imports a template by splitting metadata and content
+ * @param {Object} templateMetadata - Template metadata object
+ * @param {Object} templateContent - Template model content
+ * @returns {Promise}
+ */
+const importTemplateAsync = (template) => {
+    return api.postAsync(`${resource}/import`, 
+        template
+    );
+};
+
+/**
+ * Updates a template's metadata (name, description, tags)
+ * @param {Object} template - Template object with id, name, description, tags
+ * @returns {Promise}
+ */
+const updateTemplateAsync = (template) => {
+    const [ encodedId ] = encodeUrlComponents(template.id);
+    return api.putAsync(`${resource}/${encodedId}`, {
+        name: template.name,
+        description: template.description,
+        tags: template.tags
+    });
+};
+
+/**
+ * Deletes a template by its id
+ * @param {String} id - The id GUID of the template to delete
+ * @returns {Promise}
+ */
+const deleteTemplateAsync = (id) => {
+    return api.deleteAsync(`${resource}/${id}`);  // No body, just URL
+};
+
+const fetchModelByIdAsync = (templateId) => {
+    const [ encodedId ] = encodeUrlComponents(templateId);
+    return api.getAsync(`${resource}/${encodedId}/content`);
+};
+
+
 export default {
     fetchAllAsync,
-    fetchByIdAsync
+    fetchByIdAsync,
+    importTemplateAsync,
+    updateTemplateAsync,
+    deleteTemplateAsync,
+    fetchModelByIdAsync
+
 };
