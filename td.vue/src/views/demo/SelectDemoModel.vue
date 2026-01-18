@@ -26,11 +26,14 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import demo from '@/service/demo/index.js';
 import isElectron from 'is-electron';
 import tmActions from '@/store/actions/threatmodel.js';
 import schema from '@/service/schema/ajv';
 import tmBom from '@/service/migration/tmBom/tmBom';
+import { getProviderType } from '@/service/provider/providers';
+import { providerTypes } from '@/service/provider/providerTypes';
 
 export default {
     name: 'SelectDemoModel',
@@ -39,23 +42,62 @@ export default {
             models: demo.models
         };
     },
+    computed: {
+        ...mapState({
+            selectedProvider: state => state.provider.selected
+        }),
+        providerType() {
+            return getProviderType(this.selectedProvider);
+        }
+    },
     mounted() {
         this.$store.dispatch(tmActions.clear);
-
     },
     methods: {
-        onModelClick(model) {
+        async onModelClick(model) {
+            // Normalize model data (handle TmBom format)
+            let modelData;
             if (schema.isTmBom(model.model)) {
-                this.$store.dispatch(tmActions.selected, tmBom.read(model.model));
+                modelData = tmBom.read(model.model);
             } else {
-                this.$store.dispatch(tmActions.selected, model.model);
+                modelData = model.model;
             }
+
             if (isElectron()) {
                 // tell any electron server that the model has changed
                 window.electronAPI.modelOpened(model.name);
             }
-            const params = Object.assign({}, this.$route.params, { threatmodel: model.name });
-            this.$router.push({ name: 'localThreatModel' , params });
+
+            // Fork: Different flow based on provider type
+            if (this.providerType === providerTypes.git) {
+                // Git providers (github/gitlab/bitbucket): Store data and navigate through repo/branch selection
+                await this.$store.dispatch(tmActions.stash, modelData);
+
+                this.$router.push({
+                    name: `${this.providerType}Repository`,
+                    params: { provider: this.selectedProvider },
+                    query: { action: 'create' }
+                });
+            } else if (this.providerType === providerTypes.local || this.providerType === providerTypes.desktop) {
+                // Local/Desktop: Direct load and route (no repo/branch needed)
+                const newTm = await this.$store.dispatch(tmActions.templateLoad, {
+                    templateData: modelData
+                });
+
+                const params = { threatmodel: newTm.summary.title };
+                this.$router.push({ name: `${this.selectedProvider}ThreatModelEdit`, params });
+            } else if (this.providerType === providerTypes.google) {
+                // Google: Similar to local, direct load and route
+                const newTm = await this.$store.dispatch(tmActions.templateLoad, {
+                    templateData: modelData
+                });
+
+                const params = { threatmodel: newTm.summary.title };
+                this.$router.push({ name: `${this.selectedProvider}ThreatModelEdit`, params });
+            } else {
+                console.error('Unknown provider type:', this.providerType);
+                this.$toast.error('Unsupported provider type');
+            }
         }
     }
 };

@@ -24,8 +24,6 @@ import {
     THREATMODEL_UPDATE,
     THREATMODEL_TEMPLATE_DOWNLOAD,
     THREATMODEL_TEMPLATE_LOAD,
-    THREATMODEL_TEMPLATE_CONTEXT_SET,
-    THREATMODEL_TEMPLATE_CONTEXT_CLEAR
 } from '@/store/actions/threatmodel';
 import save from '@/service/save';
 import threatmodelApi from '@/service/api/threatmodelApi';
@@ -41,7 +39,9 @@ const state = {
     modified: false,
     modifiedDiagram: {},
     selectedDiagram: {},
-    templateContext: null
+    templateContext: null,
+    localTemplateLoaded: false
+
 };
 
 const stashThreatModel = (theState, threatModel) => {
@@ -58,6 +58,7 @@ const actions = {
         if (getProviderType(rootState.provider.selected) === providerTypes.desktop) {
             // desktop responds later with its own STASH and NOT_MODIFIED
             window.electronAPI.modelSave(state.data, state.fileName);
+            return true;
         } else {
             let result = false;
             if (getProviderType(rootState.provider.selected) === providerTypes.local) {
@@ -76,6 +77,7 @@ const actions = {
                 dispatch(THREATMODEL_STASH);
                 commit(THREATMODEL_NOT_MODIFIED);
             }
+            return result;
         }
     },
     [THREATMODEL_DIAGRAM_APPLIED]: ({ commit }) => commit(THREATMODEL_DIAGRAM_APPLIED),

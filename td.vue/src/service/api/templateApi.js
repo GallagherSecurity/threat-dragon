@@ -13,12 +13,11 @@ const encodeUrlComponents = (...uriComponents) => {
  * @returns {Promise}
  */
 const fetchAllAsync = (filters = {}, pagination = {}) => {
-    // Construct query parameters matching the style of 'reposAsync'
+    // Construct query parameters
     const params = {
         page: pagination.page || 1,
         limit: pagination.limit || 20,
-        searchQuery: filters.search || '',
-        tags: filters.tags || []
+        searchQuery: filters.search || ''
     };
 
     return api.getAsync(`${resource}`, { params });
@@ -74,6 +73,14 @@ const fetchModelByIdAsync = (templateId) => {
     return api.getAsync(`${resource}/${encodedId}/content`);
 };
 
+/**
+ * Bootstraps the template repository if not already initialized
+ * @returns {Promise}
+ */
+const bootstrapAsync = () => {
+    return api.postAsync(`${resource}/bootstrap`);
+};
+
 
 export default {
     fetchAllAsync,
@@ -81,6 +88,7 @@ export default {
     importTemplateAsync,
     updateTemplateAsync,
     deleteTemplateAsync,
-    fetchModelByIdAsync
+    fetchModelByIdAsync,
+    bootstrapAsync
 
 };

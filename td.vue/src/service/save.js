@@ -98,7 +98,13 @@ const repoCreate = async (rootState, state) => {
     } catch (ex) {
         console.error('Failed to create threat model!');
         console.error(ex);
-        Vue.$toast.error(i18n.get().t('threatmodel.errors.create'));
+
+        // Check if the error is due to file already existing (422 status)
+        if (ex.response?.status === 422 || ex.response?.data?.body?.message?.includes('sha')) {
+            Vue.$toast.error(i18n.get().t('threatmodel.errors.createConflict'));
+        } else {
+            Vue.$toast.error(i18n.get().t('threatmodel.errors.create'));
+        }
         return false;
     }
     return true;

@@ -35,7 +35,6 @@
           "type": "string",
           "minLength": 36,
           "maxLength": 36
-
         }
       },
       "required": ["id", "name", "description", "tags"]
@@ -107,6 +106,7 @@
                   },
                   "id": {
                     "description": "The sequence number of the diagram",
+                    "type": ["integer", "string"],
                     "minimum": 0
                   },
                   "placeholder": {
@@ -150,9 +150,11 @@
                                 },
                                 "strokeDasharray": {
                                   "description": "The stroke dash ratio",
-                                  "type": ["string", "null"]
+                                  "type": "string",
+                                  "nullable": true
                                 }
-                              }
+                              },
+                              "required": ["stroke", "strokeWidth", "strokeDasharray"]
                             },
                             "line": {
                               "description": "The component stroke attributes",
@@ -174,11 +176,13 @@
                                       "description": "The source marker shape",
                                       "type": "string"
                                     }
-                                  }
+                                  },
+                                  "required": ["name"]
                                 },
                                 "strokeDasharray": {
                                   "description": "The stroke dash ratio",
-                                  "type": ["string", "null"]
+                                  "type": "string",
+                                  "nullable": true
                                 },
                                 "targetMarker": {
                                   "description": "The line target marker",
@@ -188,53 +192,11 @@
                                       "description": "The target marker shape",
                                       "type": "string"
                                     }
-                                  }
+                                  },
+                                  "required": ["name"]
                                 }
-                              }
-                            },
-                            "text": {
-                              "description": "The component text",
-                              "type": "object",
-                              "properties": {
-                                "text": {
-                                  "description": "The component text contents",
-                                  "type": "string"
-                                }
-                              }
-                            },
-                            "label": {
-                              "description": "The component label",
-                              "type": "object",
-                              "properties": {
-                                "text": {
-                                  "description": "The label text",
-                                  "type": "string"
-                                }
-                              }
-                            },
-                            "topLine": {
-                              "description": "Store top line attributes",
-                              "type": "object",
-                              "properties": {
-                                "strokeWidth": {
-                                  "type": "number"
-                                },
-                                "strokeDasharray": {
-                                  "type": ["string", "null"]
-                                }
-                              }
-                            },
-                            "bottomLine": {
-                              "description": "Store bottom line attributes",
-                              "type": "object",
-                              "properties": {
-                                "strokeWidth": {
-                                  "type": "number"
-                                },
-                                "strokeDasharray": {
-                                  "type": ["string", "null"]
-                                }
-                              }
+                              },
+                              "required": ["targetMarker"]
                             }
                           }
                         },
@@ -259,11 +221,11 @@
                               "type": "boolean"
                             },
                             "isBidirectional": {
-                              "description": "The data-flow flag set if is bidirectional",
+                              "description": "The component flag set if it is not in scope",
                               "type": "boolean"
                             },
                             "isEncrypted": {
-                              "description": "The component flag set if the data flow or store is encrypted",
+                              "description": "The data-flow flag set if is bidirectional",
                               "type": "boolean"
                             },
                             "isPublicNetwork": {
@@ -321,71 +283,12 @@
                             "hasOpenThreats": {
                               "description": "The component flag set if there are open threats",
                               "type": "boolean"
-                            },
-                            "threats": {
-                              "description": "The threats associated with the component",
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "description": "The threat ID as a UUID",
-                                    "type": "string",
-                                    "minLength": 2
-                                  },
-                                  "title": {
-                                    "description": "The threat title",
-                                    "type": "string"
-                                  },
-                                  "status": {
-                                    "description": "The threat status",
-                                    "type": "string"
-                                  },
-                                  "severity": {
-                                    "description": "The threat severity",
-                                    "type": "string"
-                                  },
-                                  "type": {
-                                    "description": "The threat type",
-                                    "type": "string"
-                                  },
-                                  "description": {
-                                    "description": "The threat description",
-                                    "type": "string"
-                                  },
-                                  "mitigation": {
-                                    "description": "The threat mitigation",
-                                    "type": "string"
-                                  },
-                                  "modelType": {
-                                    "description": "The threat methodology type",
-                                    "type": "string"
-                                  },
-                                  "new": {
-                                    "description": "Whether this is a new threat",
-                                    "type": "boolean"
-                                  },
-                                  "number": {
-                                    "description": "The unique number for the threat",
-                                    "type": "integer",
-                                    "minimum": 0
-                                  },
-                                  "score": {
-                                    "description": "The custom score/risk for the threat",
-                                    "type": "string"
-                                  }
-                                }
-                              }
-                            },
-                            "threatFrequency": {
-                              "description": "Frequency count of threat types",
-                              "type": "object"
                             }
                           },
                           "required": ["hasOpenThreats", "type"]
                         },
                         "id": {
-                          "description": "The component unique identifier",
+                          "description": "The component unique identifier (UUID)",
                           "type": "string",
                           "minLength": 2
                         },
@@ -405,7 +308,7 @@
                           "required": ["x", "y"]
                         },
                         "size": {
-                          "description": "The component body size",
+                          "description": "The component body size  (not line)",
                           "type": "object",
                           "properties": {
                             "height": {
@@ -422,7 +325,7 @@
                           "required": ["height", "width"]
                         },
                         "connector": {
-                          "description": "The data flows and boundary geometry",
+                          "description": "The  data flows and boundary geometry",
                           "type": "string"
                         },
                         "source": {
@@ -433,17 +336,13 @@
                               "description": "The data-flow source attachment point",
                               "type": "string"
                             },
-                            "port": {
-                              "description": "The source port ID",
-                              "type": "string"
-                            },
                             "x": {
                               "description": "The boundary horizontal curve source",
-                              "type": "number"
+                              "type": "integer"
                             },
                             "y": {
                               "description": "The boundary vertical curve source",
-                              "type": "number"
+                              "type": "integer"
                             }
                           }
                         },
@@ -455,18 +354,66 @@
                               "description": "The data-flow target attachment point",
                               "type": "string"
                             },
-                            "port": {
-                              "description": "The target port ID",
-                              "type": "string"
-                            },
                             "x": {
                               "description": "The boundary horizontal curve target",
-                              "type": "number"
+                              "type": "integer"
                             },
                             "y": {
                               "description": "The boundary vertical curve target",
-                              "type": "number"
+                              "type": "integer"
                             }
+                          }
+                        },
+                        "threats": {
+                          "description": "The threats associated with the component",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "description": {
+                                "description": "The threat description",
+                                "type": "string"
+                              },
+                              "mitigation": {
+                                "description": "The threat mitigation",
+                                "type": "string"
+                              },
+                              "modelType": {
+                                "description": "The threat methodology type",
+                                "type": "string"
+                              },
+                              "number": {
+                                "description": "The unique number for the threat",
+                                "type": "integer",
+                                "minimum": 0
+                              },
+                              "score": {
+                                "description": "The custom score/risk for the threat",
+                                "type": "string"
+                              },
+                              "severity": {
+                                "description": "The threat severity as High, Medium or Low",
+                                "type": "string"
+                              },
+                              "status": {
+                                "description": "The threat status as NA, Open or Mitigated",
+                                "type": "string"
+                              },
+                              "threatId": {
+                                "description": "The threat ID as a UUID",
+                                "type": "string",
+                                "minLength": 2
+                              },
+                              "title": {
+                                "description": "The threat title",
+                                "type": "string"
+                              },
+                              "type": {
+                                "description": "The threat type, selection according to modelType",
+                                "type": "string"
+                              }
+                            },
+                            "required": ["description", "mitigation", "severity", "status", "title", "type"]
                           }
                         },
                         "shape": {
@@ -498,25 +445,6 @@
                         "zIndex": {
                           "description": "The component Z-plane",
                           "type": "integer"
-                        },
-                        "width": {
-                          "description": "The component width (for flows)",
-                          "type": "number"
-                        },
-                        "height": {
-                          "description": "The component height (for flows)",
-                          "type": "number"
-                        },
-                        "labels": {
-                          "description": "The floating labels used for boundary or data-flow",
-                          "type": "array",
-                          "items": {
-                            "type": "object"
-                          }
-                        },
-                        "ports": {
-                          "description": "Connection ports for the component",
-                          "type": "object"
                         }
                       },
                       "required": ["id", "shape", "zIndex"]

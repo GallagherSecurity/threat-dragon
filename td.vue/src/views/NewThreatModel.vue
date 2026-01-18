@@ -15,27 +15,44 @@ export default {
     computed: mapState({
         providerType: (state) => getProviderType(state.provider.selected),
         version: (state) => state.packageBuildVersion,
-        templateContext: (state) => state.template.templateContext
+        templateContext: (state) => state.template.templateContext,
+        localTemplateData: (state) => state.template.localTemplateData
     }),
     async mounted() {
         this.$store.dispatch(tmActions.clear);
         let newTm;
-        
-        // Check if creating from template
-        if (this.templateContext) {
+
+        // Priority 1: Check for local template data (imported from file)
+        if (this.localTemplateData) {
+            try {
+                // Load template directly (no backend call needed)
+                newTm = await this.$store.dispatch(tmActions.templateLoad, {
+                    templateData: this.localTemplateData
+                });
+
+                // Clear local template data after use
+                this.$store.dispatch(templateActions.clearLocalTemplateData);
+            } catch (error) {
+                console.error('Error loading local template:', error);
+                this.$toast.error('Failed to load local template');
+                newTm = this.createBlankModel();
+            }
+        }
+        // Priority 2: Check for remote template context (from gallery)
+        else if (this.templateContext) {
             try {
                 // Fetch the full template data (backend gets content from separate file)
                 const templateData = await this.$store.dispatch(
                     templateActions.fetchModelById,
                     this.templateContext
                 );
-                
+
                 // templateData.content contains the actual model from the content file
                 // Load and convert template to model (regenerates IDs)
                 newTm = await this.$store.dispatch(tmActions.templateLoad, {
                     templateData: templateData.content
                 });
-                
+
                 // Clear template context after use
                 this.$store.dispatch(templateActions.clearTemplateContext);
             } catch (error) {
@@ -43,8 +60,9 @@ export default {
                 this.$toast.error('Failed to load template');
                 newTm = this.createBlankModel();
             }
-        } else {
-            // Create blank model
+        }
+        // Priority 3: Create blank model
+        else {
             newTm = this.createBlankModel();
         }
 

@@ -84,6 +84,11 @@ const deleteAsync = async (modelInfo, accessToken) => {
 };
 const METADATA_PATH = 'templates/template_info.json';
 
+const repoExistsAsync = async (accessToken) => {
+    const client = getClient(accessToken);
+    return client.repo(env.get().config.GITHUB_CONTENT_REPO).infoAsync();
+};
+
 const listTemplatesAsync = async (accessToken) => getClient(accessToken)
     .repo(env.get().config.GITHUB_CONTENT_REPO).
     contentsAsync(METADATA_PATH);
@@ -183,6 +188,6 @@ export default {
     createContentFileAsync,
     updateMetadataAsync,
     deleteContentFileAsync,
-    getContentFileAsync
+    getContentFileAsync,
+    repoExistsAsync
 };
-

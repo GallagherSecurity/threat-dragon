@@ -17,5 +17,6 @@ export const adminTemplateRoutes = [
         path: '/admin/templates',
         name: 'ManageTemplates',
         component: () => import(/* webpackChunkName: "manage-templates" */ '../views/ManageTemplates.vue'),
+        meta: { requiresAdmin: true }
     },
 ];

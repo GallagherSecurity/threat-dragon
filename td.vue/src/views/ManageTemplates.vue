@@ -9,62 +9,83 @@
             </b-col>
         </b-row>
 
-
-        <b-row>
+        <!-- Scenario: NOT_INITIALIZED - Show Bootstrap -->
+        <b-row v-if="contentRepoStatus === 'NOT_INITIALIZED'">
             <b-col md="6" offset-md="3">
-                <b-form-group>
-                    <b-input-group>
-                        <b-input-group-prepend>
-                            <b-button variant="primary" @click="onAddTemplateClick" id="add-template-btn" class="mr-3">
-                                <font-awesome-icon icon="plus" class="mr-2"></font-awesome-icon>
-                                {{ $t('template.addNew') }}
-                            </b-button>
-                        </b-input-group-prepend>
-                        <b-form-input v-model="searchQuery" :placeholder="$t('template.search')"
-                            @input="onSearchChange" />
-                    </b-input-group>
-                </b-form-group>
+                <b-card class="bootstrap-card text-center p-4">
+                    <font-awesome-icon icon="cloud-upload" size="3x" class="text-primary mb-3"></font-awesome-icon>
+                    <h4>{{ $t('template.repo.bootstrap.title') }}</h4>
+                    <p class="text-muted">{{ $t('template.repo.bootstrap.description') }}</p>
+                    <b-button
+                        variant="primary"
+                        size="lg"
+                        @click="handleBootstrap"
+                        :disabled="isBootstrapping"
+                    >
+                        <b-spinner small v-if="isBootstrapping" class="mr-2"></b-spinner>
+                        {{ isBootstrapping ? $t('template.repo.bootstrap.bootstrapping') : $t('template.repo.bootstrap.action') }}
+                    </b-button>
+                </b-card>
             </b-col>
         </b-row>
-       
 
-        <!-- Template list -->
-        <b-row >
-            <b-col md="6" offset-md="3">
-                <b-list-group v-if="templates.length > 0">
-                    <b-list-group-item v-for="template in templates" :key="template.id" :data-template-id="template.id"
-                        class="d-flex justify-content-between align-items-start">
-                        <div class="flex-grow-1">
-                            <h5>{{ template.name }}</h5>
-                            <p class="mb-1 text-muted">{{ template.description }}</p>
-                            <b-badge v-for="tag in template.tags" :key="tag" variant="primary" class="mr-1">
-                                {{ tag }}
-                            </b-badge>
-                        </div>
+        <!-- Normal operation (status === null) -->
+        <template v-else>
+            <b-row>
+                <b-col md="6" offset-md="3">
+                    <b-form-group>
+                        <b-input-group>
+                            <b-input-group-prepend>
+                                <b-button variant="primary" @click="onAddTemplateClick" id="add-template-btn" class="mr-3">
+                                    <font-awesome-icon icon="plus" class="mr-2"></font-awesome-icon>
+                                    {{ $t('template.addNew') }}
+                                </b-button>
+                            </b-input-group-prepend>
+                            <b-form-input v-model="searchQuery" :placeholder="$t('template.search')"
+                                @input="onSearchChange" />
+                        </b-input-group>
+                    </b-form-group>
+                </b-col>
+            </b-row>
 
-                        <!-- Burger menu -->
-                        <b-dropdown right variant="link" class="template-actions">
-                            <template #button-content>
-                                <font-awesome-icon icon="ellipsis-v"></font-awesome-icon>
-                            </template>
-                            <b-dropdown-item @click="onEditTemplate(template)">
-                                <font-awesome-icon icon="edit" class="mr-2"></font-awesome-icon>
-                                {{ $t('forms.edit') }}
-                            </b-dropdown-item>
-                            <b-dropdown-divider></b-dropdown-divider>
-                            <b-dropdown-item @click="onDeleteTemplate(template)" variant="danger">
-                                <font-awesome-icon icon="trash" class="mr-2"></font-awesome-icon>
-                                {{ $t('forms.delete') }}
-                            </b-dropdown-item>
-                        </b-dropdown>
-                    </b-list-group-item>
-                </b-list-group>
+            <!-- Template list -->
+            <b-row>
+                <b-col md="6" offset-md="3">
+                    <b-list-group v-if="templates.length > 0">
+                        <b-list-group-item v-for="template in templates" :key="template.id" :data-template-id="template.id"
+                            class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h5>{{ template.name }}</h5>
+                                <p class="mb-1 text-muted">{{ template.description }}</p>
+                                <b-badge v-for="tag in template.tags" :key="tag" variant="primary" class="mr-1">
+                                    {{ tag }}
+                                </b-badge>
+                            </div>
 
-                <b-alert v-else show variant="info">
-                    {{ $t('template.noTemplates') }}
-                </b-alert>
-            </b-col>
-        </b-row>
+                            <!-- Burger menu -->
+                            <b-dropdown right variant="link" class="template-actions">
+                                <template #button-content>
+                                    <font-awesome-icon icon="ellipsis-v"></font-awesome-icon>
+                                </template>
+                                <b-dropdown-item @click="onEditTemplate(template)">
+                                    <font-awesome-icon icon="edit" class="mr-2"></font-awesome-icon>
+                                    {{ $t('forms.edit') }}
+                                </b-dropdown-item>
+                                <b-dropdown-divider></b-dropdown-divider>
+                                <b-dropdown-item @click="onDeleteTemplate(template)" variant="danger">
+                                    <font-awesome-icon icon="trash" class="mr-2"></font-awesome-icon>
+                                    {{ $t('forms.delete') }}
+                                </b-dropdown-item>
+                            </b-dropdown>
+                        </b-list-group-item>
+                    </b-list-group>
+
+                    <b-alert v-else show variant="info">
+                        {{ $t('template.noTemplates') }}
+                    </b-alert>
+                </b-col>
+            </b-row>
+        </template>
         <b-modal id="edit-template-modal" title="Edit Template" @ok="onSaveEdit" @cancel="onCancelEdit">
             <b-form>
                 <b-form-group label="Template Name" label-for="edit-name">
@@ -90,7 +111,7 @@ import templateActions from '@/store/actions/template.js';
 import schema from '@/service/schema/ajv.js';
 
 export default {
-    name: 'TemplateGallery',
+    name: 'ManageTemplates',
     data() {
         return {
             searchQuery: '',
@@ -99,18 +120,40 @@ export default {
                 name: '',
                 description: '',
                 tags: []
-            }
+            },
+            isBootstrapping: false
         };
     },
     computed: {
         ...mapGetters({
             templates: 'templates',
+            contentRepoStatus: 'contentRepoStatus',
+            canInitializeRepo: 'canInitializeRepo',
+            contentRepoName: 'contentRepoName'
         })
     },
     mounted() {
-        this.$store.dispatch(templateActions.fetchAll);
+        this.$store.dispatch(templateActions.fetchAll)
+            .catch(error => {
+                console.error('Failed to load templates:', error);
+                this.$toast.error(this.$t('template.errors.loadFailed'));
+            });
     },
     methods: {
+        async handleBootstrap() {
+            this.isBootstrapping = true;
+
+            try {
+                await this.$store.dispatch(templateActions.bootstrap);
+                this.$toast.success(this.$t('template.repo.bootstrap.success'));
+            } catch (error) {
+                console.error('Bootstrap failed:', error);
+                this.$toast.error(error.message || this.$t('template.repo.bootstrap.error'));
+            } finally {
+                this.isBootstrapping = false;
+            }
+        },
+
         onEditTemplate(template) {
             // Populate the edit form
             this.editingTemplate = template;
@@ -178,43 +221,39 @@ export default {
         },
 
         async importTemplate(file) {
+            let templateData;
+
+            // Check for JSON syntax errors
             try {
                 const text = await file.text();
-                const templateData = JSON.parse(text);
+                templateData = JSON.parse(text);
+            } catch (e) {
+                this.$toast.error(this.$t('template.errors.invalidJson'));
+                console.error('JSON parse error:', e);
+                return;
+            }
 
-                // Validate template format against schema
-                const validation = schema.validateTemplateFormat(templateData);
-                
-                if (!validation.valid) {
-                    const errorMessages = validation.errors.map(err => 
-                        `${err.instancePath || 'root'}: ${err.message}`
-                    ).join(', ');
-                    throw new Error(`Template validation failed: ${errorMessages}`);
-                }
+            // Validate template format against schema
+            // Schema already validates: templateMetadata, model, and all required fields
+            const validation = schema.validateTemplateFormat(templateData);
 
-                // Verify template structure
-                if (!templateData.templateMetadata || !templateData.model) {
-                    throw new Error('Invalid template format: missing templateMetadata or model');
-                }
+            if (!validation.valid) {
+                // Log detailed errors for developers
+                console.warn('Template validation failed:', validation.errors);
+                // Show generic message to users
+                this.$toast.error(this.$t('template.errors.invalidTemplate'));
+                return;
+            }
 
-                const { templateMetadata, model } = templateData;
-
-                // Verify required metadata fields
-                if (!templateMetadata.id || !templateMetadata.name || !templateMetadata.description) {
-                    throw new Error('Invalid template metadata: missing required fields (id, name, description, )');
-                }
-
-                // Split metadata from content and dispatch to store
+            // Template is valid, save it
+            try {
                 await this.$store.dispatch(templateActions.create, {
-    template: templateData  // ← Use "template" key, not "templateData"
-});
-
+                    template: templateData
+                });
                 this.$toast.success('Template imported successfully');
-
             } catch (error) {
-                console.error('Error importing template:', error);
-                const errorMessage = error.message || 'Failed to import template';
-                this.$toast.error(errorMessage);
+                console.error('Error saving template:', error);
+                this.$toast.error(this.$t('template.warnings.templateSave'));
             }
         },
 

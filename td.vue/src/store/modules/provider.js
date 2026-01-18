@@ -6,7 +6,7 @@ import {
     PROVIDER_FETCH,
     PROVIDER_SELECTED
 } from '../actions/provider.js';
-import providers,{getDashboardActions} from '../../service/provider/providers.js';
+import providers from '../../service/provider/providers.js';
 import threatmodelApi from '../../service/api/threatmodelApi.js';
 
 export const clearState = (state) => {
@@ -56,25 +56,7 @@ const mutations = {
     }
 };
 
-const getters = {
-
-   dashboardActions: (state, getters, rootState) => {
-        if (!state.selected) return [];
-
-        const allActions = getDashboardActions(state.selected);
-        const config = rootState.config.config;
-
-        return allActions.filter(action => {
-            if (action.key === 'createFromTemplate') {
-                const configKey = `${state.selected}ContentEnabled`;
-                return config && config[configKey];
-            }
-            
-            return true;
-        });
-    }
-
-};
+const getters = {};
 
 export default {
     state,

@@ -20,10 +20,11 @@
             :title="$t('nav.logOut')"></font-awesome-icon>
         </b-nav-item>
         <!-- This is the dropdown from admin actions(manage tempaltes) -->
-        <b-nav-item-dropdown v-if="isAdmin" id="my-nav-dropdown" toggle-class="nav-link-custom" right>
+        <b-nav-item-dropdown v-if="isAdmin" id="my-nav-dropdown" toggle-class="nav-link-custom" right >
           <!-- Custom toggle content -->
           <template #button-content>
-            <font-awesome-icon icon="cog" class="td-fa-nav text-white" />
+            <font-awesome-icon icon="cog" class="td-fa-nav text-white" v-b-tooltip.hover
+              :title="$t('nav.contentManagement')" />
           </template>
 
           <!-- Dropdown items -->

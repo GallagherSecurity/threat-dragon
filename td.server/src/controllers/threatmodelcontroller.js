@@ -2,7 +2,7 @@ import env from '../env/Env.js';
 import loggerHelper from '../helpers/logger.helper.js';
 import repositories from "../repositories";
 import responseWrapper from './responseWrapper.js';
-import { serverError } from './errors.js';
+import { serverError, conflict } from './errors.js';
 
 const logger = loggerHelper.get('controllers/threatmodelcontroller.js');
 
@@ -122,6 +122,13 @@ const create = async (req, res) => {
         return res.status(201).send(createResp);
     } catch (err) {
         logger.error(err);
+
+        // Check if the error is due to file already existing (422 status)
+        if (err.statusCode === 422 || err.response?.status === 422 ||
+            err.message?.includes('sha') || err.body?.message?.includes('sha')) {
+            return conflict(`A threat model with the name "${modelBody.model}" already exists. Please use a different name or update the existing model.`, res, logger);
+        }
+
         return serverError('Error creating model', res, logger);
     }
 };

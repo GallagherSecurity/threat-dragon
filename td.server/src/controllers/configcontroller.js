@@ -11,10 +11,6 @@ export const getConfig = () => ({
     githubEnabled: env.get().config.GITHUB_CLIENT_ID !== undefined && env.get().config.GITHUB_CLIENT_ID !== null,
     gitlabEnabled: env.get().config.GITLAB_CLIENT_ID !== undefined && env.get().config.GITLAB_CLIENT_ID !== null,
     googleEnabled: env.get().config.GOOGLE_CLIENT_ID !== undefined && env.get().config.GOOGLE_CLIENT_ID !== null,
-    githubContentEnabled: env.get().config.GITHUB_CONTENT_REPO !== undefined && env.get().config.GITHUB_CONTENT_REPO !== null,
-    gitlabContentEnabled: false,  // Future: env.get().config.GITLAB_CONTENT_REPO
-    bitbucketContentEnabled: false,  // Future: env.get().config.BITBUCKET_CONTENT_REPO
-    googleContentEnabled: false, // Future: env.get().config.GOOGLE_CONTENT_REPO
     localEnabled: true,
 });
 

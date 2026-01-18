@@ -10,7 +10,6 @@
             </b-col>
         </b-row>
         <b-row >
-            
             <td-dashboard-action class="dashboard-action"
                 v-for="(action, idx) in actions"
                 :key="idx"
@@ -36,20 +35,18 @@
 </style>
 
 <script>
-
+import { mapState } from 'vuex';
 
 import TdDashboardAction from '@/components/DashboardAction.vue';
-import {mapGetters} from 'vuex';
+import { getDashboardActions } from '@/service/provider/providers.js';
 
 export default {
     name: 'MainDashboard',
     components: {
         TdDashboardAction
     },
-    computed: {
-    ...mapGetters({
-            actions: 'dashboardActions' 
-        })},
-   
+    computed: mapState({
+        actions: (state) => getDashboardActions(state.provider.selected)
+    })
 };
 </script>
