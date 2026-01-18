@@ -26,8 +26,12 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
+
 import demo from '@/service/demo/index.js';
 import isElectron from 'is-electron';
+import { getProviderType } from '@/service/provider/providers.js';
+import { providerTypes } from '@/service/provider/providerTypes.js';
 import tmActions from '@/store/actions/threatmodel.js';
 import schema from '@/service/schema/ajv';
 import tmBom from '@/service/migration/tmBom/tmBom';
@@ -39,9 +43,14 @@ export default {
             models: demo.models
         };
     },
+    computed: mapState({
+        providerType: (state) => getProviderType(state.provider.selected),
+        selectedProvider: (state) => state.provider.selected
+    }),
     mounted() {
         this.$store.dispatch(tmActions.clear);
-        this.$store.dispatch(tmActions.fetchAll);
+        // Always load demo models from demo folder
+        this.$store.dispatch(tmActions.loadDemos);
     },
     methods: {
         onModelClick(model) {
@@ -54,8 +63,32 @@ export default {
                 // tell any electron server that the model has changed
                 window.electronAPI.modelOpened(model.name);
             }
-            const params = Object.assign({}, this.$route.params, { threatmodel: model.name });
-            this.$router.push({ name: 'localThreatModel' , params });
+
+            if (this.providerType === providerTypes.git) {
+                // Git providers: Navigate through repo/branch selection (same flow as creating new model)
+                // Model data is already stored in state via tmActions.selected above
+                this.$store.dispatch(tmActions.stash);
+
+                this.$router.push({
+                    name: `${this.providerType}Repository`,
+                    params: { provider: this.selectedProvider },
+                    query: { action: 'create' }
+                });
+            } else if (this.providerType === providerTypes.google) {
+                // Google provider: Navigate through folder selection (same flow as creating new model)
+                // Model data is already stored in state via tmActions.selected above
+                this.$store.dispatch(tmActions.stash);
+
+                this.$router.push({
+                    name: `${this.providerType}Folder`,
+                    params: { provider: this.selectedProvider },
+                    query: { action: 'create' }
+                });
+            } else {
+                // Local/Desktop providers: Direct navigation to view model (no context needed)
+                const params = Object.assign({}, this.$route.params, { threatmodel: model.name });
+                this.$router.push({ name: `${this.providerType}ThreatModel`, params });
+            }
         }
     }
 };

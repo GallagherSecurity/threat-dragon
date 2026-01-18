@@ -13,28 +13,38 @@ export default {
     name: 'NewThreatModel',
     computed: mapState({
         providerType: (state) => getProviderType(state.provider.selected),
-        version: (state) => state.packageBuildVersion
+        version: (state) => state.packageBuildVersion,
+        stashedModel: (state) => state.threatmodel.stash
     }),
     mounted() {
-        this.$store.dispatch(tmActions.clear);
-        const newTm = {
-            version: this.version,
-            summary: {
-                title: 'New Threat Model',
-                owner: '',
-                description: '',
-                id: 0
-            },
-            detail: {
-                contributors: [],
-                diagrams: [],
-                diagramTop: 0,
-                reviewer: '',
-                threatTop: 0
-            }
-        };
+        let newTm;
 
-        this.$store.dispatch(tmActions.selected, newTm);
+        // Check if there's a stashed model (e.g., from demo selection)
+        if (this.stashedModel && this.stashedModel !== '') {
+            // Use the stashed demo model (already in state.data from SelectDemoModel)
+            newTm = JSON.parse(this.stashedModel);
+        } else {
+            // Create a new blank threat model
+            this.$store.dispatch(tmActions.clear);
+            newTm = {
+                version: this.version,
+                summary: {
+                    title: 'New Threat Model',
+                    owner: '',
+                    description: '',
+                    id: 0
+                },
+                detail: {
+                    contributors: [],
+                    diagrams: [],
+                    diagramTop: 0,
+                    reviewer: '',
+                    threatTop: 0
+                }
+            };
+            this.$store.dispatch(tmActions.selected, newTm);
+        }
+
         const params = Object.assign({}, this.$route.params, {
             threatmodel: newTm.summary.title
         });
