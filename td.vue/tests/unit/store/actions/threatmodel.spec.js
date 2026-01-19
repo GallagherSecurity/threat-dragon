@@ -4,6 +4,7 @@ import {
     THREATMODEL_DIAGRAM_SELECTED,
     THREATMODEL_FETCH,
     THREATMODEL_FETCH_ALL,
+    THREATMODEL_LOAD_DEMOS,
     THREATMODEL_SELECTED,
     THREATMODEL_CONTRIBUTORS_UPDATED,
     THREATMODEL_MODIFIED,
@@ -26,6 +27,10 @@ describe('store/actions/threatmodel.js', () => {
 
     it('defines a fetch all action', () => {
         expect(THREATMODEL_FETCH_ALL).not.toBeUndefined();
+    });
+
+    it('defines a load demos action', () => {
+        expect(THREATMODEL_LOAD_DEMOS).not.toBeUndefined();
     });
 
     it('defines a selected action', () => {
