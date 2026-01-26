@@ -24,6 +24,7 @@ import {
     THREATMODEL_UPDATE,
     THREATMODEL_TEMPLATE_DOWNLOAD,
     THREATMODEL_TEMPLATE_LOAD,
+    THREATMODEL_LOAD_DEMOS
 } from '@/store/actions/threatmodel';
 import save from '@/service/save';
 import threatmodelApi from '@/service/api/threatmodelApi';
@@ -38,10 +39,7 @@ const state = {
     stash: '',
     modified: false,
     modifiedDiagram: {},
-    selectedDiagram: {},
-    templateContext: null,
-    localTemplateLoaded: false
-
+    selectedDiagram: {}
 };
 
 const stashThreatModel = (theState, threatModel) => {
@@ -102,15 +100,14 @@ const actions = {
         commit(THREATMODEL_FETCH, resp.data);
     },
     [THREATMODEL_FETCH_ALL]: async ({ commit, rootState }) => {
-        if (getProviderType(rootState.provider.selected) === providerTypes.local || getProviderType(rootState.provider.selected) === providerTypes.desktop || getProviderType(rootState.provider.selected) === providerTypes.google) {
-            commit(THREATMODEL_FETCH_ALL, demo.models);
-        } else {
-            const resp = await threatmodelApi.modelsAsync(
-                rootState.repo.selected,
-                rootState.branch.selected
-            );
-            commit(THREATMODEL_FETCH_ALL, resp.data);
-        }
+        const resp = await threatmodelApi.modelsAsync(
+            rootState.repo.selected,
+            rootState.branch.selected
+        );
+        commit(THREATMODEL_FETCH_ALL, resp.data);
+    },
+    [THREATMODEL_LOAD_DEMOS]: ({ commit }) => {
+        commit(THREATMODEL_FETCH_ALL, demo.models);
     },
     [THREATMODEL_MODIFIED]: ({ commit }) => commit(THREATMODEL_MODIFIED),
     [THREATMODEL_RESTORE]: async ({ commit, state, rootState }) => {
@@ -191,20 +188,30 @@ const actions = {
 
 
     },
+
+    /**
+     * Loads a template into the threat model state, regenerating cell and port IDs
+     * 
+     * Creates a new threat model from a template by deep cloning the model data and
+     * regenerating UUIDs for all diagram cells and ports to ensure uniqueness.
+     * Diagram IDs are preserved as they are model-scoped.
+     * 
+     * @async
+     * @param {Object} context - Vuex action context
+     * @param {Function} context.commit - Vuex commit function
+     * @param {Object} templateData - Template model data (threat model JSON structure)
+     * @returns {Promise<void>}
+     */
     [THREATMODEL_TEMPLATE_LOAD]: async ({ commit }, { templateData }) => {
         console.debug('Load template action');
 
         // Convert template → model
         const model = JSON.parse(JSON.stringify(templateData)); // deep clone
 
-
-        // Regenerate all IDs
+        // Regenerate all cell and port IDs (diagram IDs stay as-is)
         const idMap = {};
 
         model.detail.diagrams.forEach(diagram => {
-            // Map diagram ID
-            idMap[diagram.id] = v4();
-            diagram.id = idMap[diagram.id];
 
             // First pass: map all cell and port IDs
             if (diagram.cells && Array.isArray(diagram.cells)) {
@@ -241,10 +248,8 @@ const actions = {
             }
         });
 
-        // Set as current model (reuse existing mutation)
         commit(THREATMODEL_SELECTED, model);
 
-        return model;
     }
 };
 

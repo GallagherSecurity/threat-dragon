@@ -67,15 +67,12 @@
 
         <!-- Normal operation (status === null) -->
         <template v-else>
-            <!-- Search bar (only for git providers with remote templates) -->
+            <!-- Search bar (hidden for local/desktop providers) -->
             <b-row v-if="!isLocalProvider">
                 <b-col md="6" offset-md="3">
                     <div class="d-flex mb-3">
                         <!-- Search bar -->
-                        <b-form-input
-                            v-model="searchQuery"
-                            :placeholder="$t('template.search')"
-                            @input="onSearchChange"
+                        <b-form-input v-model="searchQuery" :placeholder="$t('template.search')"
                             class="flex-grow-1" />
                     </div>
                 </b-col>
@@ -85,7 +82,7 @@
             <b-row>
                 <b-col md="6" offset-md="3">
                     <b-list-group v-if="templates.length > 0">
-                        <b-list-group-item v-for="template in templates" :key="template.id" href="javascript:void(0)"
+                        <b-list-group-item v-for="template in filteredTemplates" :key="template.id" 
                             @click="onTemplateClick(template)" :data-template-id="template.id">
                             <h5>{{ template.name }}</h5>
                             <p class="mb-1 text-muted">{{ template.description }}</p>
@@ -105,10 +102,12 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import templateActions from '@/store/actions/template.js';
 import tmActions from '@/store/actions/threatmodel.js';
 import schema from '@/service/schema/ajv.js';
+import { getProviderType } from '@/service/provider/providers';
+import { providerTypes } from '@/service/provider/providerTypes';
 
 export default {
     name: 'TemplateGallery',
@@ -124,16 +123,27 @@ export default {
             canInitializeRepo: 'canInitializeRepo',
             contentRepoName: 'contentRepoName'
         }),
+        ...mapState({
+            selectedProvider: state => state.provider.selected
+        }),
         providerType() {
-            return this.$route.name.replace('TemplateGallery', '');
+            return getProviderType(this.selectedProvider);
         },
         isLocalProvider() {
-            return this.providerType === 'local' || this.providerType === 'desktop';
+            return this.providerType === providerTypes.local || this.providerType === providerTypes.desktop;
+        },
+        filteredTemplates() {
+            if (!this.searchQuery) return this.templates;
+            const search = this.searchQuery.toLowerCase();
+            return this.templates.filter(t =>
+                (t.name || '').toLowerCase().includes(search) ||
+                (t.description || '').toLowerCase().includes(search) ||
+                (t.tags || []).some(tag => tag.toLowerCase().includes(search))
+            );
         }
     },
     mounted() {
         this.$store.dispatch(templateActions.clear);
-
         // Only fetch templates for git providers (requires authentication)
         // Local/desktop providers use file picker only
         if (!this.isLocalProvider) {
@@ -146,112 +156,102 @@ export default {
     },
     methods: {
         async onImportFromLocal() {
-        if ('showOpenFilePicker' in window) {
-            let templateData;
-
-            try {
-                const [handle] = await window.showOpenFilePicker({
-                    types: [{
-                        description: 'Template Files',
-                        accept: { 'application/json': ['.json'] }
-                    }],
-                    multiple: false
-                });
-
-                const file = await handle.getFile();
-                const text = await file.text();
-
-                // Check for JSON syntax errors
+            if ('showOpenFilePicker' in window) {
                 try {
-                    templateData = JSON.parse(text);
-                } catch (e) {
-                    this.$toast.error(this.$t('template.errors.invalidJson'));
-                    console.error('JSON parse error:', e);
-                    return;
-                }
+                    const [handle] = await window.showOpenFilePicker({
+                        types: [{
+                            description: 'JSON Files',
+                            accept: { 'application/json': ['.json'] }
+                        }],
+                        multiple: false
+                    });
 
-                // Validate template format
-                // Schema already validates: templateMetadata, model, and all required fields
-                const validation = schema.validateTemplateFormat(templateData);
-                if (!validation.valid) {
-                    // Log detailed errors for developers
-                    console.warn('Template validation failed:', validation.errors);
-                    // Show generic message to users
-                    this.$toast.error(this.$t('template.errors.invalidTemplate'));
-                    return;
-                }
+                    const file = await handle.getFile();
+                    const text = await file.text();
 
-                // Extract provider info from route
-                const { provider } = this.$route.params;
-                const providerType = this.$route.name.replace('TemplateGallery', '');
+                    let templateData;
+                    try {
+                        templateData = JSON.parse(text);
+                    } catch (e) {
+                        this.$toast.error(this.$t('template.errors.invalidJson'));
+                        console.error('JSON parse error:', e);
+                        return;
+                    }
 
-                // Fork: Different flow for local/desktop vs git providers
-                if (providerType === 'local' || providerType === 'desktop') {
-                    // Local/Desktop: Direct load and route (no repo/branch needed)
-                    const newTm = await this.$store.dispatch(tmActions.templateLoad, {
+                    const validation = schema.validateTemplateFormat(templateData);
+                    if (!validation.valid) {
+                        console.warn('Template validation failed:', validation.errors);
+                        this.$toast.error(this.$t('template.errors.invalidTemplate'));
+                        return;
+                    }
+
+                    // Load template (regenerates IDs and sets as current model)
+                    await this.$store.dispatch(tmActions.templateLoad, {
                         templateData: templateData.model
                     });
 
+                    // Get model from state (templateLoad already committed it)
+                    const model = this.$store.state.threatmodel.data;
+
                     const params = Object.assign({}, this.$route.params, {
-                        threatmodel: newTm.summary.title
+                        threatmodel: model.summary.title
                     });
 
-                    this.$router.push({ name: `${providerType}ThreatModelEdit`, params });
-                } else {
-                    // Git providers: Store data and navigate through repo/branch selection
-                    await this.$store.dispatch(templateActions.setLocalTemplateData, templateData.model);
+                    // Route based on provider type
+                    if (this.isLocalProvider) {
+                        this.$router.push({ name: `${this.providerType}ThreatModel`, params });
+                    } else {
+                        const routeName = this.providerType === providerTypes.google
+                            ? `${this.providerType}Folder`
+                            : `${this.providerType}Repository`;
 
-                    this.$router.push({
-                        name: `${providerType}Repository`,
-                        params: { provider },
-                        query: { action: 'create' }  // Same query param as remote templates
-                    });
+                        this.$router.push({
+                            name: routeName,
+                            params: { provider: this.selectedProvider },
+                            query: { action: 'create' }
+                        });
+                    }
+                } catch (e) {
+                    console.warn('File picker cancelled or error:', e);
                 }
-
-            } catch (e) {
-                // User cancelled - benign
-                console.warn('File picker cancelled or error:', e);
+            } else {
+                this.$toast.error('File picker not supported on this browser');
             }
-        } else {
-            this.$toast.error('File picker not supported on this browser');
-        }
-    },
+        },
         async onTemplateClick(template) {
             try {
-                // Store template context in Vuex
-                await this.$store.dispatch(templateActions.setTemplateContext, template.id);
+                // Fetch the full template content from backend
+                const templateData = await this.$store.dispatch(
+                    templateActions.fetchModelById,
+                    template.id
+                );
 
-                // Extract provider from route params
-                console.log('Template selected:', this.$route.name);
-                const { provider } = this.$route.params;
+                // Load template (regenerates IDs and sets as current model)
+                await this.$store.dispatch(tmActions.templateLoad, {
+                    templateData: templateData.content
+                });
 
-                // Detect provider type from route name (e.g., 'gitTemplateGallery' → 'git')
-                const providerType = this.$route.name.replace('TemplateGallery', '');
+                // Route to repository/folder selection based on provider type
+                const routeName = this.providerType === providerTypes.google
+                    ? `${this.providerType}Folder`
+                    : `${this.providerType}Repository`;
 
-                // Route to repository selection
                 this.$router.push({
-                    name: `${providerType}Repository`,
-                    params: { provider },
+                    name: routeName,
+                    params: { provider: this.selectedProvider },
                     query: { action: 'create' }
                 });
 
             } catch (error) {
-                console.error('Error setting template context:', error);
-                this.$toast.warning(this.$t('template.errors.loadFailed'));
+                console.error('Error loading template:', error);
+                this.$toast.error(this.$t('template.errors.loadFailed'));
             }
-        },
-
-    
-
-        onSearchChange() {
-            // Debounce search
-            clearTimeout(this.searchTimeout);
-            this.searchTimeout = setTimeout(() => {
-                this.$store.dispatch(templateActions.setFilters, {
-                    search: this.searchQuery
-                });
-            }, 300);
         }
     }
 };
 </script>
+<style scoped>
+.list-group-item {
+    cursor: pointer;
+}
+</style>

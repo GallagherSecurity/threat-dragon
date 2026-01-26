@@ -7,31 +7,14 @@ const encodeUrlComponents = (...uriComponents) => {
 };
 
 /**
- * Gets the list of available templates with optional filtering and pagination
- * @param {Object} filters - Search filters (e.g. search query, tags)
- * @param {Object} pagination - Pagination options (page, limit)
+ * Gets the list of available templates
  * @returns {Promise}
  */
-const fetchAllAsync = (filters = {}, pagination = {}) => {
-    // Construct query parameters
-    const params = {
-        page: pagination.page || 1,
-        limit: pagination.limit || 20,
-        searchQuery: filters.search || ''
-    };
-
-    return api.getAsync(`${resource}`, { params });
+const fetchAllAsync = () => {
+    return api.getAsync(`${resource}`);
 };
 
-/**
- * Gets the detailed content of a specific template
- * @param {String} templateId - The GUID/filename of the template
- * @returns {Promise}
- */
-const fetchByIdAsync = (templateId) => {
-    const [ encodedTemplateId ] = encodeUrlComponents(templateId);
-    return api.getAsync(`${resource}/${encodedTemplateId}`);
-};
+
 
 /**
  * Imports a template by splitting metadata and content
@@ -50,12 +33,12 @@ const importTemplateAsync = (template) => {
  * @param {Object} template - Template object with id, name, description, tags
  * @returns {Promise}
  */
-const updateTemplateAsync = (template) => {
-    const [ encodedId ] = encodeUrlComponents(template.id);
+const updateTemplateAsync = (templateMetadata) => {
+    const [ encodedId ] = encodeUrlComponents(templateMetadata.id);
     return api.putAsync(`${resource}/${encodedId}`, {
-        name: template.name,
-        description: template.description,
-        tags: template.tags
+        name: templateMetadata.name,
+        description: templateMetadata.description,
+        tags: templateMetadata.tags
     });
 };
 
@@ -84,7 +67,6 @@ const bootstrapAsync = () => {
 
 export default {
     fetchAllAsync,
-    fetchByIdAsync,
     importTemplateAsync,
     updateTemplateAsync,
     deleteTemplateAsync,

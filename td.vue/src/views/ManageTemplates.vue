@@ -41,8 +41,7 @@
                                     {{ $t('template.addNew') }}
                                 </b-button>
                             </b-input-group-prepend>
-                            <b-form-input v-model="searchQuery" :placeholder="$t('template.search')"
-                                @input="onSearchChange" />
+                            <b-form-input v-model="searchQuery" :placeholder="$t('template.search')" />
                         </b-input-group>
                     </b-form-group>
                 </b-col>
@@ -52,7 +51,7 @@
             <b-row>
                 <b-col md="6" offset-md="3">
                     <b-list-group v-if="templates.length > 0">
-                        <b-list-group-item v-for="template in templates" :key="template.id" :data-template-id="template.id"
+                        <b-list-group-item v-for="template in filteredTemplates" :key="template.id" :data-template-id="template.id"
                             class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <h5>{{ template.name }}</h5>
@@ -86,18 +85,18 @@
                 </b-col>
             </b-row>
         </template>
-        <b-modal id="edit-template-modal" title="Edit Template" @ok="onSaveEdit" @cancel="onCancelEdit">
+        <b-modal id="edit-template-modal" :title="$t('template.editTemplate')" @ok="onSaveEdit">
             <b-form>
-                <b-form-group label="Template Name" label-for="edit-name">
+                <b-form-group :label="$t('template.name')" label-for="edit-name">
                     <b-form-input id="edit-name" v-model="editForm.name" required></b-form-input>
                 </b-form-group>
 
-                <b-form-group label="Description" label-for="edit-description">
+                <b-form-group :label="$t('template.description')" label-for="edit-description">
                     <b-form-textarea id="edit-description" v-model="editForm.description" rows="3"></b-form-textarea>
                 </b-form-group>
 
-                <b-form-group label="Tags" label-for="edit-tags">
-                    <b-form-tags id="edit-tags" v-model="editForm.tags" placeholder="Add tags..."
+                <b-form-group :label="$t('template.tags')" label-for="edit-tags">
+                    <b-form-tags id="edit-tags" v-model="editForm.tags" :placeholder="$t('template.addTagsPlaceholder')"
                         separator=",;"></b-form-tags>
                 </b-form-group>
             </b-form>
@@ -107,6 +106,7 @@
 
 <script>
 import { mapGetters } from 'vuex';
+import { v4 } from 'uuid';
 import templateActions from '@/store/actions/template.js';
 import schema from '@/service/schema/ajv.js';
 
@@ -130,7 +130,16 @@ export default {
             contentRepoStatus: 'contentRepoStatus',
             canInitializeRepo: 'canInitializeRepo',
             contentRepoName: 'contentRepoName'
-        })
+        }),
+        filteredTemplates() {
+            if (!this.searchQuery) return this.templates;
+            const search = this.searchQuery.toLowerCase();
+            return this.templates.filter(t =>
+                (t.name || '').toLowerCase().includes(search) ||
+                (t.description || '').toLowerCase().includes(search) ||
+                (t.tags || []).some(tag => tag.toLowerCase().includes(search))
+            );
+        }
     },
     mounted() {
         this.$store.dispatch(templateActions.fetchAll)
@@ -168,30 +177,20 @@ export default {
         async onSaveEdit() {
             try {
                 await this.$store.dispatch(templateActions.update, {
-                    
-                    
-                        id: this.editingTemplate.id,
                         name: this.editForm.name,
                         description: this.editForm.description,
                         tags: this.editForm.tags,
-                        modelRef: this.editingTemplate.modelRef
-                 
+                        id: this.editingTemplate.id
                 });
 
-                this.$toast('Template updated successfully');
+                this.$toast.success(this.$t('template.updateSuccess'));
 
                 this.$bvModal.hide('edit-template-modal');
             } catch (error) {
                 console.error('Error updating template:', error);
-                this.$toast('Failed to update template');
+                this.$toast.error(this.$t('template.errors.updateFailed'));
             }
         },
-
-        onCancelEdit() {
-            this.$bvModal.hide('edit-template-modal');
-        },
-
-
 
         async onAddTemplateClick() {
             if ('showOpenFilePicker' in window) {
@@ -212,11 +211,7 @@ export default {
                     console.warn('File picker cancelled');
                 }
             } else {
-                this.$toast.error('File picker not supported on this browser', {
-                    title: 'Error',
-                    variant: 'danger',
-                    solid: true
-                });
+                this.$toast.error('File picker not supported on this browser');
             }
         },
 
@@ -247,35 +242,33 @@ export default {
 
             // Template is valid, save it
             try {
+                templateData.templateMetadata.id = v4();
+                templateData.templateMetadata.modelRef = v4();
                 await this.$store.dispatch(templateActions.create, {
                     template: templateData
                 });
-                this.$toast.success('Template imported successfully');
+                this.$toast.success(this.$t('template.importSuccess'));
             } catch (error) {
                 console.error('Error saving template:', error);
-                this.$toast.error(this.$t('template.warnings.templateSave'));
+                
+                // Check for duplicate template error
+                if (error.response?.status === 400 ) {
+                    this.$toast.error(this.$t('template.errors.duplicateTemplate'));
+                } else {
+                    this.$toast.error(this.$t('template.warnings.templateSave'));
+                }
             }
-        },
-
-        onSearchChange() {
-            // Debounce search
-            clearTimeout(this.searchTimeout);
-            this.searchTimeout = setTimeout(() => {
-                this.$store.dispatch(templateActions.setFilters, {
-                    search: this.searchQuery
-                });
-            }, 300);
         },
 
         async onDeleteTemplate(template) {
             // Confirm before delete
             const confirmed = await this.$bvModal.msgBoxConfirm(
-                `Are you sure you want to delete "${template.name}"?`,
+                this.$t('template.deleteConfirm', { name: template.name }),
                 {
-                    title: 'Confirm Delete',
+                    title: this.$t('template.deleteTitle'),
                     okVariant: 'danger',
-                    okTitle: 'Delete',
-                    cancelTitle: 'Cancel',
+                    okTitle: this.$t('forms.delete'),
+                    cancelTitle: this.$t('forms.cancel'),
                     centered: true
                 }
             );
@@ -283,17 +276,20 @@ export default {
             if (confirmed) {
                 try {
                     await this.$store.dispatch(templateActions.delete, template.id);
-                    this.$toast.success('Template deleted successfully');
+                    this.$toast.success(this.$t('template.deleteSuccess'));
                 } catch (error) {
-                    this.$toast.error('Failed to delete template');
+                    this.$toast.error(this.$t('template.errors.deleteFailed'));
                 }
             }
-
-        },
+        }
     }
 };
 </script>
 <style scoped>
+.list-group-item {
+    cursor: pointer;
+}
+
 .template-actions>>>.btn::after,
 .template-actions>>>.dropdown-toggle::after {
     display: none !important;

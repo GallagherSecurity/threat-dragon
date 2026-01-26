@@ -127,10 +127,20 @@ const eng = {
         addNew: 'Add New Template',
         manage: 'Manage Templates',
         manageDescription: 'Import, export, and manage your threat model templates here.',
+        editTemplate: 'Edit Template',
+        addTagsPlaceholder: 'Add tags...',
+        updateSuccess: 'Template updated successfully',
+        importSuccess: 'Template imported successfully',
+        deleteSuccess: 'Template deleted successfully',
+        deleteTitle: 'Confirm Delete',
+        deleteConfirm: 'Are you sure you want to delete "{name}"?',
         errors: {
             invalidJson: 'Invalid JSON. Please check your template file and try again',
             invalidTemplate: 'Invalid template format. Please check your template file and try again',
-            loadFailed: 'Failed to load templates. Please try again'
+            loadFailed: 'Failed to load templates. Please try again',
+            duplicateTemplate: 'A template with this name already exists. Please use a different name',
+            updateFailed: 'Failed to update template',
+            deleteFailed: 'Failed to delete template'
         },
         warnings: {
             templateSave: 'Could not save the template. Check the developer console for more information',
