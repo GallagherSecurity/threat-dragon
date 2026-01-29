@@ -1,8 +1,9 @@
+import { badRequest, forbidden, notFound, serverError } from "./errors.js";
+
+import env from "../env/Env.js";
 import loggerHelper from "../helpers/logger.helper.js";
 import repositories from "../repositories";
 import responseWrapper from "./responseWrapper.js";
-import { serverError, badRequest, notFound, forbidden } from "./errors.js";
-import env from "../env/Env.js";
 
 const logger = loggerHelper.get("controllers/templateController.js");
 
@@ -183,7 +184,7 @@ const updateTemplate = async (req, res) => {
   }
 };
 
-const getTemplateContent = async (req, res) => {
+const getTemplateContent = (req, res) => {
   const repository = repositories.get();
   const accessToken = req.provider.access_token;
   const { id } = req.params;
@@ -194,7 +195,7 @@ const getTemplateContent = async (req, res) => {
     const { templates } = await fetchTemplateMetadata(repository, accessToken);
 
     const templateMetadata = templates.find((t) => t.id === id);
-    if (! templateMetadata) {
+    if (!templateMetadata) {
       return notFound(`Template with ID "${id}" not found`, res, logger);
     }
 

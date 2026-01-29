@@ -5,7 +5,10 @@
 import axios from 'axios';
 
 import env from '../env/Env.js';
+import loggerHelper from '../helpers/logger.helper.js';
 import repositories from "../repositories";
+
+const logger = loggerHelper.get('providers/github.js');
 
 const name = 'github';
 
@@ -15,6 +18,7 @@ const name = 'github';
  */
 const isConfigured = () => Boolean(env.get().config.GITHUB_CLIENT_ID);
 const isContentConfigured = () => Boolean(env.get().config.CONTENT_REPO);
+
 /**
  * Gets the Github endpoint, which will be github.com by default OR a custom endpoint for Github enterprise
  * @returns {String}
@@ -90,7 +94,7 @@ const completeLoginAsync = async (code) => {
         } catch (err) {
             // If 404/403, they definitely aren't an admin.
             // We just log it and move on (isAdmin remains false).
-            console.warn(`Admin check failed for ${contentRepoName}:`, err.message);
+            logger.warn(`Admin check failed for ${contentRepoName}: ${err.message}`);
         }
     }
     const user = {

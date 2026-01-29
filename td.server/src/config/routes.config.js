@@ -6,8 +6,9 @@ import configController from "../controllers/configcontroller";
 import googleProviderThreatmodelController from '../controllers/googleProviderThreatmodelController.js';
 import healthcheck from '../controllers/healthz.js';
 import homeController from '../controllers/homecontroller.js';
-import threatmodelController from '../controllers/threatmodelcontroller.js';
 import templateController from '../controllers/templateController.js';
+import threatmodelController from '../controllers/threatmodelcontroller.js';
+
 
 /**
  * Routes that do **NOT** require authentication

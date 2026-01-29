@@ -84,20 +84,20 @@ const deleteAsync = async (modelInfo, accessToken) => {
 };
 const METADATA_PATH = 'templates/template_info.json';
 
-const repoExistsAsync = async (accessToken) => {
+const repoExistsAsync = (accessToken) => {
     const client = getClient(accessToken);
     return client.repo(env.get().config.GITHUB_CONTENT_REPO).infoAsync();
 };
 
-const listTemplatesAsync = async (accessToken) => getClient(accessToken)
-    .repo(env.get().config.GITHUB_CONTENT_REPO).
+const listTemplatesAsync = (accessToken) => getClient(accessToken).
+    repo(env.get().config.GITHUB_CONTENT_REPO).
     contentsAsync(METADATA_PATH);
 
 
-const createContentFileAsync = async (accessToken, fileName, content,) => {
+const createContentFileAsync = (accessToken, fileName, content) => {
     const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
     const path = `templates/${fileName}.json`;
-    
+
     return repo.createContentsAsync(
         path, 
         `feat: add content for ${fileName}`, 
@@ -106,7 +106,7 @@ const createContentFileAsync = async (accessToken, fileName, content,) => {
     );
 };
 
-const createMetadataAsync = async (accessToken) => {
+const createMetadataAsync = (accessToken) => {
     const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
     const fileContent = JSON.stringify({ templates: [] }, null, 2);
 
@@ -118,7 +118,7 @@ const createMetadataAsync = async (accessToken) => {
     );
 };
 
-const updateMetadataAsync = async (accessToken, newTemplateMetadata,sha) => {
+const updateMetadataAsync = (accessToken, newTemplateMetadata, sha) => {
     const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
     const fileContent = JSON.stringify({ templates: newTemplateMetadata }, null, 2);
 
@@ -131,7 +131,7 @@ const updateMetadataAsync = async (accessToken, newTemplateMetadata,sha) => {
     );
 };
 
-const getContentFileAsync = async (accessToken, modelRef) => {
+const getContentFileAsync = (accessToken, modelRef) => {
     const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
     const path = `templates/${modelRef}.json`;
     return repo.contentsAsync(path, 'main');

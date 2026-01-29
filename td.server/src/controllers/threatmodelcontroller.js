@@ -1,8 +1,9 @@
+import { conflict, serverError } from './errors.js';
+
 import env from '../env/Env.js';
 import loggerHelper from '../helpers/logger.helper.js';
 import repositories from "../repositories";
 import responseWrapper from './responseWrapper.js';
-import { serverError, conflict } from './errors.js';
 
 const logger = loggerHelper.get('controllers/threatmodelcontroller.js');
 
