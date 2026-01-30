@@ -17,7 +17,6 @@ const name = 'github';
  * @returns {Boolean}
  */
 const isConfigured = () => Boolean(env.get().config.GITHUB_CLIENT_ID);
-const isContentConfigured = () => Boolean(env.get().config.CONTENT_REPO);
 
 /**
  * Gets the Github endpoint, which will be github.com by default OR a custom endpoint for Github enterprise
@@ -113,6 +112,5 @@ export default {
     getOauthReturnUrl,
     getOauthRedirectUrl,
     isConfigured,
-    isContentConfigured,
     name
 };

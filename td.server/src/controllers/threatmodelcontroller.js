@@ -125,8 +125,7 @@ const create = async (req, res) => {
         logger.error(err);
 
         // Check if the error is due to file already existing (422 status)
-        if (err.statusCode === 422 || err.response?.status === 422 ||
-            err.message?.includes('sha') || err.body?.message?.includes('sha')) {
+        if (err.statusCode === 422 || err.response?.status === 422) {
             return conflict(`A threat model with the name "${modelBody.model}" already exists. Please use a different name or update the existing model.`, res, logger);
         }
 

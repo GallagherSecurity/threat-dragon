@@ -7,16 +7,11 @@ import responseWrapper from "./responseWrapper.js";
 
 const logger = loggerHelper.get("controllers/templateController.js");
 
-/**
- * Fetches and parses template metadata from repository
- * @param {Object} repository - Repository instance
- * @param {string} accessToken - Access token for authentication
- * @returns {Promise<{templates: Array, sha: string}>}
- */
+
 const fetchTemplateMetadata = async (repository, accessToken) => {
+  // Fetch the metadata file from the repository
   const result = await repository.listTemplatesAsync(accessToken);
   const file = result[0];
-  
   const decoded = Buffer.from(file.content, "base64").toString("utf8");
   const parsed = JSON.parse(decoded);
   const templates = Array.isArray(parsed) ? parsed : parsed.templates || [];
@@ -30,7 +25,7 @@ const fetchTemplateMetadata = async (repository, accessToken) => {
  * Handles multiple repository states:
  * - Normal operation: Returns array of template metadata
  * - NOT_CONFIGURED: GITHUB_CONTENT_REPO environment variable not set
- * - NOT_INITIALIZED: Repository exists but metadata file not created
+ * - NOT_INITIALIZED: Repository exists but metadata file not created (admin can initialize, non-admins informed)
  * - REPO_NOT_FOUND: Repository doesn't exist or is inaccessible (404)
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
@@ -143,7 +138,6 @@ const deleteTemplate = async (req, res) => {
 };
 
 const updateTemplate = async (req, res) => {
-  // Admin-only operation
   if (!req.user?.isAdmin) {
     logger.warn(`Non-admin user attempted to update template: ${req.user?.username}`);
     return forbidden(res, logger);
@@ -169,8 +163,8 @@ const updateTemplate = async (req, res) => {
       name: name.trim(),
       ...(description && { description: description.trim() }),
       ...(Array.isArray(tags) && { tags }),
-      id: id,
-      modelRef: templates[templateIndex].modelRef
+      id: id,  // Preserve original ID
+      modelRef: templates[templateIndex].modelRef  // Preserve content file reference
     };
 
     await repository.updateMetadataAsync(accessToken, templates, sha);
@@ -185,6 +179,13 @@ const updateTemplate = async (req, res) => {
   }
 };
 
+/**
+ * Retrieves the full content of a specific template
+ * Available to all authenticated users
+ * 
+ * @param {string} req.params.id - The unique ID of the template
+ * @returns {Object} The template content/model
+ */
 const getTemplateContent = (req, res) => {
   const repository = repositories.get();
   const accessToken = req.provider.access_token;
@@ -218,6 +219,7 @@ const getTemplateContent = (req, res) => {
   }, req, res, logger);
 };
 
+
 const bootstrapTemplateRepository = async (req, res) => {
   if (!req.user?.isAdmin) {
     logger.warn(`Non-admin user attempted to bootstrap template repository: ${req.user?.username}`);
@@ -235,15 +237,19 @@ const bootstrapTemplateRepository = async (req, res) => {
   try {
     logger.debug(`API bootstrapTemplateRepository request: ${logger.transformToString(req)}`);
 
+    // Check if already initialized - prevent accidental overwrites
     try {
       await repository.listTemplatesAsync(accessToken);
+      // If we get here, metadata exists - don't overwrite
       return badRequest("Template repository already initialized", res, logger);
     } catch (checkError) {
+      // 404 is expected - means we can proceed with initialization
       if (checkError.statusCode !== 404) {
         throw checkError;
       }
     }
 
+    // Create the initial empty metadata file
     await repository.createMetadataAsync(accessToken);
 
     return res.status(201).json({
