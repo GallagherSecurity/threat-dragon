@@ -128,8 +128,9 @@ const deleteTemplate = async (req, res) => {
 
     const updatedTemplates = templates.filter((t) => t.id !== id);
 
-    await repository.deleteContentFileAsync(accessToken, template.modelRef);
     await repository.updateMetadataAsync(accessToken, updatedTemplates, sha);
+    await repository.deleteContentFileAsync(accessToken, template.modelRef);
+    
 
     return res.status(200).json({
       status: 200,
@@ -207,7 +208,6 @@ const getTemplateContent = (req, res) => {
 
       return {
         content: templateContent,
-        metadata:   templateMetadata
       };
     } catch (error) {
       if (error.statusCode === 404) {

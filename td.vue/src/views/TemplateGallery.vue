@@ -147,11 +147,9 @@ export default {
         // Only fetch templates for git providers (requires authentication)
         // Local/desktop providers use file picker only
         if (!this.isLocalProvider) {
-            this.$store.dispatch(templateActions.fetchAll)
-                .catch(error => {
-                    console.error('Failed to load templates:', error);
-                    this.$toast.error(this.$t('template.errors.loadFailed'));
-                });
+
+                this.$store.dispatch(templateActions.fetchAll)
+           
         }
     },
     methods: {
@@ -185,7 +183,7 @@ export default {
                         return;
                     }
 
-                    // Load template (regenerates IDs and sets as current model)
+                    // Load template (regenerates IDs and sets as current model, current model set in the action)
                     await this.$store.dispatch(tmActions.templateLoad, {
                         templateData: templateData.model
                     });
@@ -197,7 +195,7 @@ export default {
                         threatmodel: model.summary.title
                     });
 
-                    // Route based on provider type
+                    // Route based on provider type, repo for git and folder for google drive
                     if (this.isLocalProvider) {
                         this.$router.push({ name: `${this.providerType}ThreatModel`, params });
                     } else {
@@ -205,6 +203,7 @@ export default {
                             ? `${this.providerType}Folder`
                             : `${this.providerType}Repository`;
 
+                        //route to create model in selected repo/folder
                         this.$router.push({
                             name: routeName,
                             params: { provider: this.selectedProvider },
@@ -220,18 +219,18 @@ export default {
         },
         async onTemplateClick(template) {
             try {
-                // Fetch the full template content from backend
+                // Fetch the  threat model part of the template from backend
                 const templateData = await this.$store.dispatch(
                     templateActions.fetchModelById,
                     template.id
                 );
 
-                // Load template (regenerates IDs and sets as current model)
+                // Load template (regenerates IDs and sets as current model, current model set in the action)
                 await this.$store.dispatch(tmActions.templateLoad, {
                     templateData: templateData.content
                 });
 
-                // Route to repository/folder selection based on provider type
+                // Route to repository/folder selection based on provider type, repo for git and folder for google drive
                 const routeName = this.providerType === providerTypes.google
                     ? `${this.providerType}Folder`
                     : `${this.providerType}Repository`;

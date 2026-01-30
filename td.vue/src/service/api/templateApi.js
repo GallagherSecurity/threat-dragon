@@ -18,8 +18,7 @@ const fetchAllAsync = () => {
 
 /**
  * Imports a template by splitting metadata and content
- * @param {Object} templateMetadata - Template metadata object
- * @param {Object} templateContent - Template model content
+ * @param {Object} template - Entire` template with metadata and content
  * @returns {Promise}
  */
 const importTemplateAsync = (template) => {
@@ -30,7 +29,7 @@ const importTemplateAsync = (template) => {
 
 /**
  * Updates a template's metadata (name, description, tags)
- * @param {Object} template - Template object with id, name, description, tags
+ * @param {Object} templateMetadata - Template object with id, name, description, tags
  * @returns {Promise}
  */
 const updateTemplateAsync = (templateMetadata) => {
@@ -48,7 +47,8 @@ const updateTemplateAsync = (templateMetadata) => {
  * @returns {Promise}
  */
 const deleteTemplateAsync = (id) => {
-    return api.deleteAsync(`${resource}/${id}`);  // No body, just URL
+    const [ encodedId ] = encodeUrlComponents(id);
+    return api.deleteAsync(`${resource}/${encodedId}`);  // No body, just URL
 };
 
 const fetchModelByIdAsync = (templateId) => {

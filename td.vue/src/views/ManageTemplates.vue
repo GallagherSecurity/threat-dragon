@@ -142,11 +142,10 @@ export default {
         }
     },
     mounted() {
-        this.$store.dispatch(templateActions.fetchAll)
-            .catch(error => {
-                console.error('Failed to load templates:', error);
-                this.$toast.error(this.$t('template.errors.loadFailed'));
-            });
+    
+                this.$store.dispatch(templateActions.fetchAll)
+          
+          
     },
     methods: {
         async handleBootstrap() {
