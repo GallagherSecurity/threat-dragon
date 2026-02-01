@@ -109,6 +109,7 @@ app.on('ready', async () => {
     ipcMain.on('model-print', handleModelPrint);
     ipcMain.on('model-save', handleModelSave);
     ipcMain.on('update-menu', handleUpdateMenu);
+    ipcMain.on('set-templates-path', handleSetTemplateFolder);
 
     createWindow();
 
@@ -123,6 +124,11 @@ app.on('open-file', function(event, path) {
     logger.log.debug('Request to open file from recent documents: ' + path);
     menu.openModelRequest(path);
 });
+
+function handleSetTemplateFolder(templatesPath) {
+    logger.log.debug('Set templates path request from renderer with path: ' + templatesPath);
+    menu.setTemplateFolder(templatesPath);
+}
 
 function handleCloseApp() {
     logger.log.debug('Close application request from renderer ');

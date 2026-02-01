@@ -27,6 +27,7 @@ import por from '@/i18n/pt.js';
 import spa from '@/i18n/es.js';
 import zho from '@/i18n/zh.js';
 
+
 const messages = { ara, deu, ell, eng, fin, fra, hin, ind, jpn, msa, por, spa, zho };
 const defaultLanguage = 'eng';
 var language = defaultLanguage;
@@ -233,7 +234,7 @@ function openModelFile (filename) {
                 logger.log.warn(messages[language].threatmodel.errors.invalidJson + ' : ' + err.message);
                 model.isOpen = false;
                 mainWindow.webContents.send('open-model', path.basename(filename), {modelError: 'invalidJson'});
-                return;
+                retumrn;
             }
             model.isOpen = true;
             mainWindow.webContents.send('open-model', path.basename(filename), modelData);
@@ -470,6 +471,127 @@ export const setLocale = (locale) => {
     language = languages.includes(locale) ? locale : defaultLanguage;
 };
 
+//tempalte functions
+const CONFIG_FILE = 'templates-path.txt'; // config file to store templates folder path
+const TEMPLATE_INDEX = 'template_info.json';// template index file name
+
+// get path to config file
+function getConfigPath() {
+    return path.join(app.getPath('userData'), CONFIG_FILE);
+}
+
+// get templates folder path from config file
+async function getTemplatesPath() {
+    try {
+        const data = await fs.promises.readFile(getConfigPath(), 'utf-8');
+        return data.trim();
+    } catch {
+        return null;
+    }
+}
+
+// check if folder has write access
+async function hasWriteAccess(folderPath) {
+    try {
+        await fs.promises.access(folderPath, fs.constants.W_OK);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+// check if folder exists
+async function folderExists(folderPath) {
+    try {
+        const stats = await fs.promises.stat(folderPath);
+        return stats.isDirectory();
+    } catch {
+        return false;
+    }
+}
+
+// check if template index file exists in folder(avoid overwrites)
+async function hasTemplateIndex(folderPath) {
+    try {
+        const indexPath = path.join(folderPath, TEMPLATE_INDEX);
+        const stats = await fs.promises.stat(indexPath);
+        return stats.isFile();
+    } catch {
+        return false;
+    }
+}
+
+async function setTemplateFolder() {
+    logger.log.debug('Request to select template folder');
+    
+    try {
+        const result = await dialog.showOpenDialog({
+            title: 'Select Templates Folder',  // TODO: add to i18n
+            properties: ['openDirectory'],
+            defaultPath: app.getPath('userData')
+        });
+        
+        if (result.canceled) {
+            logger.log.debug('Select template folder: canceled');
+            return;
+        }
+        
+        // Save the selected path (this calls getTemplates() internally)
+        const selectedPath = result.filePaths[0];
+        await fs.promises.writeFile(getConfigPath(), selectedPath, 'utf-8');
+        await getTemplates();
+        logger.log.debug('Template folder set to: ' + result.filePaths[0]);
+        
+    } catch (err) {
+        logger.log.warn('Error selecting template folder: ' + err);
+        mainWindow.webContents.send('templates-result', { 
+            status: 'ERROR',
+            error: err.message 
+        });
+    }
+}
+
+
+async function getTemplates() {
+    //check if there is a templates path configured
+    const templatePath = await getTemplatesPath();
+    if (!templatePath) {
+        mainWindow.webContents.send('templates-result', { 
+            status: 'NOT_CONFIGURED' 
+        });
+        return;
+    }
+
+    // check if that  folder exists
+    const exists = await folderExists(templatePath);
+    if (!exists) {
+        mainWindow.webContents.send('templates-result', { 
+            status: 'FOLDER_NOT_FOUND',
+            path: templatePath
+        });
+        return;
+    }
+
+    // check if folder has write access
+    const canWrite = await hasWriteAccess(templatePath);
+
+    // check if template index file exists in folder(avoid overwrites)
+    const hasIndex = await hasTemplateIndex(templatePath);
+
+    // Step 5: List templates (TODO: implement later) write a function for this
+    const templates = []; // placeholder for now
+
+    mainWindow.webContents.send('templates-result', {
+        status: canWrite ? 'READ_WRITE' : 'READ_ONLY',
+        path: templatePath,
+        hasIndex: hasIndex,
+        templates: templates
+    });
+}
+
+
+
+
 export const setMainWindow = (window) => {
     mainWindow = window;
 };
@@ -483,5 +605,11 @@ export default {
     openModel,
     openModelRequest,
     setLocale,
-    setMainWindow
+    setMainWindow,
+    getTemplatesPath,
+    hasWriteAccess,
+    folderExists,
+    hasTemplateIndex,
+    getTemplates,
+    setTemplateFolder
 };
