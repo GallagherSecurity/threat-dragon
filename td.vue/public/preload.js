@@ -13,8 +13,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     modelPrint: (format) => ipcRenderer.send('model-print', format),
     modelSave: (modelData, fileName) => ipcRenderer.send('model-save', modelData, fileName),
     updateMenu: (locale) => ipcRenderer.send('update-menu', locale),
+    setTemplateFolder: () => ipcRenderer.send('set-template-folder'),
+    getTemplates: () => ipcRenderer.send('get-templates'),
 
     // electron main to renderer
+    onTemplatesResult: (callback) => ipcRenderer.on('templates-result', callback),
     onCloseAppRequest: (callback) => ipcRenderer.on('close-app-request', callback),
     onCloseModelRequest: (callback) => ipcRenderer.on('close-model-request', callback),
     onNewModelRequest: (callback) => ipcRenderer.on('new-model-request', callback),

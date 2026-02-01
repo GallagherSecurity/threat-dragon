@@ -4,6 +4,7 @@ import { app, protocol, BrowserWindow, Menu, ipcMain } from 'electron';
 import { createProtocol } from 'vue-cli-plugin-electron-builder/lib';
 import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer';
 import menu from './menu.js';
+import templates from './templates.js';
 import logger from './logger.js';
 import { electronURL, isDevelopment, isTest, isMacOS, isWin } from './utils.js';
 
@@ -41,6 +42,7 @@ async function createWindow () {
         mainWindow.focus();
         // menu system needs to access the main window
         menu.setMainWindow(mainWindow);
+        templates.setMainWindow(mainWindow);
     });
 
     mainWindow.on('close', (event) => {
@@ -109,7 +111,8 @@ app.on('ready', async () => {
     ipcMain.on('model-print', handleModelPrint);
     ipcMain.on('model-save', handleModelSave);
     ipcMain.on('update-menu', handleUpdateMenu);
-    ipcMain.on('set-templates-path', handleSetTemplateFolder);
+    ipcMain.on('set-template-folder', handleSetTemplateFolder);
+    ipcMain.on('get-templates', handleGetTemplates);
 
     createWindow();
 
@@ -125,9 +128,14 @@ app.on('open-file', function(event, path) {
     menu.openModelRequest(path);
 });
 
-function handleSetTemplateFolder(templatesPath) {
-    logger.log.debug('Set templates path request from renderer with path: ' + templatesPath);
-    menu.setTemplateFolder(templatesPath);
+function handleSetTemplateFolder(_event) {
+    logger.log.debug('Set template folder request from renderer');
+    templates.setTemplateFolder();
+}
+
+function handleGetTemplates(_event) {
+    logger.log.debug('Get templates request from renderer');
+    templates.getTemplates();
 }
 
 function handleCloseApp() {

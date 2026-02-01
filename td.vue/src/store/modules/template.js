@@ -11,6 +11,7 @@ import {
 } from '@/store/actions/template';
 
 import templateApi from '@/service/api/templateApi.js';
+import { getProviderType } from '@/service/provider/providers';
 
 const state = {
     templates: [],// list of templates
@@ -74,6 +75,12 @@ const actions = {
      */
     [TEMPLATE_FETCH_ALL]: async ({ commit }) => {
         try {
+            // Desktop: fire IPC request, result comes via onTemplatesResult listener
+            if (getProviderType() === 'desktop') {
+                window.electronAPI.getTemplates();
+                return;
+            }
+
             const response = await templateApi.fetchAllAsync();
 
             // Handle special statuses (NOT_CONFIGURED, NOT_INITIALIZED)

@@ -182,6 +182,29 @@ window.electronAPI.onSaveModelFailed((_event, fileName, message) =>  {
     app.$toast.warning(message);
 });
 
+// response from electron with templates folder state
+window.electronAPI.onTemplatesResult((_event, result) =>  {
+    console.debug('Templates result:', result);
+    switch (result.status) {
+    case 'NOT_CONFIGURED':
+        console.debug('Templates folder not configured');
+        break;
+    case 'FOLDER_NOT_FOUND':
+        app.$toast.error(app.$t('templates.errors.folderNotFound'));
+        break;
+    case 'READ_ONLY':
+        app.$toast.warning(app.$t('templates.warnings.readOnly'));
+        break;
+    case 'READ_WRITE':
+        app.$toast.success(app.$t('templates.folderSet'));
+        break;
+    case 'ERROR':
+        app.$toast.error(result.error);
+        break;
+    }
+    // TODO: dispatch to store with result.templates when ready and add I8n keys later 
+});
+
 const localAuth = () => {
     app.$store.dispatch(providerActions.selected, providerNames.desktop);
     app.$store.dispatch(authActions.setLocal);
