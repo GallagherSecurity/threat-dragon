@@ -107,11 +107,13 @@ templates/
 
 **How it works:**
 
-1. `template_info.json` contains an object with a `templates` array of metadata objects (id, modelRef, name, description, tags)
+1. `template_info.json` contains an object with a `templates` array of metadata objects
+   (id, modelRef, name, description, tags)
 2. Each metadata object's `modelRef` value corresponds to a content file named
    `{modelRef}.json`
 3. When listing templates, only `template_info.json` is fetched (lightweight operation)
-4. When a user selects a template, the full content is fetched using the `modelRef` to locate the file
+4. When a user selects a template, the full content is fetched using the `modelRef` to
+   locate the file
 
 **Example `template_info.json`:**
 

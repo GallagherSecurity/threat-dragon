@@ -70,15 +70,16 @@ If you have created a threat model that would be useful as a template for others
 you can export it as a template file that can be shared or imported later.
 
 From your threat model's details page, click on the manage dropdown and select **Export as Template** button.
-You will be taken to the export template page where you can review and customize the template details.
-
+You will be taken to the export template page where you can review and customize the
+template details.
 
 On the export template page, you can:
 
 * Review the template name and description
 * Add or modify tags for easier searching
 
-Once you are satisfied with the template details, click **Save Template** to download the template file to your local filesystem.
+Once you are satisfied with the template details, click **Save Template** to download the
+template file to your local filesystem.
 
 The exported template file can then be:
 
@@ -86,8 +87,8 @@ The exported template file can then be:
 * Sent to administrators to be added to the organization's template repository
 * Used as a backup or starting point for future models
 
-__Note__: The export removes any organization-specific information (like repository paths) and
-generates new unique identifiers, making it suitable for use as a reusable template.
+**Note**: The export removes any organization-specific information (like repository paths)
+and generates new unique identifiers, making it suitable for use as a reusable template.
 
 ## Managing Templates (Administrators)
 
