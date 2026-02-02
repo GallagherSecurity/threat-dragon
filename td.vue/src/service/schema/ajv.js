@@ -5,7 +5,7 @@ import tmBom from '@/service/migration/tmBom/threatModelBom';
 
 const schemaV1 = require('@/assets/schema/threat-dragon-v1.schema');
 const schemaV2 = require('@/assets/schema/threat-dragon-v2.schema');
-const schemaTemplate = require('@/assets/schema/owasp-threat-dragon-template.schema');
+const schemaTemplate = require('@/assets/schema/owasp-threat-dragon-template.schema.json');
 
 const ajv = new Ajv({'allowUnionTypes' : true});
 addFormats(ajv);
