@@ -143,7 +143,7 @@ export default {
     },
     mounted() {
     
-                this.$store.dispatch(templateActions.fetchAll)
+        this.$store.dispatch(templateActions.fetchAll);
           
           
     },
@@ -176,10 +176,10 @@ export default {
         async onSaveEdit() {
             try {
                 await this.$store.dispatch(templateActions.update, {
-                        name: this.editForm.name,
-                        description: this.editForm.description,
-                        tags: this.editForm.tags,
-                        id: this.editingTemplate.id
+                    name: this.editForm.name,
+                    description: this.editForm.description,
+                    tags: this.editForm.tags,
+                    id: this.editingTemplate.id
                 });
 
                 this.$toast.success(this.$t('template.updateSuccess'));

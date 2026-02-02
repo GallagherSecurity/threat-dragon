@@ -207,7 +207,7 @@ GITHUB_CONTENT_REPO=my-org/threat-dragon-templates
 #### Administrator Access
 
 Template management (import, update, delete, bootstrap) requires administrator privileges.
-A user is considered an administrator if they have **push** or **admin** permissions on the `GITHUB_CONTENT_REPO`.
+A user is considered an administrator if they have __push__ or __admin__ permissions on the `GITHUB_CONTENT_REPO`.
 
 #### Branch Protection Requirements
 
@@ -220,7 +220,7 @@ If you have branch protection enabled on `main`:
    - Uncheck "Do not allow bypassing the above settings" to allow admin bypass, OR
    - Add template administrators to "Allow specific actors to bypass required pull requests"
 
-**Note**: Without bypass permissions, administrators will receive 403 errors when attempting to manage templates.
+__Note__: Without bypass permissions, administrators will receive 403 errors when attempting to manage templates.
 
 #### Template Repository Structure
 
@@ -248,6 +248,7 @@ templates/
 | `GITHUB_SEARCH_QUERY` | Optionally specifies the search query to use when searching for Threat Dragon github repos | |
 | `GITHUB_REPO_ROOT_DIRECTORY` | Optional path where saved models are stored in a Github repo | |
 | `GITHUB_CONTENT_REPO` | Optional GitHub repository for organization-wide templates (e.g., `org/templates-repo`) | |
+
 ----
 
 Threat Dragon: _making threat modeling less threatening_

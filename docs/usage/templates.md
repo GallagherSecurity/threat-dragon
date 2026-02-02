@@ -8,7 +8,7 @@ group: Modeling
 
 ## Using Templates
 
-[Threat Dragon](https://owasp.org/www-project-threat-dragon/) supports templates that allow you to 
+[Threat Dragon](https://owasp.org/www-project-threat-dragon/) supports templates that allow you to
 quickly create new threat models based on pre-defined structures.
 
 ## Create a new model from a template
@@ -17,7 +17,9 @@ quickly create new threat models based on pre-defined structures.
 
 ![Login image]({{ '/assets/images/login.png' | relative_url }}){: .float-right }
 
-The Threat Dragon web application can be configured with organization-wide templates stored in a GitHub repository. Templates provide pre-defined threat model structures that help teams get started quickly with consistent patterns.
+The Threat Dragon web application can be configured with organization-wide templates stored in a
+GitHub repository. Templates provide pre-defined threat model structures that help teams get started
+quickly with consistent patterns.
 When using templates, you will need to be logged in to your repository provider (e.g., GitHub)
 to access the template gallery and save new models created from templates.
 
@@ -39,7 +41,7 @@ Again, if you have more than 30 branches you might need to page through.
 When you pick a branch you will be taken to the threat model edit page
 where you can enter general information about your model.
 The template's diagrams, components, and threats will already be populated as a starting point.
-The name that you provide for the model will be used as the file name within the repository. 
+The name that you provide for the model will be used as the file name within the repository.
 
 ## Loading a template from local file
 
@@ -76,7 +78,6 @@ On the export template page, you can:
 * Review the template name and description
 * Add or modify tags for easier searching
 
-
 Once you are satisfied with the template details, click **Save Template** to download the template file to your local filesystem.
 
 The exported template file can then be:
@@ -85,10 +86,11 @@ The exported template file can then be:
 * Sent to administrators to be added to the organization's template repository
 * Used as a backup or starting point for future models
 
-**Note**: The export removes any organization-specific information (like repository paths)
-and generates new unique identifiers, making it suitable for use as a reusable template.
+__Note__: The export removes any organization-specific information (like repository paths) and
+generates new unique identifiers, making it suitable for use as a reusable template.
 
 ## Managing Templates (Administrators)
+
 ![Manage Templates]({{ '/assets/images/manage-template.png' | relative_url }}){: .float-right }
 
 Users with **push** or **admin** permissions on the template repository (`GITHUB_CONTENT_REPO`)
@@ -102,6 +104,7 @@ For information on configuring the template repository, see the
 [GitHub configuration guide]({{ '/configure/github.html#template-repository-configuration' | relative_url }}).
 
 ### Bootstrapping the Template Repository
+
 ![Manage Templates]({{ '/assets/images/initialise-templates.png' | relative_url }}){: .float-right }
 
 Before templates can be used, an administrator must initialize the template repository structure.
@@ -132,9 +135,8 @@ Administrators can update a template's name, description, or tags without modify
 
 1. Navigate to the Manage Templates
 2. Find the template you want to update
-3. Click the burger menu on the template card and click on edit 
+3. Click the burger menu on the template card and click on edit
 4. Modify the name, description, or tags as needed
-
 
 ### Deleting Templates
 

@@ -148,7 +148,7 @@ export default {
         // Local/desktop providers use file picker only
         if (!this.isLocalProvider) {
 
-                this.$store.dispatch(templateActions.fetchAll)
+            this.$store.dispatch(templateActions.fetchAll);
            
         }
     },
