@@ -38,8 +38,8 @@ const listTemplates = (req, res) => responseWrapper.sendResponseAsync(async () =
   if (!contentRepo) {
     return {
       templates: [],
-      repoStatus: "NOT_CONFIGURED",
-      canInitialize: false,
+      status: "NOT_CONFIGURED",
+      canWrite: false,
       message: "Template repository not configured. Set GITHUB_CONTENT_REPO environment variable."
     };
   }
@@ -53,8 +53,8 @@ const listTemplates = (req, res) => responseWrapper.sendResponseAsync(async () =
         
         return {
           templates: [],
-          repoStatus: "NOT_INITIALIZED",
-          canInitialize: req.user?.isAdmin || false,
+          status: "NOT_INITIALIZED",
+          canWrite: req.user?.isAdmin || false,
           message: req.user?.isAdmin 
             ? "Template repository not initialized."
             : "Template repository not initialized. Contact administrator."

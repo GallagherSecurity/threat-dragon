@@ -18,8 +18,8 @@ const getDashboardActions = () => ([
         key: 'readDemo',
         icon: 'cloud-download-alt'
     },
-        {
-        to: `/${providerType}/github/templates`,
+    {
+        to: `/${providerType}/templates`,
         key: 'createFromTemplate',
         icon: 'file-alt'
     }

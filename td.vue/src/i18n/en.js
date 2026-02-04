@@ -150,6 +150,13 @@ const eng = {
             templateSaved: 'Template successfully saved',
             templateDownloading: 'Downloading template'
         },
+        desktop: {
+            selectFolder: 'Select a folder to store templates',
+            notConfigured: {
+                title: 'Template Folder Not Configured',
+                userMessage: 'The template folder is not configured. Please set up the folder to access templates.'
+            }
+        },
         repo: {
             
             notInitialized: {

@@ -11,6 +11,7 @@ var mainWindow;
 
 // Constants
 const CONFIG_FILE = 'templates-path.txt';
+const TEMPLATES_FOLDER = 'templates';
 const TEMPLATE_INDEX = 'template_info.json';
 
 // get path to config file
@@ -48,10 +49,22 @@ async function folderExists(folderPath) {
     }
 }
 
-// check if template index file exists in folder (avoid overwrites)
-async function hasTemplateIndex(folderPath) {
+
+
+// get full path to templates subfolder
+function getTemplatesSubfolder(basePath) {
+    return path.join(basePath, TEMPLATES_FOLDER);
+}
+
+// get full path to template index file
+function getIndexPath(basePath) {
+    return path.join(basePath, TEMPLATES_FOLDER, TEMPLATE_INDEX);
+}
+
+// check if template index file exists in templates subfolder
+async function hasTemplateIndex(basePath) {
     try {
-        const indexPath = path.join(folderPath, TEMPLATE_INDEX);
+        const indexPath = getIndexPath(basePath);
         const stats = await fs.promises.stat(indexPath);
         return stats.isFile();
     } catch {
@@ -59,15 +72,48 @@ async function hasTemplateIndex(folderPath) {
     }
 }
 
+// Read template metadata from index file, returns null if not initialized
+async function listTemplates(basePath) {
+    if (!await hasTemplateIndex(basePath)) {
+        return null;
+    }
+
+    try {
+        const indexFilePath = getIndexPath(basePath);
+        const data = await fs.promises.readFile(indexFilePath, 'utf-8');
+        const parsed = JSON.parse(data);
+        // Handle both array and {templates: [...]} formats
+        return parsed.templates || [];
+    } catch (err) {
+        logger.log.warn('Error reading template index: ' + err);
+        return [];
+    }
+}
+
+// Bootstrap: create templates folder and empty index file
+async function bootstrapTemplates(basePath) {
+    const templatesFolder = getTemplatesSubfolder(basePath);
+    const indexPath = getIndexPath(basePath);
+
+    // Create templates subfolder if it doesn't exist
+    await fs.promises.mkdir(templatesFolder, { recursive: true });
+
+    // Create empty index file
+    await fs.promises.writeFile(indexPath, '{"templates":[]}', 'utf-8');
+
+    logger.log.debug('Bootstrapped templates folder at: ' + templatesFolder);
+} 
+
+
 // open folder picker and save selected path
 async function setTemplateFolder() {
     logger.log.debug('Request to select template folder');
 
     try {
-        const result = await dialog.showOpenDialog({
+        const result = await dialog.showOpenDialog(mainWindow,{
             title: 'Select Templates Folder',  // TODO: add to i18n
             properties: ['openDirectory'],
-            defaultPath: app.getPath('documents')
+            defaultPath: app.getPath('userData')
         });
 
         if (result.canceled) {
@@ -75,11 +121,18 @@ async function setTemplateFolder() {
             return;
         }
 
-        // Save the selected path then get templates
+        // Save the selected path
         const selectedPath = result.filePaths[0];
+        const canWrite = await hasWriteAccess(selectedPath);
         await fs.promises.writeFile(getConfigPath(), selectedPath, 'utf-8');
+
+        // Auto-bootstrap if templates/template_info.json doesn't exist
+        if (!await hasTemplateIndex(selectedPath) && canWrite) {
+            await bootstrapTemplates(selectedPath);
+        }
+
         await getTemplates();
-        logger.log.debug('Template folder set to: ' + result.filePaths[0]);
+        logger.log.debug('Template folder set to: ' + selectedPath);
 
     } catch (err) {
         logger.log.warn('Error selecting template folder: ' + err);
@@ -96,7 +149,8 @@ async function getTemplates() {
     const templatePath = await getTemplatesPath();
     if (!templatePath) {
         mainWindow.webContents.send('templates-result', {
-            status: 'NOT_CONFIGURED'
+            status: 'NOT_CONFIGURED',
+            templates: []
         });
         return;
     }
@@ -106,7 +160,7 @@ async function getTemplates() {
     if (!exists) {
         mainWindow.webContents.send('templates-result', {
             status: 'FOLDER_NOT_FOUND',
-            path: templatePath
+            templates: []
         });
         return;
     }
@@ -114,16 +168,20 @@ async function getTemplates() {
     // check if folder has write access
     const canWrite = await hasWriteAccess(templatePath);
 
-    // check if template index file exists in folder (avoid overwrites)
-    const hasIndex = await hasTemplateIndex(templatePath);
+    // Read template metadata from index file
+    const templates = await listTemplates(templatePath);
+     if (templates === null) {
+        mainWindow.webContents.send('templates-result', {
+            status: 'NOT_INITIALIZED',
+            canWrite: canWrite,
+            templates: []
+        });
+        return;
+    }
 
-    // List templates (TODO: implement later)
-    const templates = [];
-
+    
     mainWindow.webContents.send('templates-result', {
         status: canWrite ? 'READ_WRITE' : 'READ_ONLY',
-        path: templatePath,
-        hasIndex: hasIndex,
         templates: templates
     });
 }

@@ -10,11 +10,11 @@
         </b-row>
 
         <!-- Scenario: NOT_INITIALIZED - Show Bootstrap -->
-        <b-row v-if="contentRepoStatus === 'NOT_INITIALIZED'">
+        <b-row v-if="contentStoreStatus === 'NOT_INITIALIZED'">
             <b-col md="6" offset-md="3">
                 <b-card class="bootstrap-card text-center p-4">
                     <font-awesome-icon icon="cloud-upload" size="3x" class="text-primary mb-3"></font-awesome-icon>
-                    <h4>{{ $t('template.repo.bootstrap.title') }}</h4>
+                    <h4>{{ $t(`template.${providerType}.bootstrap.title`) }}</h4>
                     <p class="text-muted">{{ $t('template.repo.bootstrap.description') }}</p>
                     <b-button
                         variant="primary"
@@ -127,9 +127,8 @@ export default {
     computed: {
         ...mapGetters({
             templates: 'templates',
-            contentRepoStatus: 'contentRepoStatus',
-            canInitializeRepo: 'canInitializeRepo',
-            contentRepoName: 'contentRepoName'
+            contentStoreStatus: 'contentStoreStatus',
+            canWriteStore: 'canWriteStore'
         }),
         filteredTemplates() {
             if (!this.searchQuery) return this.templates;

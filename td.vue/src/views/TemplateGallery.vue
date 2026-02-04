@@ -19,28 +19,35 @@
             </b-col>
         </b-row>
 
-        <!-- Scenario: NOT_CONFIGURED -->
-        <b-row v-if="contentRepoStatus === 'NOT_CONFIGURED'">
-            <b-col md="6" offset-md="3">
-                <b-alert show variant="info" class="text-center">
-                    <h5>{{ $t('template.repo.notConfigured.title') }}</h5>
-                    <p>{{ $t('template.repo.notConfigured.userMessage') }}</p>
-                </b-alert>
-            </b-col>
-        </b-row>
+        <b-row v-if="contentStoreStatus === 'NOT_CONFIGURED'">
+    <b-col md="6" offset-md="3">
+        <b-alert show variant="info" class="text-center">
+            <h5>{{ $t(`template.${providerType}.notConfigured.title`) }}</h5>
+            <p>{{ $t(`template.${providerType}.notConfigured.userMessage`) }}</p>
+            <!-- Desktop only: let user pick folder -->
+            <b-button v-if="isDesktopProvider" variant="primary" @click="onSetTemplateFolder">
+                <font-awesome-icon icon="folder-open" class="mr-2"></font-awesome-icon>
+                {{ $t('template.desktop.selectFolder') }}
+            </b-button>
+        </b-alert>
+    </b-col>
+</b-row>
+
+
+
 
         <!-- Scenario: REPO_NOT_FOUND -->
-        <b-row v-else-if="contentRepoStatus === 'REPO_NOT_FOUND'">
+        <b-row v-else-if="contentStoreStatus === 'REPO_NOT_FOUND'">
             <b-col md="6" offset-md="3">
                 <b-alert show variant="danger" class="text-center">
                     <h5>{{ $t('template.repo.notFound.title') }}</h5>
-                    <p>{{ $t('template.repo.notFound.userMessage', { repoName: contentRepoName }) }}</p>
+                    <p>{{ $t('template.repo.notFound.userMessage') }}</p>
                 </b-alert>
             </b-col>
         </b-row>
 
-        <!-- Scenario: NOT_INITIALIZED - Regular User -->
-        <b-row v-else-if="contentRepoStatus === 'NOT_INITIALIZED' && !canInitializeRepo">
+        <!-- Scenario: NOT_INITIALIZED - Regular User (no write access) -->
+        <b-row v-else-if="contentStoreStatus === 'NOT_INITIALIZED' && !canWriteStore">
             <b-col md="6" offset-md="3">
                 <b-alert show variant="warning" class="text-center">
                     <h5>{{ $t('template.repo.notInitialized.title') }}</h5>
@@ -50,8 +57,8 @@
             </b-col>
         </b-row>
 
-        <!-- Scenario: NOT_INITIALIZED - Admin -->
-        <b-row v-else-if="contentRepoStatus === 'NOT_INITIALIZED' && canInitializeRepo">
+        <!-- Scenario: NOT_INITIALIZED - Admin (has write access) -->
+        <b-row v-else-if="contentStoreStatus === 'NOT_INITIALIZED' && canWriteStore">
             <b-col md="6" offset-md="3">
                 <b-alert show variant="info" class="text-center">
                     <h5>{{ $t('template.repo.notInitialized.title') }}</h5>
@@ -72,8 +79,7 @@
                 <b-col md="6" offset-md="3">
                     <div class="d-flex mb-3">
                         <!-- Search bar -->
-                        <b-form-input v-model="searchQuery" :placeholder="$t('template.search')"
-                            class="flex-grow-1" />
+                        <b-form-input v-model="searchQuery" :placeholder="$t('template.search')" class="flex-grow-1" />
                     </div>
                 </b-col>
             </b-row>
@@ -82,7 +88,7 @@
             <b-row>
                 <b-col md="6" offset-md="3">
                     <b-list-group v-if="templates.length > 0">
-                        <b-list-group-item v-for="template in filteredTemplates" :key="template.id" 
+                        <b-list-group-item v-for="template in filteredTemplates" :key="template.id"
                             @click="onTemplateClick(template)" :data-template-id="template.id">
                             <h5>{{ template.name }}</h5>
                             <p class="mb-1 text-muted">{{ template.description }}</p>
@@ -119,9 +125,8 @@ export default {
     computed: {
         ...mapGetters({
             templates: 'templates',
-            contentRepoStatus: 'contentRepoStatus',
-            canInitializeRepo: 'canInitializeRepo',
-            contentRepoName: 'contentRepoName'
+            contentStoreStatus: 'contentStoreStatus',
+            canWriteStore: 'canWriteStore'
         }),
         ...mapState({
             selectedProvider: state => state.provider.selected
@@ -130,8 +135,12 @@ export default {
             return getProviderType(this.selectedProvider);
         },
         isLocalProvider() {
-            return this.providerType === providerTypes.local || this.providerType === providerTypes.desktop;
+            return this.providerType === providerTypes.local
         },
+        isDesktopProvider() {
+            return this.providerType === providerTypes.desktop;
+        },
+
         filteredTemplates() {
             if (!this.searchQuery) return this.templates;
             const search = this.searchQuery.toLowerCase();
@@ -148,8 +157,8 @@ export default {
         // Local/desktop providers use file picker only
         if (!this.isLocalProvider) {
 
-                this.$store.dispatch(templateActions.fetchAll)
-           
+            this.$store.dispatch(templateActions.fetchAll)
+
         }
     },
     methods: {
@@ -217,6 +226,10 @@ export default {
                 this.$toast.error('File picker not supported on this browser');
             }
         },
+        
+        onSetTemplateFolder() {
+        window.electronAPI.setTemplateFolder();
+    },
         async onTemplateClick(template) {
             try {
                 // Fetch the  threat model part of the template from backend

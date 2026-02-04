@@ -13,6 +13,7 @@ import storeFactory from './store/index.js';
 import authActions from './store/actions/auth.js';
 import providerActions from './store/actions/provider.js';
 import tmActions from './store/actions/threatmodel.js';
+import { TEMPLATE_SET_CONTENT_STORE_STATUS, TEMPLATE_SET_TEMPLATES } from './store/actions/template.js';
 
 import './plugins/bootstrap-vue.js';
 import './plugins/fontawesome-vue.js';
@@ -30,6 +31,18 @@ const getConfirmModal = () => {
         centered: true
     });
 };
+
+//request from electron to renderer with template store status and templates
+window.electronAPI.onTemplatesResult((_event, result) => {
+    console.debug('Templates result:', result);
+
+    // Commit to store
+    app.$store.commit(TEMPLATE_SET_CONTENT_STORE_STATUS, {
+        status: result.status,
+        canWrite: result.status === 'READ_WRITE'
+    });
+    app.$store.commit(TEMPLATE_SET_TEMPLATES, result.templates || []);
+});
 
 // request from electron to renderer to close the application
 window.electronAPI.onCloseAppRequest(async (_event) =>  { // eslint-disable-line no-unused-vars
@@ -180,29 +193,6 @@ window.electronAPI.onSaveModelConfirmed((_event, fileName) =>  {
 window.electronAPI.onSaveModelFailed((_event, fileName, message) =>  {
     console.debug('Failed to save model file : ' + fileName);
     app.$toast.warning(message);
-});
-
-// response from electron with templates folder state
-window.electronAPI.onTemplatesResult((_event, result) =>  {
-    console.debug('Templates result:', result);
-    switch (result.status) {
-    case 'NOT_CONFIGURED':
-        console.debug('Templates folder not configured');
-        break;
-    case 'FOLDER_NOT_FOUND':
-        app.$toast.error(app.$t('templates.errors.folderNotFound'));
-        break;
-    case 'READ_ONLY':
-        app.$toast.warning(app.$t('templates.warnings.readOnly'));
-        break;
-    case 'READ_WRITE':
-        app.$toast.success(app.$t('templates.folderSet'));
-        break;
-    case 'ERROR':
-        app.$toast.error(result.error);
-        break;
-    }
-    // TODO: dispatch to store with result.templates when ready and add I8n keys later 
 });
 
 const localAuth = () => {
