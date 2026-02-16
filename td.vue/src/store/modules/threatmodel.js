@@ -100,11 +100,11 @@ const actions = {
         commit(THREATMODEL_FETCH, resp.data);
     },
     [THREATMODEL_FETCH_ALL]: async ({ commit, rootState }) => {
-            const resp = await threatmodelApi.modelsAsync(
-                rootState.repo.selected,
-                rootState.branch.selected
-            );
-            commit(THREATMODEL_FETCH_ALL, resp.data);
+        const resp = await threatmodelApi.modelsAsync(
+            rootState.repo.selected,
+            rootState.branch.selected
+        );
+        commit(THREATMODEL_FETCH_ALL, resp.data);
     },
     [THREATMODEL_LOAD_DEMOS]: ({ commit }) => {
         commit(THREATMODEL_FETCH_ALL, demo.models);

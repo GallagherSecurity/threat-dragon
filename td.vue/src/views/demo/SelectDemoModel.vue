@@ -62,8 +62,8 @@ export default {
                 window.electronAPI.modelOpened(model.name);
             }
             if (this.providerType === providerTypes.local) {
-            const params = Object.assign({}, this.$route.params, { threatmodel: model.name });
-            this.$router.push({ name: 'localThreatModel' , params });}
+                const params = Object.assign({}, this.$route.params, { threatmodel: model.name });
+                this.$router.push({ name: 'localThreatModel' , params });}
 
             else{
                 // Git providers: Navigate through repo/branch selection (same flow as creating new model)
