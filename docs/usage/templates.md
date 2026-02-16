@@ -12,7 +12,7 @@ group: Modeling
 quickly create new threat models based on pre-defined structures.
 
 **Note**: The template feature is currently only available for GitHub repositories
-and local users (if they have templates in local file system).
+and local users (if they have templates in the local file system).
 Support for Atlassian Bitbucket, GitLab, Google Drive and desktop is not yet implemented.
 
 ## Create a new model from a template
