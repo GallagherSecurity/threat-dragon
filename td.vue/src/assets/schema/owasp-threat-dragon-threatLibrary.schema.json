@@ -1,0 +1,55 @@
+{
+  "$id": "https://github.com/OWASP/threat-dragon/tree/main/td.vue/src/assets/schema/owasp-threat-dragon-threatLibrary.schema.json",
+  "title": "Threat Dragon threat library schema",
+  "description": "The threat library format used for import and export of catalogue threats in OWASP Threat Dragon",
+  "type": "object",
+  "properties": {
+    "threatLibrary": {
+      "description": "Array of threat library entries",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "The unique identifier for the catalogue threat as a UUID",
+            "type": "string",
+            "minLength": 2
+          },
+          "title": {
+            "description": "The threat title",
+            "type": "string"
+          },
+          "modelType": {
+            "description": "The threat modelling framework, e.g. STRIDE, LINDDUN, CIA, CIADIE, PLOT4ai",
+            "type": "string"
+          },
+          "type": {
+            "description": "The threat type, selection according to modelType",
+            "type": "string"
+          },
+          "description": {
+            "description": "The full threat description",
+            "type": "string"
+          },
+          "mitigation": {
+            "description": "The threat mitigation strategy",
+            "type": "string"
+          },
+          "tags": {
+            "description": "Optional tags for filtering and categorisation",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "score": {
+            "description": "The custom score or risk rating for the threat",
+            "type": "string"
+          }
+        },
+        "required": [ "id", "title", "modelType", "type", "description", "mitigation" ]
+      }
+    }
+  },
+  "required": [ "threatLibrary" ]
+}
