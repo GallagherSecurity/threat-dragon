@@ -83,6 +83,7 @@ const deleteAsync = async (modelInfo, accessToken) => {
         );
 };
 const METADATA_PATH = 'templates/template_info.json';
+const THREAT_CATALOGUE_METADATA_PATH = 'threats/threat_catalogue.json';
 
 const repoExistsAsync = (accessToken) => {
     const client = getClient(accessToken);
@@ -153,6 +154,75 @@ const deleteContentFileAsync = async (accessToken, fileName) => {
     );
 };
 
+const listThreatCatalogueAsync = (accessToken) => getClient(accessToken).
+    repo(env.get().config.GITHUB_CONTENT_REPO).
+    contentsAsync(THREAT_CATALOGUE_METADATA_PATH);
+
+const createThreatCatalogueMetadataAsync = (accessToken) => {
+    const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
+    const fileContent = JSON.stringify({ catalogue: [] }, null, 2);
+    return repo.createContentsAsync(
+        THREAT_CATALOGUE_METADATA_PATH,
+        'feat: initialize threat catalogue',
+        fileContent,
+        'main'
+    );
+};
+
+const updateThreatCatalogueMetadataAsync = (accessToken, newCatalogueMetadata, sha) => {
+    const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
+    const fileContent = JSON.stringify({ catalogue: newCatalogueMetadata }, null, 2);
+    return repo.updateContentsAsync(
+        THREAT_CATALOGUE_METADATA_PATH,
+        'feat: update threat catalogue index',
+        fileContent,
+        sha,
+        'main'
+    );
+};
+
+const createThreatContentFileAsync = (accessToken, fileName, content) => {
+    const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
+    const path = `threats/${fileName}.json`;
+    return repo.createContentsAsync(
+        path,
+        `feat: add threat ${fileName}`,
+        JSON.stringify(content, null, 2),
+        'main'
+    );
+};
+
+const getThreatContentFileAsync = (accessToken, threatId) => {
+    const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
+    const path = `threats/${threatId}.json`;
+    return repo.contentsAsync(path, 'main');
+};
+
+const updateThreatContentFileAsync = async (accessToken, threatId, content) => {
+    const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
+    const path = `threats/${threatId}.json`;
+    const file = await repo.contentsAsync(path, 'main');
+    return repo.updateContentsAsync(
+        path,
+        `feat: update threat ${threatId}`,
+        JSON.stringify(content, null, 2),
+        file[0].sha,
+        'main'
+    );
+};
+
+const deleteThreatContentFileAsync = async (accessToken, threatId) => {
+    const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
+    const path = `threats/${threatId}.json`;
+    const file = await repo.contentsAsync(path, 'main');
+    return repo.deleteContentsAsync(
+        path,
+        `feat: delete threat ${threatId}`,
+        file[0].sha,
+        'main'
+    );
+};
+
 const createBranchAsync = async (repoInfo, accessToken) => {
     const client = getClient(accessToken);
     const repo = getRepoFullName(repoInfo);
@@ -189,5 +259,12 @@ export default {
     updateMetadataAsync,
     deleteContentFileAsync,
     getContentFileAsync,
-    repoExistsAsync
+    repoExistsAsync,
+    listThreatCatalogueAsync,
+    createThreatCatalogueMetadataAsync,
+    updateThreatCatalogueMetadataAsync,
+    createThreatContentFileAsync,
+    getThreatContentFileAsync,
+    updateThreatContentFileAsync,
+    deleteThreatContentFileAsync
 };
