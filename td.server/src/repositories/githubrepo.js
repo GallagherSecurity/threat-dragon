@@ -181,47 +181,6 @@ const updateThreatCatalogueMetadataAsync = (accessToken, newCatalogueMetadata, s
     );
 };
 
-const createThreatContentFileAsync = (accessToken, fileName, content) => {
-    const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
-    const path = `threats/${fileName}.json`;
-    return repo.createContentsAsync(
-        path,
-        `feat: add threat ${fileName}`,
-        JSON.stringify(content, null, 2),
-        'main'
-    );
-};
-
-const getThreatContentFileAsync = (accessToken, threatId) => {
-    const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
-    const path = `threats/${threatId}.json`;
-    return repo.contentsAsync(path, 'main');
-};
-
-const updateThreatContentFileAsync = async (accessToken, threatId, content) => {
-    const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
-    const path = `threats/${threatId}.json`;
-    const file = await repo.contentsAsync(path, 'main');
-    return repo.updateContentsAsync(
-        path,
-        `feat: update threat ${threatId}`,
-        JSON.stringify(content, null, 2),
-        file[0].sha,
-        'main'
-    );
-};
-
-const deleteThreatContentFileAsync = async (accessToken, threatId) => {
-    const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
-    const path = `threats/${threatId}.json`;
-    const file = await repo.contentsAsync(path, 'main');
-    return repo.deleteContentsAsync(
-        path,
-        `feat: delete threat ${threatId}`,
-        file[0].sha,
-        'main'
-    );
-};
 
 const createBranchAsync = async (repoInfo, accessToken) => {
     const client = getClient(accessToken);
@@ -262,9 +221,5 @@ export default {
     repoExistsAsync,
     listThreatCatalogueAsync,
     createThreatCatalogueMetadataAsync,
-    updateThreatCatalogueMetadataAsync,
-    createThreatContentFileAsync,
-    getThreatContentFileAsync,
-    updateThreatContentFileAsync,
-    deleteThreatContentFileAsync
+    updateThreatCatalogueMetadataAsync
 };
