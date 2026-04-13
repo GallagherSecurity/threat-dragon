@@ -1,0 +1,164 @@
+import { badRequest, notFound, serverError } from "./errors.js";
+
+import env from "../env/Env.js";
+import loggerHelper from "../helpers/logger.helper.js";
+import repositories from "../repositories";
+import responseWrapper from "./responseWrapper.js";
+
+const logger = loggerHelper.get("controllers/threatCatalogueController.js");
+
+const fetchThreatCatalogueMetadata = async (repository, accessToken) => {
+    const result = await repository.listThreatCatalogueAsync(accessToken);
+    const file = result[0];
+    const decoded = Buffer.from(file.content, "base64").toString("utf8");
+    const parsed = JSON.parse(decoded);
+    const catalogue = Array.isArray(parsed) ? parsed : parsed.catalogue || [];
+    return { catalogue, sha: file.sha };
+};
+
+const listCatalogueThreats = (req, res) => responseWrapper.sendResponseAsync(async () => {
+    const repository = repositories.get();
+    const contentRepo = env.get().config.GITHUB_CONTENT_REPO;
+
+    if (!contentRepo) {
+        return {
+            catalogue: [],
+            status: "NOT_CONFIGURED",
+            canWrite: false,
+            message: "Threat catalogue repository not configured. Set GITHUB_CONTENT_REPO environment variable."
+        };
+    }
+
+    try {
+        const { catalogue } = await fetchThreatCatalogueMetadata(repository, req.provider.access_token);
+        return { catalogue };
+    } catch (e) {
+        if (e.statusCode === 404) {
+            try {
+                await repository.repoExistsAsync(req.provider.access_token);
+                return {
+                    catalogue: [],
+                    status: "NOT_INITIALIZED",
+                    canWrite: req.user?.isAdmin || false,
+                    message: req.user?.isAdmin
+                        ? "Threat catalogue not initialized."
+                        : "Threat catalogue not initialized. Contact administrator."
+                };
+            } catch (repoError) {
+                return notFound(`Threat catalogue repository '${contentRepo}' not found`, res, logger);
+            }
+        }
+        throw e;
+    }
+}, req, res, logger);
+
+const createCatalogueThreat = async (req, res) => {
+    const repository = repositories.get();
+    const accessToken = req.provider.access_token;
+    const threat = req.body;
+
+    try {
+        const { catalogue, sha } = await fetchThreatCatalogueMetadata(repository, accessToken);
+
+        const isDuplicate = catalogue.some(
+            (t) => (t.title || "").toLowerCase() === (threat.title || "").toLowerCase()
+                && t.modelType === threat.modelType
+        );
+
+        if (isDuplicate) {
+            return badRequest(`A catalogue threat with the title "${threat.title}" already exists for framework "${threat.modelType}"`, res, logger);
+        }
+
+        catalogue.push(threat);
+        await repository.updateThreatCatalogueMetadataAsync(accessToken, catalogue, sha);
+
+        return res.status(201).json({ status: 201, message: "Catalogue threat created successfully" });
+    } catch (error) {
+        logger.error("Create catalogue threat error:", error);
+        return serverError(error.message || "Failed to create catalogue threat", res, logger);
+    }
+};
+
+const updateCatalogueThreat = async (req, res) => {
+    const repository = repositories.get();
+    const accessToken = req.provider.access_token;
+    const { id } = req.params;
+    const updates = req.body;
+
+    try {
+        const { catalogue, sha } = await fetchThreatCatalogueMetadata(repository, accessToken);
+
+        const threatIndex = catalogue.findIndex((t) => t.id === id);
+        if (threatIndex === -1) {
+            return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);
+        }
+
+        catalogue[threatIndex] = { ...catalogue[threatIndex], ...updates, id };
+
+        await repository.updateThreatCatalogueMetadataAsync(accessToken, catalogue, sha);
+
+        return res.status(200).json({ status: 200, message: "Catalogue threat updated successfully" });
+    } catch (err) {
+        logger.error(err);
+        return serverError(err.message || "Failed to update catalogue threat", res, logger);
+    }
+};
+
+const deleteCatalogueThreat = async (req, res) => {
+    const repository = repositories.get();
+    const accessToken = req.provider.access_token;
+    const { id } = req.params;
+
+    try {
+        const { catalogue, sha } = await fetchThreatCatalogueMetadata(repository, accessToken);
+
+        const threat = catalogue.find((t) => t.id === id);
+        if (!threat) {
+            return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);
+        }
+
+        const updatedCatalogue = catalogue.filter((t) => t.id !== id);
+        await repository.updateThreatCatalogueMetadataAsync(accessToken, updatedCatalogue, sha);
+
+        return res.status(200).json({ status: 200, message: "Catalogue threat deleted successfully" });
+    } catch (err) {
+        logger.error(err);
+        return serverError(err.message || "Failed to delete catalogue threat", res, logger);
+    }
+};
+
+const bootstrapCatalogueRepository = async (req, res) => {
+    const repository = repositories.get();
+    const accessToken = req.provider.access_token;
+    const contentRepo = env.get().config.GITHUB_CONTENT_REPO;
+
+    if (!contentRepo) {
+        return badRequest("Threat catalogue repository not configured. Set GITHUB_CONTENT_REPO environment variable.", res, logger);
+    }
+
+    try {
+        try {
+            await repository.listThreatCatalogueAsync(accessToken);
+            return badRequest("Threat catalogue already initialized", res, logger);
+        } catch (checkError) {
+            if (checkError.statusCode !== 404) {
+                throw checkError;
+            }
+        }
+
+        await repository.createThreatCatalogueMetadataAsync(accessToken);
+
+        return res.status(201).json({ status: 201, message: "Threat catalogue initialized successfully" });
+    } catch (err) {
+        logger.error(err);
+        return serverError(err.message || "Failed to initialize threat catalogue", res, logger);
+    }
+};
+
+export default {
+    listCatalogueThreats,
+    createCatalogueThreat,
+    updateCatalogueThreat,
+    deleteCatalogueThreat,
+    bootstrapCatalogueRepository
+};
