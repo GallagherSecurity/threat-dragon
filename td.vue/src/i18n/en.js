@@ -422,6 +422,11 @@ const eng = {
         },
     },
     threats: {
+        catalogue: {
+            search: 'Search threat catalogue...',
+            addSelected: 'Add selected to model',
+            selectThreat: 'Select a threat from the catalogue to add to your model',
+        },
         model: {
             cia: {
                 header: '--- CIA ---',
@@ -487,6 +492,7 @@ const eng = {
         newThreat: 'New Threat',
         newThreatByType: 'New Threat by Type',
         newThreatByContext: 'New Threat by Context',
+        newThreatFromCatalogue: 'New Threat from Catalogue',
         properties: {
             description: 'Description',
             mitigation: 'Mitigations',

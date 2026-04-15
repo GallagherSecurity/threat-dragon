@@ -132,6 +132,22 @@ export const createNewTypedThreat = function (modelType, cellType,number) {
     };
 };
 
+export const createThreatFromCatalogue = function (catalogueThreat, number) {
+    return {
+        id: uuidv4(),
+        title: catalogueThreat.title,
+        type: catalogueThreat.type,
+        modelType: catalogueThreat.modelType,
+        description: catalogueThreat.description,
+        mitigation: catalogueThreat.mitigation,
+        score: catalogueThreat.score || '',
+        status: 'Open',
+        severity: '',
+        new: true,
+        number: number
+    };
+};
+
 const hasOpenThreats = (data) => !!data && !!data.threats &&
     data.threats.filter(x => x.status.toLowerCase() === 'open').length > 0;
 

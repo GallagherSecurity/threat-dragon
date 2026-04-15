@@ -60,6 +60,14 @@
                     <font-awesome-icon icon="plus"></font-awesome-icon>
                     {{ $t('threats.newThreatByContext') }}
             </a>
+            <a href="javascript:void(0)"
+                v-if="!disableNewThreat && diagram.diagramType !== 'EOP'"
+                @click="AddThreatFromCatalogue()"
+                class="new-threat-by-type m-2"
+            >
+                    <font-awesome-icon icon="plus"></font-awesome-icon>
+                    {{ $t('threats.newThreatFromCatalogue') }}
+            </a>
         </b-col>
     </b-row>
 </template>
@@ -94,29 +102,42 @@ import { createNewTypedThreat } from '@/service/threats/index.js';
 import { CELL_DATA_UPDATED, CELL_UNSELECTED } from '@/store/actions/cell.js';
 import dataChanged from '@/service/x6/graph/data-changed.js';
 import tmActions from '@/store/actions/threatmodel.js';
+import tcActions from '@/store/actions/threatCatalogue.js';
+import { getProviderType } from '@/service/provider/providers';
+import { providerTypes } from '@/service/provider/providerTypes';
 import TdGraphProperties from '@/components/GraphProperties.vue';
 import TdGraphThreats from '@/components/GraphThreats.vue';
 
 export default {
     name: 'TdGraphMeta',
-    computed: mapState({
-        cellRef: (state) => state.cell.ref,
-        threats: (state) => state.cell.threats,
-        diagram: (state) => state.threatmodel.selectedDiagram,
-        threatTop: (state) => state.threatmodel.data.detail.threatTop,
-        disableNewThreat: function (state) {
-            if (!state.cell?.ref?.data) {
-                return true;
+    computed: {
+        ...mapState({
+            cellRef: (state) => state.cell.ref,
+            threats: (state) => state.cell.threats,
+            diagram: (state) => state.threatmodel.selectedDiagram,
+            threatTop: (state) => state.threatmodel.data.detail.threatTop,
+            selectedProvider: (state) => state.provider.selected,
+            disableNewThreat: function (state) {
+                if (!state.cell?.ref?.data) {
+                    return true;
+                }
+                return state.cell.ref.data.outOfScope || state.cell.ref.data.isTrustBoundary || state.cell.ref.data.type === 'tm.Text';
             }
-            return state.cell.ref.data.outOfScope || state.cell.ref.data.isTrustBoundary || state.cell.ref.data.type === 'tm.Text';
+        }),
+        isLocalProvider() {
+            return getProviderType(this.selectedProvider) === providerTypes.local;
         }
-    }),
+    },
     components: {
         TdGraphProperties,
         TdGraphThreats
     },
     async mounted() {
         this.init();
+        this.$store.dispatch(tcActions.clear);
+        if (!this.isLocalProvider) {
+            this.$store.dispatch(tcActions.fetchAll);
+        }
     },
     methods: {
         init() {
@@ -142,6 +163,9 @@ export default {
         },
         AddThreatByContext(){
             this.$emit('threatSuggest','context');
+        },
+        AddThreatFromCatalogue(){
+            this.$emit('threatSuggest','catalogue');
         }
     },
 };
