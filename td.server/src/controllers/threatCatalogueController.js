@@ -7,6 +7,15 @@ import responseWrapper from "./responseWrapper.js";
 
 const logger = loggerHelper.get("controllers/threatCatalogueController.js");
 
+const BRIEF_DESCRIPTION_LENGTH = 150;
+
+const computeBriefDescription = (description) => {
+    if (!description) return '';
+    return description.length > BRIEF_DESCRIPTION_LENGTH
+        ? description.slice(0, BRIEF_DESCRIPTION_LENGTH) + '...'
+        : description;
+};
+
 const fetchThreatCatalogueMetadata = async (repository, accessToken) => {
     const result = await repository.listThreatCatalogueAsync(accessToken);
     const file = result[0];
@@ -69,9 +78,18 @@ const createCatalogueThreat = async (req, res) => {
             return badRequest(`A catalogue threat with the title "${threat.title}" already exists for framework "${threat.modelType}"`, res, logger);
         }
 
-        catalogue.push(threat);
+        // Build the index entry — lightweight with briefDescription
+        const { description, mitigation, ...metadata } = threat;
+        const indexEntry = {
+            ...metadata,
+            briefDescription: computeBriefDescription(description)
+        };
+
+        catalogue.push(indexEntry);
         await repository.updateThreatCatalogueMetadataAsync(accessToken, catalogue, sha);
 
+        // Write the full threat to its own content file
+        await repository.createThreatContentFileAsync(accessToken, threat.threatRef, threat);
         return res.status(201).json({ status: 201, message: "Catalogue threat created successfully" });
     } catch (error) {
         logger.error("Create catalogue threat error:", error);
@@ -93,9 +111,19 @@ const updateCatalogueThreat = async (req, res) => {
             return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);
         }
 
-        catalogue[threatIndex] = { ...catalogue[threatIndex], ...updates, id };
+        const { description, mitigation, ...metadata } = updates;
+        const threatRef = catalogue[threatIndex].threatRef;
+
+        catalogue[threatIndex] = {
+            ...catalogue[threatIndex],
+            ...metadata,
+            id,
+            threatRef,  // preserve content file reference
+            briefDescription: computeBriefDescription(description)
+        };
 
         await repository.updateThreatCatalogueMetadataAsync(accessToken, catalogue, sha);
+        await repository.updateThreatContentFileAsync(accessToken, threatRef, updates);
 
         return res.status(200).json({ status: 200, message: "Catalogue threat updated successfully" });
     } catch (err) {
@@ -119,12 +147,40 @@ const deleteCatalogueThreat = async (req, res) => {
 
         const updatedCatalogue = catalogue.filter((t) => t.id !== id);
         await repository.updateThreatCatalogueMetadataAsync(accessToken, updatedCatalogue, sha);
+        await repository.deleteThreatContentFileAsync(accessToken, threat.threatRef);
 
         return res.status(200).json({ status: 200, message: "Catalogue threat deleted successfully" });
     } catch (err) {
         logger.error(err);
         return serverError(err.message || "Failed to delete catalogue threat", res, logger);
     }
+};
+
+const getCatalogueThreatContent = (req, res) => {
+    const repository = repositories.get();
+    const accessToken = req.provider.access_token;
+    const { id } = req.params;
+
+    return responseWrapper.sendResponseAsync(async () => {
+        const { catalogue } = await fetchThreatCatalogueMetadata(repository, accessToken);
+        const threat = catalogue.find((t) => t.id === id);
+        if (!threat) {
+            return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);
+        }
+
+        try {
+            const contentResult = await repository.getThreatContentFileAsync(accessToken, threat.threatRef);
+            const contentFile = contentResult[0];
+            const decoded = Buffer.from(contentFile.content, "base64").toString("utf8");
+            const content = JSON.parse(decoded);
+            return { content };
+        } catch (error) {
+            if (error.statusCode === 404) {
+                return notFound(`Catalogue threat content for ID "${id}" not found`, res, logger);
+            }
+            throw error;
+        }
+    }, req, res, logger);
 };
 
 const bootstrapCatalogueRepository = async (req, res) => {
@@ -160,5 +216,6 @@ export default {
     createCatalogueThreat,
     updateCatalogueThreat,
     deleteCatalogueThreat,
+    getCatalogueThreatContent,
     bootstrapCatalogueRepository
 };

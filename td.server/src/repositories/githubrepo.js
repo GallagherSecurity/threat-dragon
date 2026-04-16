@@ -182,6 +182,48 @@ const updateThreatCatalogueMetadataAsync = (accessToken, newCatalogueMetadata, s
 };
 
 
+const createThreatContentFileAsync = (accessToken, threatRef, content) => {
+    const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
+    const path = `threats/${threatRef}.json`;
+    return repo.createContentsAsync(
+        path,
+        `feat: add threat ${threatRef}`,
+        JSON.stringify(content, null, 2),
+        'main'
+    );
+};
+
+const getThreatContentFileAsync = (accessToken, threatRef) => {
+    const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
+    const path = `threats/${threatRef}.json`;
+    return repo.contentsAsync(path, 'main');
+};
+
+const updateThreatContentFileAsync = async (accessToken, threatRef, content) => {
+    const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
+    const path = `threats/${threatRef}.json`;
+    const file = await repo.contentsAsync(path, 'main');
+    return repo.updateContentsAsync(
+        path,
+        `feat: update threat ${threatRef}`,
+        JSON.stringify(content, null, 2),
+        file[0].sha,
+        'main'
+    );
+};
+
+const deleteThreatContentFileAsync = async (accessToken, threatRef) => {
+    const repo = getClient(accessToken).repo(env.get().config.GITHUB_CONTENT_REPO);
+    const path = `threats/${threatRef}.json`;
+    const file = await repo.contentsAsync(path, 'main');
+    return repo.deleteContentsAsync(
+        path,
+        `feat: delete threat ${threatRef}`,
+        file[0].sha,
+        'main'
+    );
+};
+
 const createBranchAsync = async (repoInfo, accessToken) => {
     const client = getClient(accessToken);
     const repo = getRepoFullName(repoInfo);
@@ -221,5 +263,9 @@ export default {
     repoExistsAsync,
     listThreatCatalogueAsync,
     createThreatCatalogueMetadataAsync,
-    updateThreatCatalogueMetadataAsync
+    updateThreatCatalogueMetadataAsync,
+    createThreatContentFileAsync,
+    getThreatContentFileAsync,
+    updateThreatContentFileAsync,
+    deleteThreatContentFileAsync
 };

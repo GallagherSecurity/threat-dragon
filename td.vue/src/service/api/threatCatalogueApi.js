@@ -24,6 +24,11 @@ const deleteThreatAsync = (id) => {
     return api.deleteAsync(`${resource}/${encodedId}`);
 };
 
+const fetchThreatContentAsync = (id) => {
+    const [encodedId] = encodeUrlComponents(id);
+    return api.getAsync(`${resource}/${encodedId}/content`);
+};
+
 const bootstrapAsync = () => {
     return api.postAsync(`${resource}/bootstrap`);
 };
@@ -33,5 +38,6 @@ export default {
     createThreatAsync,
     updateThreatAsync,
     deleteThreatAsync,
+    fetchThreatContentAsync,
     bootstrapAsync
 };

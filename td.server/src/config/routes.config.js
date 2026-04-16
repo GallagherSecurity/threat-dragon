@@ -48,6 +48,7 @@ const routes = (router) => {
 
     // Threat catalogue routes (read — all authenticated users)
     router.get('/api/threats/catalogue', threatCatalogueController.listCatalogueThreats);
+    router.get('/api/threats/catalogue/:id/content', threatCatalogueController.getCatalogueThreatContent);
 
     router.get('/api/threatmodel/repos', threatmodelController.repos);
     router.get('/api/threatmodel/:organisation/:repo/branches', threatmodelController.branches);
