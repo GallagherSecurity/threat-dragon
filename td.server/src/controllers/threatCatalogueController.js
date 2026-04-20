@@ -79,8 +79,10 @@ const createCatalogueThreat = async (req, res) => {
         }
 
         // Build the index entry — lightweight with briefDescription
-        const { description, mitigation, ...metadata } = threat;
+        const { id, threatRef,  description, mitigation, ...metadata } = threat;
         const indexEntry = {
+            id,
+            threatRef,
             ...metadata,
             briefDescription: computeBriefDescription(description)
         };
@@ -88,8 +90,8 @@ const createCatalogueThreat = async (req, res) => {
         catalogue.push(indexEntry);
         await repository.updateThreatCatalogueMetadataAsync(accessToken, catalogue, sha);
 
-        // Write the full threat to its own content file
-        await repository.createThreatContentFileAsync(accessToken, threat.threatRef, threat);
+        // Content file stores only threat data — id lives in the filename
+        await repository.createThreatContentFileAsync(accessToken, threatRef, { ...metadata, description, mitigation });
         return res.status(201).json({ status: 201, message: "Catalogue threat created successfully" });
     } catch (error) {
         logger.error("Create catalogue threat error:", error);
