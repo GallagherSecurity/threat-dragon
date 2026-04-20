@@ -31,6 +31,9 @@
           <b-dropdown-item @click="onManageTemplates">
             Manage Templates
           </b-dropdown-item>
+          <b-dropdown-item @click="onManageThreats">
+            Manage Threats
+          </b-dropdown-item>
         </b-nav-item-dropdown>
 
 
@@ -138,6 +141,13 @@ export default {
         },
         onManageTemplates() {
             this.$router.push('/admin/templates').catch(error => {
+                if (error.name != 'NavigationDuplicated') {
+                    throw error;
+                }
+            });
+        },
+        onManageThreats() {
+            this.$router.push('/admin/threats').catch(error => {
                 if (error.name != 'NavigationDuplicated') {
                     throw error;
                 }

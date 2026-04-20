@@ -6,7 +6,7 @@ import {
     THREAT_CATALOGUE_DELETE,
     THREAT_CATALOGUE_BOOTSTRAP,
     THREAT_CATALOGUE_SET_THREATS,
-    THREAT_CATALOGUE_SET_STATUS
+    THREAT_CATALOGUE_SET_STORE_STATUS
 } from '@/store/actions/threatCatalogue';
 
 import threatCatalogueApi from '@/service/api/threatCatalogueApi.js';
@@ -30,18 +30,18 @@ const actions = {
             const response = await threatCatalogueApi.fetchAllAsync();
 
             if (response.data.status) {
-                commit(THREAT_CATALOGUE_SET_STATUS, {
+                commit(THREAT_CATALOGUE_SET_STORE_STATUS, {
                     status: response.data.status,
                     canWrite: response.data.canWrite
                 });
                 commit(THREAT_CATALOGUE_SET_THREATS, []);
             } else {
-                commit(THREAT_CATALOGUE_SET_STATUS, { status: null, canWrite: true });
+                commit(THREAT_CATALOGUE_SET_STORE_STATUS, { status: null, canWrite: true });
                 commit(THREAT_CATALOGUE_SET_THREATS, response.data.catalogue);
             }
         } catch (error) {
             if (error.response?.status === 404) {
-                commit(THREAT_CATALOGUE_SET_STATUS, { status: 'NOT_FOUND', canWrite: false });
+                commit(THREAT_CATALOGUE_SET_STORE_STATUS, { status: 'NOT_FOUND', canWrite: false });
                 commit(THREAT_CATALOGUE_SET_THREATS, []);
             }
         }
@@ -68,7 +68,7 @@ const actions = {
 };
 
 const mutations = {
-    [THREAT_CATALOGUE_SET_STATUS]: (state, { status, canWrite }) => {
+    [THREAT_CATALOGUE_SET_STORE_STATUS]: (state, { status, canWrite }) => {
         state.contentStore = {
             status: status || null,
             canWrite: canWrite || false
