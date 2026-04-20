@@ -6,7 +6,8 @@ import {
     THREAT_CATALOGUE_DELETE,
     THREAT_CATALOGUE_BOOTSTRAP,
     THREAT_CATALOGUE_SET_THREATS,
-    THREAT_CATALOGUE_SET_STORE_STATUS
+    THREAT_CATALOGUE_SET_STORE_STATUS,
+    THREAT_CATALOGUE_FETCH_BY_ID
 } from '@/store/actions/threatCatalogue';
 
 import threatCatalogueApi from '@/service/api/threatCatalogueApi.js';
@@ -60,6 +61,11 @@ const actions = {
     [THREAT_CATALOGUE_DELETE]: async ({ dispatch }, id) => {
         await threatCatalogueApi.deleteThreatAsync(id);
         await dispatch(THREAT_CATALOGUE_FETCH_ALL);
+    },
+
+    [THREAT_CATALOGUE_FETCH_BY_ID]: async ({ commit }, id) => {
+        const response = await threatCatalogueApi.fetchThreatContentAsync(id);
+        return response.data;
     },
 
     [THREAT_CATALOGUE_CLEAR]: ({ commit }) => {

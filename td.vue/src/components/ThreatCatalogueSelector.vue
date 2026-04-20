@@ -18,13 +18,14 @@
 
             <!-- No catalogue / status messages -->
             <b-alert v-if="threatCatalogueStoreStatus === 'NOT_CONFIGURED'" show variant="warning">
-                {{ $t('threats.catalogue.selectThreat') }}
+                {{ $t('threats.catalogue.notConfigured') }}
             </b-alert>
             <b-alert v-else-if="threatCatalogueStoreStatus === 'NOT_INITIALIZED'" show variant="info">
-                {{ $t('threats.catalogue.selectThreat') }}
+                {{ $t('threats.catalogue.notInitialized') }}
             </b-alert>
+            
             <b-alert v-else-if="!filteredThreats.length" show variant="info">
-                {{ $t('threats.catalogue.selectThreat') }}
+                {{ $t('threats.catalogue.emptyCatalogue') }}
             </b-alert>
 
             <!-- Threat list -->
@@ -89,14 +90,13 @@ export default {
         }),
         ...mapGetters(['threatCatalogue', 'threatCatalogueStoreStatus']),
         filteredThreats() {
-            return this.threatCatalogue.filter(t => {
-                const matchesFramework = t.modelType === this.diagram?.diagramType;
-                const matchesSearch = !this.searchQuery
-                    || t.title.toLowerCase().includes(this.searchQuery.toLowerCase())
-                    || t.type.toLowerCase().includes(this.searchQuery.toLowerCase())
-                    || (t.briefDescription || '').toLowerCase().includes(this.searchQuery.toLowerCase());
-                return matchesFramework && matchesSearch;
-            });
+            if (!this.searchQuery) return this.threatCatalogue;
+            const q = this.searchQuery.toLowerCase();
+            return this.threatCatalogue.filter(t =>
+                t.title.toLowerCase().includes(q) ||
+                t.type.toLowerCase().includes(q) ||
+                (t.briefDescription || '').toLowerCase().includes(q)
+            );
         }
     },
     methods: {

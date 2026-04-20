@@ -66,7 +66,7 @@
                                     </b-badge>
                                 </div>
                             </div>
-                            <b-dropdown right variant="link" no-caret>
+                            <b-dropdown right variant="link" class="template-actions">
                                 <template #button-content>&#8942;</template>
                                 <b-dropdown-item :disabled="!canWriteThreatCatalogue" @click="onEditClick(threat)">
                                     Edit
@@ -119,9 +119,12 @@ export default {
         onAddClick() {
             this.$refs.threatForm.showModal();
         },
-        onEditClick(threat) {
-            this.$refs.threatForm.showModal(threat);
-        },
+        async onEditClick(threat) {
+    const response = await this.$store.dispatch(tcActions.fetchById, threat.id);
+    const fullThreat = { id: threat.id, threatRef: threat.threatRef, ...response.content };
+    this.$refs.threatForm.showModal(fullThreat);
+},
+
         async onDeleteClick(threat) {
             const confirmed = await this.$bvModal.msgBoxConfirm(
                 `Delete "${threat.title}"? This cannot be undone.`,
@@ -134,3 +137,10 @@ export default {
     }
 };
 </script>
+
+<style scoped>
+.template-actions>>>.btn::after,
+.template-actions>>>.dropdown-toggle::after {
+    display: none !important;
+}
+</style>

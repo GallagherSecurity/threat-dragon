@@ -426,6 +426,9 @@ const eng = {
             search: 'Search threat catalogue...',
             addSelected: 'Add selected to model',
             selectThreat: 'Select a threat from the catalogue to add to your model',
+            notConfigured: 'Threat catalogue not configured. Contact your administrator.',
+            notInitialized: 'Threat catalogue not initialized. Contact your administrator.',
+            emptyCatalogue: 'No threats found in the catalogue. Contact your administrator.'
         },
         model: {
             cia: {
