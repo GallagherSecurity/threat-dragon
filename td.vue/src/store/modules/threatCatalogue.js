@@ -7,10 +7,12 @@ import {
     THREAT_CATALOGUE_BOOTSTRAP,
     THREAT_CATALOGUE_SET_THREATS,
     THREAT_CATALOGUE_SET_STORE_STATUS,
-    THREAT_CATALOGUE_FETCH_BY_ID
+    THREAT_CATALOGUE_FETCH_BY_ID,
+    THREAT_CATALOGUE_EXPORT,
 } from '@/store/actions/threatCatalogue';
 
 import threatCatalogueApi from '@/service/api/threatCatalogueApi.js';
+import save from '@/service/save.js';
 
 const state = {
     threatCatalogue: [],
@@ -66,6 +68,15 @@ const actions = {
     [THREAT_CATALOGUE_FETCH_BY_ID]: async ({ commit }, id) => {
         const response = await threatCatalogueApi.fetchThreatContentAsync(id);
         return response.data;
+    },
+
+    [THREAT_CATALOGUE_EXPORT]: async (_, selectedThreats) => {
+        const threatLibrary = [];
+        for (const threat of selectedThreats) {
+            const response = await threatCatalogueApi.fetchThreatContentAsync(threat.id);
+            threatLibrary.push(response.data.content);
+        }
+        await save.threatLibrary({ threatLibrary }, 'threat-library.json');
     },
 
     [THREAT_CATALOGUE_CLEAR]: ({ commit }) => {

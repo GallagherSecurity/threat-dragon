@@ -423,12 +423,46 @@ const eng = {
     },
     threats: {
         catalogue: {
+            manage: 'Manage Threat Catalogue',
+            manageDescription: 'Create and manage reusable threats for your organisation.',
+            addNew: 'Add Threat',
+            export: 'Export Threats',
+            noThreats: 'No threats in the catalogue yet.',
+            notFound: 'Threat catalogue repository not found.',
+            notInitialized: 'Threat catalogue not initialised.',
+            bootstrapDescription: 'Initialise the catalogue to start managing reusable threats.',
+            readOnly: 'You have read-only access to the threat catalogue.',
             search: 'Search threat catalogue...',
             addSelected: 'Add selected to model',
             selectThreat: 'Select a threat from the catalogue to add to your model',
-            notConfigured: 'Threat catalogue not configured. Contact your administrator.',
-            notInitialized: 'Threat catalogue not initialized. Contact your administrator.',
-            emptyCatalogue: 'No threats found in the catalogue. Contact your administrator.'
+            newThreat: 'New Threat',
+            editThreat: 'Edit Threat',
+            deleteConfirm: 'Delete "{title}"? This cannot be undone.',
+            deleteTitle: 'Delete Threat',
+            actions: {
+                initialise: 'Initialise Catalogue',
+                initialising: 'Initialising...',
+                exportSelected: 'Export Selected'
+            },
+            prompts: {
+                exportSuccess: 'Threat library exported',
+                importSuccess: 'Threat library imported successfully',
+                createSuccess: 'Threat added to catalogue',
+                updateSuccess: 'Threat updated',
+                deleteSuccess: 'Threat deleted',
+                initialiseSuccess: 'Threat catalogue initialised'
+            },
+            errors: {
+                exportFailed: 'Export failed',
+                importFailed: 'Import failed',
+                createFailed: 'Failed to create threat',
+                updateFailed: 'Failed to update threat',
+                deleteFailed: 'Failed to delete threat',
+                initialiseFailed: 'Failed to initialise threat catalogue',
+                duplicate: 'A threat with this title already exists for this framework',
+                invalidJson: 'Invalid JSON format',
+                invalidLibrary: 'Invalid threat library format'
+            }
         },
         model: {
             cia: {

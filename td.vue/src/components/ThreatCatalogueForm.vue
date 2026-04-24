@@ -241,6 +241,7 @@ export default {
                     await this.$store.dispatch(tcActions.update, { ...this.threat });
                 } else {
                     await this.$store.dispatch(tcActions.create, { ...this.threat });
+                    this.$toast.success(this.$t('threats.catalogue.prompts.createSuccess'));
                 }
                 this.hideModal();
             } catch (error) {

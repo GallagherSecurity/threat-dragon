@@ -42,8 +42,11 @@
 
             <b-row>
                 <b-col md="8" offset-md="2">
-                    <b-button variant="primary" :disabled="!canWriteThreatCatalogue" @click="onAddClick">
+                    <b-button variant="primary" :disabled="!canWriteThreatCatalogue" @click="onAddClick" class="mr-2">
                         + Add Threat
+                    </b-button>
+                    <b-button variant="secondary" :disabled="!threatCatalogue.length" @click="onExportClick">
+                        Export Threats
                     </b-button>
                 </b-col>
             </b-row>
@@ -85,6 +88,7 @@
         </template>
 
         <td-threat-catalogue-form ref="threatForm" />
+        <td-threat-catalogue-export ref="exportModal" />
     </b-container>
 </template>
 
@@ -92,10 +96,11 @@
 import { mapGetters } from 'vuex';
 import tcActions from '@/store/actions/threatCatalogue.js';
 import TdThreatCatalogueForm from '@/components/ThreatCatalogueForm.vue';
+import TdThreatCatalogueExport from '@/components/ThreatCatalogueExport.vue';
 
 export default {
     name: 'ManageThreatCatalogue',
-    components: { TdThreatCatalogueForm },
+    components: { TdThreatCatalogueForm, TdThreatCatalogueExport },
     data() {
         return {
             isBootstrapping: false
@@ -125,6 +130,9 @@ export default {
     this.$refs.threatForm.showModal(fullThreat);
 },
 
+        onExportClick() {
+            this.$refs.exportModal.showModal();
+        },
         async onDeleteClick(threat) {
             const confirmed = await this.$bvModal.msgBoxConfirm(
                 `Delete "${threat.title}"? This cannot be undone.`,

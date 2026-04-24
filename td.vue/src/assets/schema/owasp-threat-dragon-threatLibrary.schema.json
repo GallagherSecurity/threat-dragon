@@ -10,11 +10,6 @@
       "items": {
         "type": "object",
         "properties": {
-          "id": {
-            "description": "The unique identifier for the catalogue threat as a UUID",
-            "type": "string",
-            "minLength": 2
-          },
           "title": {
             "description": "The threat title",
             "type": "string"
@@ -47,7 +42,7 @@
             "type": "string"
           }
         },
-        "required": [ "id", "title", "modelType", "type", "description", "mitigation" ]
+        "required": [ "title", "modelType", "type", "description", "mitigation" ]
       }
     }
   },
