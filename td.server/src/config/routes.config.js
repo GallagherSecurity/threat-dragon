@@ -87,6 +87,7 @@ const adminRoutes = (router) => {
     router.put('/api/threats/catalogue/:id', threatCatalogueController.updateCatalogueThreat);
     router.delete('/api/threats/catalogue/:id', threatCatalogueController.deleteCatalogueThreat);
     router.post('/api/threats/catalogue/bootstrap', threatCatalogueController.bootstrapCatalogueRepository);
+    router.post('/api/threats/catalogue/import', threatCatalogueController.importThreatLibrary);
 };
 
 

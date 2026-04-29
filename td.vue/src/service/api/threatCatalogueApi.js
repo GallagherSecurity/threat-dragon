@@ -33,11 +33,16 @@ const bootstrapAsync = () => {
     return api.postAsync(`${resource}/bootstrap`);
 };
 
+const importThreatLibraryAsync = (threatLibrary) => {
+    return api.postAsync(`${resource}/import`, { threatLibrary });
+};
+
 export default {
     fetchAllAsync,
     createThreatAsync,
     updateThreatAsync,
     deleteThreatAsync,
     fetchThreatContentAsync,
-    bootstrapAsync
+    bootstrapAsync,
+    importThreatLibraryAsync
 };

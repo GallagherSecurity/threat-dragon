@@ -213,11 +213,62 @@ const bootstrapCatalogueRepository = async (req, res) => {
     }
 };
 
+const importThreatLibrary = async (req, res) => {
+    const repository = repositories.get();
+    const accessToken = req.provider.access_token;
+    const { threatLibrary } = req.body;
+
+    if (!Array.isArray(threatLibrary) || threatLibrary.length === 0) {
+        return badRequest("Invalid threat library: expected non-empty { threatLibrary: [] }", res, logger);
+    }
+
+    try {
+        const { catalogue, sha } = await fetchThreatCatalogueMetadata(repository, accessToken);
+        const results = { created: 0, skipped: 0 };
+
+        for (const threat of threatLibrary) {
+            const isDuplicate = catalogue.some(
+                (t) => (t.title || "").toLowerCase() === (threat.title || "").toLowerCase()
+                    && t.modelType === threat.modelType
+            );
+
+            if (isDuplicate) {
+                results.skipped++;
+                continue;
+            }
+
+            const { id, threatRef, description, mitigation, ...metadata } = threat;
+
+            catalogue.push({
+                id,
+                threatRef,
+                ...metadata,
+                briefDescription: computeBriefDescription(description)
+            });
+
+            await repository.createThreatContentFileAsync(accessToken, threatRef, { ...metadata, description, mitigation });
+            results.created++;
+        }
+
+        await repository.updateThreatCatalogueMetadataAsync(accessToken, catalogue, sha);
+
+        return res.status(200).json({
+            status: 200,
+            message: `Import complete: ${results.created} created, ${results.skipped} skipped`,
+            results
+        });
+    } catch (error) {
+        logger.error("Import threat library error:", error);
+        return serverError(error.message || "Failed to import threat library", res, logger);
+    }
+};
+
 export default {
     listCatalogueThreats,
     createCatalogueThreat,
     updateCatalogueThreat,
     deleteCatalogueThreat,
     getCatalogueThreatContent,
-    bootstrapCatalogueRepository
+    bootstrapCatalogueRepository,
+    importThreatLibrary
 };

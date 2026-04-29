@@ -45,6 +45,9 @@
                     <b-button variant="primary" :disabled="!canWriteThreatCatalogue" @click="onAddClick" class="mr-2">
                         + Add Threat
                     </b-button>
+                    <b-button variant="secondary" :disabled="!canWriteThreatCatalogue" @click="onImportClick" class="mr-2">
+                        Import Threats
+                    </b-button>
                     <b-button variant="secondary" :disabled="!threatCatalogue.length" @click="onExportClick">
                         Export Threats
                     </b-button>
@@ -95,6 +98,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import tcActions from '@/store/actions/threatCatalogue.js';
+import schema from '@/service/schema/ajv.js';
 import TdThreatCatalogueForm from '@/components/ThreatCatalogueForm.vue';
 import TdThreatCatalogueExport from '@/components/ThreatCatalogueExport.vue';
 
@@ -132,6 +136,49 @@ export default {
 
         onExportClick() {
             this.$refs.exportModal.showModal();
+        },
+        async onImportClick() {
+            if ('showOpenFilePicker' in window) {
+                try {
+                    const [handle] = await window.showOpenFilePicker({
+                        types: [{ description: 'Threat Library Files', accept: { 'application/json': ['.json'] } }],
+                        multiple: false
+                    });
+                    const file = await handle.getFile();
+                    await this.importThreatLibrary(file);
+                } catch (e) {
+                    // user cancelled — benign
+                    console.warn('File picker cancelled');
+                }
+            } else {
+                this.$toast.error('File picker not supported on this browser');
+            }
+        },
+        async importThreatLibrary(file) {
+            let libraryData;
+            try {
+                const text = await file.text();
+                libraryData = JSON.parse(text);
+            } catch (e) {
+                this.$toast.error(this.$t('threats.catalogue.errors.invalidJson'));
+                console.error('JSON parse error:', e);
+                return;
+            }
+
+            const validation = schema.validateThreatLibraryFormat(libraryData);
+            if (!validation.valid) {
+                console.warn('Threat library validation failed:', validation.errors);
+                this.$toast.error(this.$t('threats.catalogue.errors.invalidLibrary'));
+                return;
+            }
+
+            try {
+                await this.$store.dispatch(tcActions.import, libraryData.threatLibrary);
+                this.$toast.success(this.$t('threats.catalogue.prompts.importSuccess'));
+            } catch (e) {
+                console.error('Import failed:', e);
+                this.$toast.error(this.$t('threats.catalogue.errors.importFailed'));
+            }
         },
         async onDeleteClick(threat) {
             const confirmed = await this.$bvModal.msgBoxConfirm(

@@ -9,8 +9,10 @@ import {
     THREAT_CATALOGUE_SET_STORE_STATUS,
     THREAT_CATALOGUE_FETCH_BY_ID,
     THREAT_CATALOGUE_EXPORT,
+    THREAT_CATALOGUE_IMPORT,
 } from '@/store/actions/threatCatalogue';
 
+import { v4 as uuidv4 } from 'uuid';
 import threatCatalogueApi from '@/service/api/threatCatalogueApi.js';
 import save from '@/service/save.js';
 
@@ -77,6 +79,16 @@ const actions = {
             threatLibrary.push(response.data.content);
         }
         await save.threatLibrary({ threatLibrary }, 'threat-library.json');
+    },
+
+    [THREAT_CATALOGUE_IMPORT]: async ({ dispatch }, threatLibrary) => {
+        const processed = threatLibrary.map(({ id, threatRef, ...rest }) => ({
+            ...rest,
+            id: uuidv4(),
+            threatRef: uuidv4()
+        }));
+        await threatCatalogueApi.importThreatLibraryAsync(processed);
+        await dispatch(THREAT_CATALOGUE_FETCH_ALL);
     },
 
     [THREAT_CATALOGUE_CLEAR]: ({ commit }) => {
