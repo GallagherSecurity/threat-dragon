@@ -30,17 +30,15 @@ const listCatalogueThreats = (req, res) => responseWrapper.sendResponseAsync(asy
     const contentRepo = env.get().config.GITHUB_CONTENT_REPO;
 
     if (!contentRepo) {
-        return {
-            catalogue: [],
-            status: "NOT_CONFIGURED",
-            canWrite: false,
-            message: "Threat catalogue repository not configured. Set GITHUB_CONTENT_REPO environment variable."
-        };
+        return { catalogue: [], status: "NOT_CONFIGURED", canWrite: false };
     }
 
     try {
-        const { catalogue } = await fetchThreatCatalogueMetadata(repository, req.provider.access_token);
-        return { catalogue };
+        const { catalogue, sha } = await fetchThreatCatalogueMetadata(repository, req.provider.access_token);
+        if (req.query.sha && req.query.sha === sha) {
+            return { unchanged: true };
+        }
+        return { catalogue, sha };
     } catch (e) {
         if (e.statusCode === 404) {
             try {
@@ -48,10 +46,7 @@ const listCatalogueThreats = (req, res) => responseWrapper.sendResponseAsync(asy
                 return {
                     catalogue: [],
                     status: "NOT_INITIALIZED",
-                    canWrite: req.user?.isAdmin || false,
-                    message: req.user?.isAdmin
-                        ? "Threat catalogue not initialized."
-                        : "Threat catalogue not initialized. Contact administrator."
+                    canWrite: req.user?.isAdmin || false
                 };
             } catch (repoError) {
                 return notFound(`Threat catalogue repository '${contentRepo}' not found`, res, logger);
@@ -185,6 +180,29 @@ const getCatalogueThreatContent = (req, res) => {
     }, req, res, logger);
 };
 
+const bulkGetCatalogueContent = (req, res) => responseWrapper.sendResponseAsync(async () => {
+    const repository = repositories.get();
+    const accessToken = req.provider.access_token;
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+        return badRequest("Expected non-empty { ids: [] }", res, logger);
+    }
+
+    const { catalogue } = await fetchThreatCatalogueMetadata(repository, accessToken);
+    const threats = ids.map(id => catalogue.find(t => t.id === id)).filter(Boolean);
+
+    const contents = await Promise.all(
+        threats.map(async (threat) => {
+            const contentResult = await repository.getThreatContentFileAsync(accessToken, threat.threatRef);
+            const decoded = Buffer.from(contentResult[0].content, "base64").toString("utf8");
+            return JSON.parse(decoded);
+        })
+    );
+
+    return { contents };
+}, req, res, logger);
+
 const bootstrapCatalogueRepository = async (req, res) => {
     const repository = repositories.get();
     const accessToken = req.provider.access_token;
@@ -269,6 +287,7 @@ export default {
     updateCatalogueThreat,
     deleteCatalogueThreat,
     getCatalogueThreatContent,
+    bulkGetCatalogueContent,
     bootstrapCatalogueRepository,
     importThreatLibrary
 };

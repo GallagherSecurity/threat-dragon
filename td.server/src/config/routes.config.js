@@ -49,6 +49,7 @@ const routes = (router) => {
     // Threat catalogue routes (read — all authenticated users)
     router.get('/api/threats/catalogue', threatCatalogueController.listCatalogueThreats);
     router.get('/api/threats/catalogue/:id/content', threatCatalogueController.getCatalogueThreatContent);
+    router.post('/api/threats/catalogue/content/bulk', threatCatalogueController.bulkGetCatalogueContent);
 
     router.get('/api/threatmodel/repos', threatmodelController.repos);
     router.get('/api/threatmodel/:organisation/:repo/branches', threatmodelController.branches);
@@ -81,6 +82,7 @@ const adminRoutes = (router) => {
     router.delete('/api/templates/:id', templateController.deleteTemplate);
     router.put('/api/templates/:id', templateController.updateTemplate);
     router.post('/api/templates/bootstrap', templateController.bootstrapTemplateRepository);
+    
 
     // Threat catalogue routes (write — admin only)
     router.post('/api/threats/catalogue', threatCatalogueController.createCatalogueThreat);

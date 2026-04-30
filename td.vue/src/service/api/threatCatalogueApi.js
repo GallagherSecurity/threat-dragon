@@ -6,8 +6,9 @@ const encodeUrlComponents = (...uriComponents) => {
     return uriComponents.map(uriComponent => encodeURIComponent(uriComponent));
 };
 
-const fetchAllAsync = () => {
-    return api.getAsync(`${resource}`);
+const fetchAllAsync = (sha) => {
+    const params = sha ? `?sha=${encodeURIComponent(sha)}` : '';
+    return api.getAsync(`${resource}${params}`);
 };
 
 const createThreatAsync = (threat) => {
@@ -33,6 +34,10 @@ const bootstrapAsync = () => {
     return api.postAsync(`${resource}/bootstrap`);
 };
 
+const fetchBulkThreatContentAsync = (ids) => {
+    return api.postAsync(`${resource}/content/bulk`, { ids });
+};
+
 const importThreatLibraryAsync = (threatLibrary) => {
     return api.postAsync(`${resource}/import`, { threatLibrary });
 };
@@ -43,6 +48,7 @@ export default {
     updateThreatAsync,
     deleteThreatAsync,
     fetchThreatContentAsync,
+    fetchBulkThreatContentAsync,
     bootstrapAsync,
     importThreatLibraryAsync
 };

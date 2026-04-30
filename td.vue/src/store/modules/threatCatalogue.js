@@ -20,7 +20,8 @@ const state = {
     threatCatalogue: [],
     contentStore: {
         status: null,   // null (READY) | 'NOT_CONFIGURED' | 'NOT_FOUND' | 'NOT_INITIALIZED'
-        canWrite: false
+        canWrite: false,
+        sha: null
     }
 };
 
@@ -30,23 +31,22 @@ const actions = {
         await dispatch(THREAT_CATALOGUE_FETCH_ALL);
     },
 
-    [THREAT_CATALOGUE_FETCH_ALL]: async ({ commit }) => {
+    [THREAT_CATALOGUE_FETCH_ALL]: async ({ commit, state }) => {
         try {
-            const response = await threatCatalogueApi.fetchAllAsync();
+            const response = await threatCatalogueApi.fetchAllAsync(state.contentStore.sha);
+
+            if (response.data.unchanged) return;
 
             if (response.data.status) {
-                commit(THREAT_CATALOGUE_SET_STORE_STATUS, {
-                    status: response.data.status,
-                    canWrite: response.data.canWrite
-                });
+                commit(THREAT_CATALOGUE_SET_STORE_STATUS, { status: response.data.status, canWrite: response.data.canWrite, sha: null });
                 commit(THREAT_CATALOGUE_SET_THREATS, []);
             } else {
-                commit(THREAT_CATALOGUE_SET_STORE_STATUS, { status: null, canWrite: true });
+                commit(THREAT_CATALOGUE_SET_STORE_STATUS, { status: null, canWrite: true, sha: response.data.sha });
                 commit(THREAT_CATALOGUE_SET_THREATS, response.data.catalogue);
             }
         } catch (error) {
             if (error.response?.status === 404) {
-                commit(THREAT_CATALOGUE_SET_STORE_STATUS, { status: 'NOT_FOUND', canWrite: false });
+                commit(THREAT_CATALOGUE_SET_STORE_STATUS, { status: 'NOT_FOUND', canWrite: false, sha: null });
                 commit(THREAT_CATALOGUE_SET_THREATS, []);
             }
         }
@@ -73,12 +73,9 @@ const actions = {
     },
 
     [THREAT_CATALOGUE_EXPORT]: async (_, selectedThreats) => {
-        const threatLibrary = [];
-        for (const threat of selectedThreats) {
-            const response = await threatCatalogueApi.fetchThreatContentAsync(threat.id);
-            threatLibrary.push(response.data.content);
-        }
-        await save.threatLibrary({ threatLibrary }, 'threat-library.json');
+        const ids = selectedThreats.map(t => t.id);
+        const response = await threatCatalogueApi.fetchBulkThreatContentAsync(ids);
+        await save.threatLibrary({ threatLibrary: response.data.contents }, 'threat-library.json');
     },
 
     [THREAT_CATALOGUE_IMPORT]: async ({ dispatch }, threatLibrary) => {
@@ -97,10 +94,11 @@ const actions = {
 };
 
 const mutations = {
-    [THREAT_CATALOGUE_SET_STORE_STATUS]: (state, { status, canWrite }) => {
+    [THREAT_CATALOGUE_SET_STORE_STATUS]: (state, { status, canWrite, sha }) => {
         state.contentStore = {
             status: status || null,
-            canWrite: canWrite || false
+            canWrite: canWrite || false,
+            sha: sha || null
         };
     },
 
@@ -110,7 +108,7 @@ const mutations = {
 
     [THREAT_CATALOGUE_CLEAR]: (state) => {
         state.threatCatalogue = [];
-        state.contentStore = { status: null, canWrite: false };
+        state.contentStore = { status: null, canWrite: false, sha: null };
     }
 };
 
