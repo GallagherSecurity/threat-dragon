@@ -1,7 +1,7 @@
 # Welcome to Jekyll!
 #
 
-title: Threat Dragon version 2.6.0 Documentation
+title: Threat Dragon version 2.6.1 Documentation
 
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
@@ -13,18 +13,25 @@ brand: OWASP Threat Dragon Documentation
 faviconUrl: assets/icons/threatdragon.ico
 logo_src: assets/images/threatdragon_logo_image.svg
 
+search:
+  tooltip: Search Threat Dragon documentation
+
+theme_toggle:
+  dark_tooltip: Switch to dark mode
+  light_tooltip: Switch to light mode
+
 header_links:
-  - text: Try the web app
+  - tooltip: Try the web app
     fa_class: fa fa-flask
     target: _blank
     url: https://www.threatdragon.com/#/
 
-  - text: Desktop app download
+  - tooltip: Desktop app download
     fa_class: fa fa-cloud-download-alt
     target: _blank
     url: https://github.com/OWASP/threat-dragon/releases
 
-  - text: Visit us on GitHub
+  - tooltip: Visit us on GitHub
     fa_class: fab fa-github
     target: _blank
     url: https://github.com/OWASP/threat-dragon
@@ -57,6 +64,8 @@ nav:
       groups:
         - name: Modeling
           fa_class: fas fa-pencil-alt
+        - name: Integrations
+          fa_class: fas fa-plug
     - name: Open Source
       groups:
         - name: Development

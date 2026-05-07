@@ -11,10 +11,6 @@ import { electronURL, isDevelopment, isTest, isMacOS, isWin } from './utils.js';
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 
-if (isTest) {
-    require('wdio-electron-service/main');
-}
-
 export function registerDesktop (deps) {
     const {
         app,

@@ -12,10 +12,12 @@ auth
 backend
 Backend
 Bahasa
+BCP
 bitbucket
 Bitbucket
 Bluesky
 BOM
+Brasil
 BrowserStack
 CentOS
 chai
@@ -70,6 +72,7 @@ hin
 hostname
 https
 HTTPS
+IETF
 Identifiability
 IoT
 Javascript
@@ -129,6 +132,7 @@ schemas
 snapcraft
 sudo
 Suomi
+SHA
 SVG
 SY
 TBC
@@ -156,3 +160,8 @@ webrick
 www
 yaml
 zho
+Integrations
+LLMs
+InfoSecOTB
+LLM
+LiteLLM

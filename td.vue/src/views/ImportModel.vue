@@ -61,7 +61,8 @@ import { getProviderType } from '@/service/provider/providers.js';
 import TdFormButton from '@/components/FormButton.vue';
 import tmActions from '@/store/actions/threatmodel.js';
 import schema from '@/service/schema/ajv';
-import tmBom from '@/service/migration/tmBom/tmBom';
+import { importTmbom } from '@/service/migration/tmBom/tmBom';
+import threatDragonV1 from '@/service/migration/tdV1/threatDragonV1';
 
 // only search for text files
 const pickerFileOptions = {
@@ -151,12 +152,16 @@ export default {
             // schema errors are not fatal, but some formats are not supported yet
             if (!schema.isV2(jsonModel)) {
                 if (schema.isV1(jsonModel)) {
-                    console.warn('Version 1.x file will be translated to V2 format');
+                    console.warn('Convert TD V1.x to TD V2.x format');
                     this.$toast.warning(this.$t('threatmodel.warnings.v1Translate'), { timeout: false });
+                    jsonModel = threatDragonV1.read(jsonModel);
+                    console.debug('Force selection of file name for V1.x');
+                    fileName = '';
+                    this.$store.dispatch(tmActions.update, { fileName: fileName });
                 } else if (schema.isTmBom(jsonModel)) {
                     console.warn('Convert TM-BOM to internal TD format');
                     this.$toast.warning(this.$t('threatmodel.warnings.tmUnsupported'), { timeout: false });
-                    jsonModel = tmBom.read(jsonModel);
+                    jsonModel = importTmbom(jsonModel);
                     console.debug('Force selection of file name for TM-BOM');
                     fileName = '';
                     this.$store.dispatch(tmActions.update, { fileName: fileName });
@@ -165,7 +170,7 @@ export default {
                     this.$toast.error(this.$t('threatmodel.warnings.otmUnsupported'), { timeout: false });
                     return;
                 } else {
-                    console.warn('Model does not strictly match schema: ' + JSON.stringify(schema.checkV2(jsonModel)));
+                    console.warn('Model does not strictly match schema: ' + JSON.stringify(schema.checkV2(jsonModel, null, 2)));
                     this.$toast.warning(this.$t('threatmodel.warnings.jsonSchema'));
                 }
             }

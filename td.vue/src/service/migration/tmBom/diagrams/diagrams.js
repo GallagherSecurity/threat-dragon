@@ -4,18 +4,33 @@ import nodes from './nodes';
 import data_sets from './sets';
 import threats from './threats/threats';
 
-const read = (model, version) => {
+const assignThreats = (model, components) => {
+
+    for (let threat of threats.merge(model)) {
+        threat.components_affected?.forEach((componentAffected) => {
+            components.forEach((component) => {
+                if (componentAffected === component.id) {
+                    component.data.threats.push(threat);
+                }
+            });
+        });
+    }
+
+    return components;
+};
+
+const merge = (model, version) => {
     const thumbnail = './public/content/images/thumbnail.jpg';
     var diagrams = new Array();
     let diagramId = 0;
-    const nodeComponents = nodes.read(model);
-    const flowComponents = data_flows.read(model);
-    let components = nodeComponents.concat(flowComponents);
+    const diagramNodes = nodes.merge(model);
+    const diagramEdges = data_flows.merge(model);
+    let cells = diagramNodes.concat(diagramEdges);
 
-    // data sets, threats and assumptions are merged into existing components
-    components = data_sets.merge(model, components);
-    components = assumptions.merge(model, components);
-    components = threats.merge(model, components);
+    // data sets and assumptions are merged into existing components
+    cells = data_sets.merge(model, cells);
+    cells = assumptions.merge(model, cells);
+    cells = assignThreats(model, cells);
 
     diagrams.push({
 	    version: version,
@@ -23,10 +38,10 @@ const read = (model, version) => {
 	    thumbnail: thumbnail,
 	    diagramType: 'TM-BOM',
 	    id: diagramId++,
-	    cells: components
+	    cells: cells
     });
 
-    // add TM-BOM diagrams (which are exactly that, supporting diagrams)
+    // add TM-BOM diagrams, which are supporting diagrams in arbitrary format
     if (model.diagrams) {
         let modelDiagrams = model.diagrams;
         modelDiagrams.forEach((diagram) => {
@@ -45,5 +60,5 @@ const read = (model, version) => {
 };
 
 export default {
-    read
+    merge
 };
