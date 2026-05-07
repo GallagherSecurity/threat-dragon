@@ -16,36 +16,53 @@
                 class="mb-3"
             />
 
-            <!-- No catalogue / status messages -->
+            <!-- Status messages -->
             <b-alert v-if="threatCatalogueStoreStatus === 'NOT_CONFIGURED'" show variant="warning">
                 {{ $t('threats.catalogue.notConfigured') }}
             </b-alert>
             <b-alert v-else-if="threatCatalogueStoreStatus === 'NOT_INITIALIZED'" show variant="info">
                 {{ $t('threats.catalogue.notInitialized') }}
             </b-alert>
-            
             <b-alert v-else-if="!filteredThreats.length" show variant="info">
                 {{ $t('threats.catalogue.emptyCatalogue') }}
             </b-alert>
 
-            <!-- Threat list -->
-            <b-list-group v-else>
-                <b-list-group-item
-                    v-for="threat in filteredThreats"
-                    :key="threat.id"
-                    :active="isSelected(threat.id)"
-                    button
-                    @click="toggleSelect(threat)"
-                    class="d-flex justify-content-between align-items-start"
+            <!-- Accordion threat list grouped by type -->
+            <div v-else>
+                <div
+                    v-for="(sectionThreats, typeName, idx) in groupedThreats"
+                    :key="typeName"
+                    class="mb-1"
                 >
-                    <div>
-                        <strong>{{ threat.title }}</strong>
-                        <b-badge variant="secondary" class="ml-2">{{ threat.type }}</b-badge>
-                        <div class="text-muted small mt-1">{{ threat.briefDescription }}</div>
-                    </div>
-                    <b-badge v-if="isSelected(threat.id)" variant="primary">&#10003;</b-badge>
-                </b-list-group-item>
-            </b-list-group>
+                    <b-button
+                        block
+                        v-b-toggle="`cat-type-${typeName}`"
+                        variant="secondary"
+                        class="text-left d-flex justify-content-between align-items-center"
+                    >
+                        <span>{{ typeName }}</span>
+                        <b-badge variant="light" pill>{{ sectionThreats.length }}</b-badge>
+                    </b-button>
+                    <b-collapse :id="`cat-type-${typeName}`" :visible="idx === 0">
+                        <b-list-group flush class="border border-top-0">
+                            <b-list-group-item
+                                v-for="threat in sectionThreats"
+                                :key="threat.id"
+                                :active="isSelected(threat.id)"
+                                button
+                                @click="toggleSelect(threat)"
+                                class="d-flex justify-content-between align-items-start"
+                            >
+                                <div>
+                                    <strong>{{ threat.title }}</strong>
+                                    <div class="text-muted small mt-1">{{ threat.briefDescription }}</div>
+                                </div>
+                                <b-badge v-if="isSelected(threat.id)" variant="primary">&#10003;</b-badge>
+                            </b-list-group-item>
+                        </b-list-group>
+                    </b-collapse>
+                </div>
+            </div>
 
             <template #modal-footer>
                 <div class="w-100">
@@ -73,6 +90,7 @@ import { CELL_DATA_UPDATED } from '@/store/actions/cell.js';
 import tmActions from '@/store/actions/threatmodel.js';
 import dataChanged from '@/service/x6/graph/data-changed.js';
 import threatCatalogueApi from '@/service/api/threatCatalogueApi.js';
+import models from '@/service/threats/models/index.js';
 
 export default {
     name: 'TdThreatCatalogueSelector',
@@ -89,14 +107,46 @@ export default {
             threatTop: (state) => state.threatmodel.data.detail.threatTop
         }),
         ...mapGetters(['threatCatalogue', 'threatCatalogueStoreStatus']),
+        cellType() {
+            return this.cellRef?.data?.type || null;
+        },
+        modelType() {
+            return this.diagram?.diagramType || null;
+        },
+        allowedTypeLabels() {
+            if (!this.modelType || !this.cellType) return null;
+            const typeMap = models.getThreatTypesByElement(this.modelType, this.cellType);
+            return new Set(Object.keys(typeMap).map(key => this.$t(key)));
+        },
         filteredThreats() {
-            if (!this.searchQuery) return this.threatCatalogue;
-            const q = this.searchQuery.toLowerCase();
-            return this.threatCatalogue.filter(t =>
-                t.title.toLowerCase().includes(q) ||
-                t.type.toLowerCase().includes(q) ||
-                (t.briefDescription || '').toLowerCase().includes(q)
-            );
+            let threats = this.threatCatalogue;
+
+            if (this.modelType) {
+                threats = threats.filter(t => t.modelType === this.modelType);
+            }
+
+            if (this.allowedTypeLabels) {
+                threats = threats.filter(t => this.allowedTypeLabels.has(t.type));
+            }
+
+            if (this.searchQuery) {
+                const q = this.searchQuery.toLowerCase();
+                threats = threats.filter(t =>
+                    t.title.toLowerCase().includes(q) ||
+                    t.type.toLowerCase().includes(q) ||
+                    (t.briefDescription || '').toLowerCase().includes(q)
+                );
+            }
+
+            return threats;
+        },
+        groupedThreats() {
+            const groups = {};
+            for (const threat of this.filteredThreats) {
+                if (!groups[threat.type]) groups[threat.type] = [];
+                groups[threat.type].push(threat);
+            }
+            return groups;
         }
     },
     methods: {
