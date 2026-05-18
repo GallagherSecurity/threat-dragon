@@ -36,14 +36,14 @@
                 >
                     <b-button
                         block
-                        v-b-toggle="`cat-type-${typeName}`"
+                        v-b-toggle="`cat-type-${typeName.replace(/\s+/g, '-')}`"
                         variant="secondary"
                         class="text-left d-flex justify-content-between align-items-center"
                     >
                         <span>{{ typeName }}</span>
                         <b-badge variant="light" pill>{{ sectionThreats.length }}</b-badge>
                     </b-button>
-                    <b-collapse :id="`cat-type-${typeName}`" :visible="idx === 0">
+                    <b-collapse :id="`cat-type-${typeName.replace(/\s+/g, '-')}`" :visible="idx === 0">
                         <b-list-group flush class="border border-top-0">
                             <b-list-group-item
                                 v-for="threat in sectionThreats"

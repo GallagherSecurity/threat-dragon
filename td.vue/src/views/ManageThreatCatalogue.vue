@@ -48,17 +48,67 @@
                     <b-button variant="secondary" :disabled="!canWriteThreatCatalogue" @click="onImportClick" class="mr-2">
                         Import Threats
                     </b-button>
-                    <b-button variant="secondary" :disabled="!threatCatalogue.length" @click="onExportClick">
-                        Export Threats
+                    <b-button variant="secondary" :disabled="!selectedIds.length" @click="onExportClick" class="mr-2">
+                        Export Selected ({{ selectedIds.length }})
+                    </b-button>
+                    <b-button
+                        v-if="canWriteThreatCatalogue && filteredThreats.length"
+                        variant="outline-secondary"
+                        class="mr-2"
+                        @click="toggleSelectAll"
+                    >
+                        {{ allFilteredSelected ? 'Deselect All' : 'Select All' }}
+                    </b-button>
+                    <b-button
+                        v-if="selectedIds.length > 0"
+                        variant="danger"
+                        @click="onBulkDeleteClick"
+                    >
+                        Delete Selected ({{ selectedIds.length }})
                     </b-button>
                 </b-col>
             </b-row>
 
             <b-row class="mt-3">
                 <b-col md="8" offset-md="2">
-                    <b-list-group v-if="threatCatalogue.length">
-                        <b-list-group-item v-for="threat in threatCatalogue" :key="threat.id"
+                    <b-form-row>
+                        <b-col md="5">
+                            <b-form-input v-model="searchQuery" placeholder="Search threats..." />
+                        </b-col>
+                        <b-col md="3">
+                            <select v-model="filterModelType" class="form-control custom-select" @change="filterType = ''">
+                                <option v-for="opt in modelTypeOptions" :key="opt.value" :value="opt.value">{{ opt.text }}</option>
+                            </select>
+                        </b-col>
+                        <b-col md="3">
+                            <select v-model="filterType" class="form-control custom-select" :disabled="!filterModelType">
+                                <option v-for="opt in typeOptions" :key="opt.value" :value="opt.value">{{ opt.text }}</option>
+                            </select>
+                        </b-col>
+                        <b-col md="1" class="d-flex align-items-center">
+                            <b-button v-show="isFiltering" variant="link" class="p-0 text-muted" @click="clearFilters" title="Clear filters">
+                                &#x2715;
+                            </b-button>
+                        </b-col>
+                    </b-form-row>
+                    <small v-show="isFiltering" class="text-muted">
+                        Showing {{ filteredThreats.length }} of {{ threatCatalogue.length }} threats
+                    </small>
+                </b-col>
+            </b-row>
+
+            <b-row class="mt-3">
+                <b-col md="8" offset-md="2">
+                    <b-list-group v-if="filteredThreats.length">
+                        <b-list-group-item v-for="threat in filteredThreats" :key="threat.id"
                             class="d-flex justify-content-between align-items-start">
+                            <div v-if="canWriteThreatCatalogue" class="mr-3 d-flex align-items-center">
+                                <input
+                                    type="checkbox"
+                                    :checked="selectedIds.includes(threat.id)"
+                                    @change="toggleSelection(threat.id)"
+                                />
+                            </div>
                             <div class="flex-grow-1">
                                 <div>
                                     <strong>{{ threat.title }}</strong>
@@ -85,13 +135,12 @@
                             </b-dropdown>
                         </b-list-group-item>
                     </b-list-group>
-                    <b-alert v-else show variant="info">No threats in the catalogue yet.</b-alert>
+                    <b-alert v-else show variant="info">{{ emptyMessage }}</b-alert>
                 </b-col>
             </b-row>
         </template>
 
         <td-threat-catalogue-form ref="threatForm" />
-        <td-threat-catalogue-export ref="exportModal" />
     </b-container>
 </template>
 
@@ -100,23 +149,70 @@ import { mapGetters } from 'vuex';
 import tcActions from '@/store/actions/threatCatalogue.js';
 import schema from '@/service/schema/ajv.js';
 import TdThreatCatalogueForm from '@/components/ThreatCatalogueForm.vue';
-import TdThreatCatalogueExport from '@/components/ThreatCatalogueExport.vue';
 
 export default {
     name: 'ManageThreatCatalogue',
-    components: { TdThreatCatalogueForm, TdThreatCatalogueExport },
+    components: { TdThreatCatalogueForm },
     data() {
         return {
-            isBootstrapping: false
+            isBootstrapping: false,
+            searchQuery: '',
+            filterModelType: '',
+            filterType: '',
+            selectedIds: []
         };
     },
     computed: {
-        ...mapGetters(['threatCatalogue', 'threatCatalogueStoreStatus', 'canWriteThreatCatalogue'])
+        ...mapGetters(['threatCatalogue', 'threatCatalogueStoreStatus', 'canWriteThreatCatalogue']),
+        modelTypeOptions() {
+            const types = [...new Set(this.threatCatalogue.map(t => t.modelType).filter(Boolean))].sort();
+            return [{ value: '', text: 'All frameworks' }, ...types.map(t => ({ value: t, text: t }))];
+        },
+        typeOptions() {
+            const source = this.filterModelType
+                ? this.threatCatalogue.filter(t => t.modelType === this.filterModelType)
+                : this.threatCatalogue;
+            const types = [...new Set(source.map(t => t.type).filter(Boolean))].sort();
+            return [{ value: '', text: 'All types' }, ...types.map(t => ({ value: t, text: t }))];
+        },
+        isFiltering() {
+            return !!(this.searchQuery || this.filterModelType || this.filterType);
+        },
+        emptyMessage() {
+            return this.isFiltering ? 'No threats match your search.' : 'No threats in the catalogue yet.';
+        },
+        allFilteredSelected() {
+            return this.filteredThreats.length > 0 &&
+                this.filteredThreats.every(t => this.selectedIds.includes(t.id));
+        },
+        filteredThreats() {
+            let threats = this.threatCatalogue;
+            if (this.filterModelType) {
+                threats = threats.filter(t => t.modelType === this.filterModelType);
+            }
+            if (this.filterType) {
+                threats = threats.filter(t => t.type === this.filterType);
+            }
+            if (this.searchQuery) {
+                const q = this.searchQuery.toLowerCase();
+                threats = threats.filter(t =>
+                    (t.title || '').toLowerCase().includes(q) ||
+                    (t.briefDescription || '').toLowerCase().includes(q) ||
+                    (t.tags || []).some(tag => tag.toLowerCase().includes(q))
+                );
+            }
+            return threats;
+        }
     },
     mounted() {
         this.$store.dispatch(tcActions.fetchAll);
     },
     methods: {
+        clearFilters() {
+            this.searchQuery = '';
+            this.filterModelType = '';
+            this.filterType = '';
+        },
         async handleBootstrap() {
             this.isBootstrapping = true;
             try {
@@ -129,13 +225,12 @@ export default {
             this.$refs.threatForm.showModal();
         },
         async onEditClick(threat) {
-    const response = await this.$store.dispatch(tcActions.fetchById, threat.id);
-    const fullThreat = { id: threat.id, threatRef: threat.threatRef, ...response.content };
-    this.$refs.threatForm.showModal(fullThreat);
-},
+            const response = await this.$store.dispatch(tcActions.fetchById, threat.id);
+            this.$refs.threatForm.showModal({ id: threat.id, ...response.content });
+        },
 
-        onExportClick() {
-            this.$refs.exportModal.showModal();
+        async onExportClick() {
+            await this.$store.dispatch(tcActions.export, [...this.selectedIds]);
         },
         async onImportClick() {
             if ('showOpenFilePicker' in window) {
@@ -180,6 +275,23 @@ export default {
                 this.$toast.error(this.$t('threats.catalogue.errors.importFailed'));
             }
         },
+        toggleSelectAll() {
+            if (this.allFilteredSelected) {
+                const filteredIds = this.filteredThreats.map(t => t.id);
+                this.selectedIds = this.selectedIds.filter(id => !filteredIds.includes(id));
+            } else {
+                const toAdd = this.filteredThreats.map(t => t.id).filter(id => !this.selectedIds.includes(id));
+                this.selectedIds = [...this.selectedIds, ...toAdd];
+            }
+        },
+        toggleSelection(id) {
+            const idx = this.selectedIds.indexOf(id);
+            if (idx === -1) {
+                this.selectedIds.push(id);
+            } else {
+                this.selectedIds.splice(idx, 1);
+            }
+        },
         async onDeleteClick(threat) {
             const confirmed = await this.$bvModal.msgBoxConfirm(
                 `Delete "${threat.title}"? This cannot be undone.`,
@@ -187,6 +299,17 @@ export default {
             );
             if (confirmed) {
                 await this.$store.dispatch(tcActions.delete, threat.id);
+            }
+        },
+        async onBulkDeleteClick() {
+            const count = this.selectedIds.length;
+            const confirmed = await this.$bvModal.msgBoxConfirm(
+                `Delete ${count} selected threat${count > 1 ? 's' : ''}? This cannot be undone.`,
+                { title: 'Delete Threats', okVariant: 'danger', okTitle: 'Delete', cancelTitle: 'Cancel', centered: true }
+            );
+            if (confirmed) {
+                await this.$store.dispatch(tcActions.bulkDelete, [...this.selectedIds]);
+                this.selectedIds = [];
             }
         }
     }

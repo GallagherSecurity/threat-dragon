@@ -42,11 +42,16 @@ const importThreatLibraryAsync = (threatLibrary) => {
     return api.postAsync(`${resource}/import`, { threatLibrary });
 };
 
+const bulkDeleteThreatsAsync = (ids) => {
+    return api.deleteAsync(`${resource}/bulk`, { data: { ids } });
+};
+
 export default {
     fetchAllAsync,
     createThreatAsync,
     updateThreatAsync,
     deleteThreatAsync,
+    bulkDeleteThreatsAsync,
     fetchThreatContentAsync,
     fetchBulkThreatContentAsync,
     bootstrapAsync,

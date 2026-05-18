@@ -1,6 +1,6 @@
+import { createHash } from "crypto";
 import { badRequest, notFound, serverError } from "./errors.js";
 
-import env from "../env/Env.js";
 import loggerHelper from "../helpers/logger.helper.js";
 import repositories from "../repositories";
 import responseWrapper from "./responseWrapper.js";
@@ -16,44 +16,33 @@ const computeBriefDescription = (description) => {
         : description;
 };
 
-const fetchThreatCatalogueMetadata = async (repository, accessToken) => {
-    const result = await repository.listThreatCatalogueAsync(accessToken);
-    const file = result[0];
-    const decoded = Buffer.from(file.content, "base64").toString("utf8");
-    const parsed = JSON.parse(decoded);
-    const catalogue = Array.isArray(parsed) ? parsed : parsed.catalogue || [];
-    return { catalogue, sha: file.sha };
+const computeThreatHash = (threat) => {
+    const normalized = [
+        (threat.modelType || '').trim().toLowerCase(),
+        (threat.type || '').trim().toLowerCase(),
+        (threat.title || '').trim().toLowerCase(),
+        (threat.description || '').trim().toLowerCase()
+    ].join('::');
+    return createHash('sha256').update(normalized).digest('hex');
+};
+
+const isDuplicate = (threats, incoming) => {
+    const hash = computeThreatHash(incoming);
+    return threats.some(t => t.hash === hash);
 };
 
 const listCatalogueThreats = (req, res) => responseWrapper.sendResponseAsync(async () => {
     const repository = repositories.get();
-    const contentRepo = env.get().config.GITHUB_CONTENT_REPO;
+    const result = await repository.listThreatsAsync(req.provider.access_token);
 
-    if (!contentRepo) {
-        return { catalogue: [], status: "NOT_CONFIGURED", canWrite: false };
+    if (result.status) {
+        const canWrite = result.status === 'NOT_INITIALIZED' ? (req.user?.isAdmin || false) : false;
+        return { catalogue: [], status: result.status, canWrite };
     }
-
-    try {
-        const { catalogue, sha } = await fetchThreatCatalogueMetadata(repository, req.provider.access_token);
-        if (req.query.sha && req.query.sha === sha) {
-            return { unchanged: true };
-        }
-        return { catalogue, sha };
-    } catch (e) {
-        if (e.statusCode === 404) {
-            try {
-                await repository.repoExistsAsync(req.provider.access_token);
-                return {
-                    catalogue: [],
-                    status: "NOT_INITIALIZED",
-                    canWrite: req.user?.isAdmin || false
-                };
-            } catch (repoError) {
-                return notFound(`Threat catalogue repository '${contentRepo}' not found`, res, logger);
-            }
-        }
-        throw e;
+    if (req.query.sha && req.query.sha === result.sha) {
+        return { unchanged: true };
     }
+    return { catalogue: result.threats, sha: result.sha, canWrite: true };
 }, req, res, logger);
 
 const createCatalogueThreat = async (req, res) => {
@@ -62,31 +51,18 @@ const createCatalogueThreat = async (req, res) => {
     const threat = req.body;
 
     try {
-        const { catalogue, sha } = await fetchThreatCatalogueMetadata(repository, accessToken);
+        const { threats } = await repository.listThreatsAsync(accessToken);
 
-        const isDuplicate = catalogue.some(
-            (t) => (t.title || "").toLowerCase() === (threat.title || "").toLowerCase()
-                && t.modelType === threat.modelType
-        );
-
-        if (isDuplicate) {
+        if (isDuplicate(threats, threat)) {
             return badRequest(`A catalogue threat with the title "${threat.title}" already exists for framework "${threat.modelType}"`, res, logger);
         }
 
-        // Build the index entry — lightweight with briefDescription
-        const { id, threatRef,  description, mitigation, ...metadata } = threat;
-        const indexEntry = {
-            id,
-            threatRef,
-            ...metadata,
-            briefDescription: computeBriefDescription(description)
-        };
+        const { id, description, mitigation, ...metadata } = threat;
+        const briefDescription = computeBriefDescription(description);
+        const hash = computeThreatHash(threat);
 
-        catalogue.push(indexEntry);
-        await repository.updateThreatCatalogueMetadataAsync(accessToken, catalogue, sha);
+        await repository.saveThreatAsync(accessToken, { id, hash, briefDescription, ...metadata, description, mitigation });
 
-        // Content file stores only threat data — id lives in the filename
-        await repository.createThreatContentFileAsync(accessToken, threatRef, { ...metadata, description, mitigation });
         return res.status(201).json({ status: 201, message: "Catalogue threat created successfully" });
     } catch (error) {
         logger.error("Create catalogue threat error:", error);
@@ -101,29 +77,20 @@ const updateCatalogueThreat = async (req, res) => {
     const updates = req.body;
 
     try {
-        const { catalogue, sha } = await fetchThreatCatalogueMetadata(repository, accessToken);
-
-        const threatIndex = catalogue.findIndex((t) => t.id === id);
-        if (threatIndex === -1) {
-            return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);
+        const hash = computeThreatHash(updates);
+        const { threats } = await repository.listThreatsAsync(accessToken);
+        if (threats.some(t => t.id !== id && t.hash === hash)) {
+            return badRequest(`A catalogue threat with the title "${updates.title}" already exists for framework "${updates.modelType}"`, res, logger);
         }
 
         const { description, mitigation, ...metadata } = updates;
-        const threatRef = catalogue[threatIndex].threatRef;
+        const briefDescription = computeBriefDescription(description);
 
-        catalogue[threatIndex] = {
-            ...catalogue[threatIndex],
-            ...metadata,
-            id,
-            threatRef,  // preserve content file reference
-            briefDescription: computeBriefDescription(description)
-        };
-
-        await repository.updateThreatCatalogueMetadataAsync(accessToken, catalogue, sha);
-        await repository.updateThreatContentFileAsync(accessToken, threatRef, updates);
+        await repository.updateThreatEntryAsync(accessToken, id, { ...metadata, description, mitigation, briefDescription, hash });
 
         return res.status(200).json({ status: 200, message: "Catalogue threat updated successfully" });
     } catch (err) {
+        if (err.statusCode === 404) return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);
         logger.error(err);
         return serverError(err.message || "Failed to update catalogue threat", res, logger);
     }
@@ -135,52 +102,47 @@ const deleteCatalogueThreat = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const { catalogue, sha } = await fetchThreatCatalogueMetadata(repository, accessToken);
-
-        const threat = catalogue.find((t) => t.id === id);
-        if (!threat) {
-            return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);
-        }
-
-        const updatedCatalogue = catalogue.filter((t) => t.id !== id);
-        await repository.updateThreatCatalogueMetadataAsync(accessToken, updatedCatalogue, sha);
-        await repository.deleteThreatContentFileAsync(accessToken, threat.threatRef);
-
+        await repository.deleteThreatEntryAsync(accessToken, id);
         return res.status(200).json({ status: 200, message: "Catalogue threat deleted successfully" });
     } catch (err) {
+        if (err.statusCode === 404) return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);
         logger.error(err);
         return serverError(err.message || "Failed to delete catalogue threat", res, logger);
     }
 };
 
-const getCatalogueThreatContent = (req, res) => {
+const getCatalogueThreatContent = async (req, res) => {
     const repository = repositories.get();
-    const accessToken = req.provider.access_token;
     const { id } = req.params;
 
-    return responseWrapper.sendResponseAsync(async () => {
-        const { catalogue } = await fetchThreatCatalogueMetadata(repository, accessToken);
-        const threat = catalogue.find((t) => t.id === id);
-        if (!threat) {
-            return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);
-        }
-
-        try {
-            const contentResult = await repository.getThreatContentFileAsync(accessToken, threat.threatRef);
-            const contentFile = contentResult[0];
-            const decoded = Buffer.from(contentFile.content, "base64").toString("utf8");
-            const content = JSON.parse(decoded);
-            return { content };
-        } catch (error) {
-            if (error.statusCode === 404) {
-                return notFound(`Catalogue threat content for ID "${id}" not found`, res, logger);
-            }
-            throw error;
-        }
-    }, req, res, logger);
+    try {
+        const content = await repository.getThreatAsync(req.provider.access_token, id);
+        if (!content) return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);
+        return res.status(200).json({ status: 200, data: { content } });
+    } catch (err) {
+        logger.error(err);
+        return serverError(err.message || "Failed to fetch catalogue threat", res, logger);
+    }
 };
 
-const bulkGetCatalogueContent = (req, res) => responseWrapper.sendResponseAsync(async () => {
+const bulkGetCatalogueContent = async (req, res) => {
+    const repository = repositories.get();
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+        return badRequest("Expected non-empty { ids: [] }", res, logger);
+    }
+
+    try {
+        const contents = await repository.getBulkThreatsAsync(req.provider.access_token, ids);
+        return res.status(200).json({ status: 200, data: { contents } });
+    } catch (err) {
+        logger.error(err);
+        return serverError(err.message || "Failed to fetch catalogue threats", res, logger);
+    }
+};
+
+const bulkDeleteCatalogueThreats = async (req, res) => {
     const repository = repositories.get();
     const accessToken = req.provider.access_token;
     const { ids } = req.body;
@@ -189,41 +151,32 @@ const bulkGetCatalogueContent = (req, res) => responseWrapper.sendResponseAsync(
         return badRequest("Expected non-empty { ids: [] }", res, logger);
     }
 
-    const { catalogue } = await fetchThreatCatalogueMetadata(repository, accessToken);
-    const threats = ids.map(id => catalogue.find(t => t.id === id)).filter(Boolean);
-
-    const contents = await Promise.all(
-        threats.map(async (threat) => {
-            const contentResult = await repository.getThreatContentFileAsync(accessToken, threat.threatRef);
-            const decoded = Buffer.from(contentResult[0].content, "base64").toString("utf8");
-            return JSON.parse(decoded);
-        })
-    );
-
-    return { contents };
-}, req, res, logger);
+    try {
+        await repository.bulkDeleteThreatsAsync(accessToken, ids);
+        return res.status(200).json({ status: 200, message: `${ids.length} threat(s) deleted successfully` });
+    } catch (err) {
+        logger.error(err);
+        return serverError(err.message || "Failed to bulk delete catalogue threats", res, logger);
+    }
+};
 
 const bootstrapCatalogueRepository = async (req, res) => {
     const repository = repositories.get();
-    const accessToken = req.provider.access_token;
-    const contentRepo = env.get().config.GITHUB_CONTENT_REPO;
-
-    if (!contentRepo) {
-        return badRequest("Threat catalogue repository not configured. Set GITHUB_CONTENT_REPO environment variable.", res, logger);
-    }
 
     try {
-        try {
-            await repository.listThreatCatalogueAsync(accessToken);
+        const result = await repository.listThreatsAsync(req.provider.access_token);
+
+        if (result.status === 'NOT_CONFIGURED') {
+            return badRequest("Threat catalogue not configured. Set GITHUB_CONTENT_REPO environment variable.", res, logger);
+        }
+        if (result.status === 'NOT_FOUND') {
+            return notFound("Threat catalogue repository not found", res, logger);
+        }
+        if (!result.status) {
             return badRequest("Threat catalogue already initialized", res, logger);
-        } catch (checkError) {
-            if (checkError.statusCode !== 404) {
-                throw checkError;
-            }
         }
 
-        await repository.createThreatCatalogueMetadataAsync(accessToken);
-
+        await repository.initializeThreatCatalogueAsync(req.provider.access_token);
         return res.status(201).json({ status: 201, message: "Threat catalogue initialized successfully" });
     } catch (err) {
         logger.error(err);
@@ -241,34 +194,26 @@ const importThreatLibrary = async (req, res) => {
     }
 
     try {
-        const { catalogue, sha } = await fetchThreatCatalogueMetadata(repository, accessToken);
+        const { threats: existing } = await repository.listThreatsAsync(accessToken);
+        const seen = new Set(existing.map(t => t.hash));
         const results = { created: 0, skipped: 0 };
 
+        const toCreate = [];
         for (const threat of threatLibrary) {
-            const isDuplicate = catalogue.some(
-                (t) => (t.title || "").toLowerCase() === (threat.title || "").toLowerCase()
-                    && t.modelType === threat.modelType
-            );
-
-            if (isDuplicate) {
+            const hash = computeThreatHash(threat);
+            if (seen.has(hash)) {
                 results.skipped++;
                 continue;
             }
-
-            const { id, threatRef, description, mitigation, ...metadata } = threat;
-
-            catalogue.push({
-                id,
-                threatRef,
-                ...metadata,
-                briefDescription: computeBriefDescription(description)
-            });
-
-            await repository.createThreatContentFileAsync(accessToken, threatRef, { ...metadata, description, mitigation });
+            seen.add(hash);
+            const { id, description, mitigation, ...metadata } = threat;
+            toCreate.push({ id, hash, briefDescription: computeBriefDescription(description), ...metadata, description, mitigation });
             results.created++;
         }
 
-        await repository.updateThreatCatalogueMetadataAsync(accessToken, catalogue, sha);
+        if (toCreate.length > 0) {
+            await repository.bulkSaveThreatsAsync(accessToken, toCreate);
+        }
 
         return res.status(200).json({
             status: 200,
@@ -286,6 +231,7 @@ export default {
     createCatalogueThreat,
     updateCatalogueThreat,
     deleteCatalogueThreat,
+    bulkDeleteCatalogueThreats,
     getCatalogueThreatContent,
     bulkGetCatalogueContent,
     bootstrapCatalogueRepository,

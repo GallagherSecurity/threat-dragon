@@ -87,6 +87,7 @@ const adminRoutes = (router) => {
     // Threat catalogue routes (write — admin only)
     router.post('/api/threats/catalogue', threatCatalogueController.createCatalogueThreat);
     router.put('/api/threats/catalogue/:id', threatCatalogueController.updateCatalogueThreat);
+    router.delete('/api/threats/catalogue/bulk', threatCatalogueController.bulkDeleteCatalogueThreats);
     router.delete('/api/threats/catalogue/:id', threatCatalogueController.deleteCatalogueThreat);
     router.post('/api/threats/catalogue/bootstrap', threatCatalogueController.bootstrapCatalogueRepository);
     router.post('/api/threats/catalogue/import', threatCatalogueController.importThreatLibrary);

@@ -4,6 +4,7 @@ import {
     THREAT_CATALOGUE_CREATE,
     THREAT_CATALOGUE_UPDATE,
     THREAT_CATALOGUE_DELETE,
+    THREAT_CATALOGUE_BULK_DELETE,
     THREAT_CATALOGUE_BOOTSTRAP,
     THREAT_CATALOGUE_SET_THREATS,
     THREAT_CATALOGUE_SET_STORE_STATUS,
@@ -41,7 +42,7 @@ const actions = {
                 commit(THREAT_CATALOGUE_SET_STORE_STATUS, { status: response.data.status, canWrite: response.data.canWrite, sha: null });
                 commit(THREAT_CATALOGUE_SET_THREATS, []);
             } else {
-                commit(THREAT_CATALOGUE_SET_STORE_STATUS, { status: null, canWrite: true, sha: response.data.sha });
+                commit(THREAT_CATALOGUE_SET_STORE_STATUS, { status: null, canWrite: response.data.canWrite || false, sha: response.data.sha });
                 commit(THREAT_CATALOGUE_SET_THREATS, response.data.catalogue);
             }
         } catch (error) {
@@ -67,23 +68,23 @@ const actions = {
         await dispatch(THREAT_CATALOGUE_FETCH_ALL);
     },
 
+    [THREAT_CATALOGUE_BULK_DELETE]: async ({ dispatch }, ids) => {
+        await threatCatalogueApi.bulkDeleteThreatsAsync(ids);
+        await dispatch(THREAT_CATALOGUE_FETCH_ALL);
+    },
+
     [THREAT_CATALOGUE_FETCH_BY_ID]: async ({ commit }, id) => {
         const response = await threatCatalogueApi.fetchThreatContentAsync(id);
         return response.data;
     },
 
-    [THREAT_CATALOGUE_EXPORT]: async (_, selectedThreats) => {
-        const ids = selectedThreats.map(t => t.id);
+    [THREAT_CATALOGUE_EXPORT]: async (_, ids) => {
         const response = await threatCatalogueApi.fetchBulkThreatContentAsync(ids);
         await save.threatLibrary({ threatLibrary: response.data.contents }, 'threat-library.json');
     },
 
     [THREAT_CATALOGUE_IMPORT]: async ({ dispatch }, threatLibrary) => {
-        const processed = threatLibrary.map(({ id, threatRef, ...rest }) => ({
-            ...rest,
-            id: uuidv4(),
-            threatRef: uuidv4()
-        }));
+        const processed = threatLibrary.map(threat => ({ ...threat, id: uuidv4() }));
         await threatCatalogueApi.importThreatLibraryAsync(processed);
         await dispatch(THREAT_CATALOGUE_FETCH_ALL);
     },

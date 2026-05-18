@@ -35,12 +35,14 @@
                             label="Framework"
                             label-for="model-type"
                         >
-                            <b-form-select
+                            <select
                                 id="model-type"
                                 v-model="threat.modelType"
-                                :options="modelTypeOptions"
+                                class="form-control custom-select"
                                 @change="threat.type = ''"
-                            ></b-form-select>
+                            >
+                                <option v-for="opt in modelTypeOptions" :key="opt.value" :value="opt.value">{{ opt.text }}</option>
+                            </select>
                         </b-form-group>
                     </b-col>
                 </b-form-row>
@@ -52,12 +54,14 @@
                             :label="$t('threats.properties.type')"
                             label-for="threat-type"
                         >
-                            <b-form-select
+                            <select
                                 id="threat-type"
                                 v-model="threat.type"
-                                :options="threatTypes"
+                                class="form-control custom-select"
                                 :disabled="!threat.modelType"
-                            ></b-form-select>
+                            >
+                                <option v-for="opt in threatTypes" :key="opt.value" :value="opt.value">{{ opt.text }}</option>
+                            </select>
                         </b-form-group>
                     </b-col>
                 </b-form-row>
@@ -117,12 +121,13 @@
                             label="Tags"
                             label-for="tags"
                         >
-                            <b-form-tags
+                            <td-form-tags
                                 id="tags"
                                 v-model="threat.tags"
+                                variant="primary"
                                 separator=",;"
                                 placeholder="Add tags..."
-                            ></b-form-tags>
+                            ></td-form-tags>
                         </b-form-group>
                     </b-col>
                 </b-form-row>
@@ -163,6 +168,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import tcActions from '@/store/actions/threatCatalogue.js';
 import threatModels from '@/service/threats/models/index.js';
+import TdFormTags from '@/components/FormTags.vue';
 import cia from '@/service/threats/models/cia.js';
 import ciaDie from '@/service/threats/models/ciadie.js';
 import linddun from '@/service/threats/models/linddun.js';
@@ -179,6 +185,7 @@ const MODEL_ALL_TYPES = {
 
 export default {
     name: 'TdThreatCatalogueForm',
+    components: { TdFormTags },
     data() {
         return {
             threat: {},
@@ -207,7 +214,6 @@ export default {
                 this.isEditing = true;
                 this.threat = {
                     id: existingThreat.id,
-                    threatRef: existingThreat.threatRef,
                     title: existingThreat.title,
                     modelType: existingThreat.modelType,
                     type: existingThreat.type,
@@ -220,7 +226,6 @@ export default {
                 this.isEditing = false;
                 this.threat = {
                     id: uuidv4(),
-                    threatRef: uuidv4(),
                     title: '',
                     modelType: '',
                     type: '',
