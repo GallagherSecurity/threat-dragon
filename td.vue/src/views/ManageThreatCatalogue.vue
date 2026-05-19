@@ -3,8 +3,8 @@
         <b-row>
             <b-col>
                 <b-jumbotron class="text-center">
-                    <h4>Manage Threat Catalogue</h4>
-                    <p class="lead">Create and manage reusable threats for your organisation.</p>
+                    <h4>{{ $t('threats.catalogue.manage') }}</h4>
+                    <p class="lead">{{ $t('threats.catalogue.manageDescription') }}</p>
                 </b-jumbotron>
             </b-col>
         </b-row>
@@ -13,7 +13,7 @@
         <b-row v-if="threatCatalogueStoreStatus === 'NOT_FOUND'">
             <b-col md="6" offset-md="3">
                 <b-alert show variant="danger" class="text-center">
-                    <h5>Threat catalogue repository not found.</h5>
+                    <h5>{{ $t('threats.catalogue.notFound') }}</h5>
                 </b-alert>
             </b-col>
         </b-row>
@@ -22,11 +22,11 @@
         <b-row v-else-if="threatCatalogueStoreStatus === 'NOT_INITIALIZED'">
             <b-col md="6" offset-md="3">
                 <b-card class="text-center p-4">
-                    <h4>Threat catalogue not initialised</h4>
-                    <p class="text-muted">Initialise the catalogue to start managing reusable threats.</p>
+                    <h4>{{ $t('threats.catalogue.notInitialized') }}</h4>
+                    <p class="text-muted">{{ $t('threats.catalogue.bootstrapDescription') }}</p>
                     <b-button variant="primary" size="lg" :disabled="isBootstrapping" @click="handleBootstrap">
                         <b-spinner small v-if="isBootstrapping" class="mr-2"></b-spinner>
-                        {{ isBootstrapping ? 'Initialising...' : 'Initialise Catalogue' }}
+                        {{ isBootstrapping ? $t('threats.catalogue.actions.initialising') : $t('threats.catalogue.actions.initialise') }}
                     </b-button>
                 </b-card>
             </b-col>
@@ -36,20 +36,20 @@
         <template v-else>
             <b-row v-if="!canWriteThreatCatalogue" class="mb-3">
                 <b-col md="8" offset-md="2">
-                    <b-alert show variant="warning">You have read-only access to the threat catalogue.</b-alert>
+                    <b-alert show variant="warning">{{ $t('threats.catalogue.readOnly') }}</b-alert>
                 </b-col>
             </b-row>
 
             <b-row>
                 <b-col md="8" offset-md="2">
                     <b-button variant="primary" :disabled="!canWriteThreatCatalogue" @click="onAddClick" class="mr-2">
-                        + Add Threat
+                        + {{ $t('threats.catalogue.addNew') }}
                     </b-button>
                     <b-button variant="secondary" :disabled="!canWriteThreatCatalogue" @click="onImportClick" class="mr-2">
-                        Import Threats
+                        {{ $t('threats.catalogue.import') }}
                     </b-button>
                     <b-button variant="secondary" :disabled="!selectedIds.length" @click="onExportClick" class="mr-2">
-                        Export Selected ({{ selectedIds.length }})
+                        {{ $t('threats.catalogue.actions.exportSelected') }} ({{ selectedIds.length }})
                     </b-button>
                     <b-button
                         v-if="canWriteThreatCatalogue && filteredThreats.length"
@@ -57,7 +57,7 @@
                         class="mr-2"
                         @click="toggleSelectAll"
                     >
-                        {{ allFilteredSelected ? 'Deselect All' : 'Select All' }}
+                        {{ allFilteredSelected ? $t('threats.catalogue.deselectAll') : $t('threats.catalogue.selectAll') }}
                     </b-button>
                     <b-button
                         v-if="selectedIds.length > 0"
@@ -73,7 +73,7 @@
                 <b-col md="8" offset-md="2">
                     <b-form-row>
                         <b-col md="5">
-                            <b-form-input v-model="searchQuery" placeholder="Search threats..." />
+                            <b-form-input v-model="searchQuery" :placeholder="$t('threats.catalogue.search')" />
                         </b-col>
                         <b-col md="3">
                             <select v-model="filterModelType" class="form-control custom-select" @change="filterType = ''">
@@ -128,12 +128,12 @@
                             <b-dropdown right variant="link" class="template-actions">
                                 <template #button-content>&#8942;</template>
                                 <b-dropdown-item :disabled="!canWriteThreatCatalogue" @click="onEditClick(threat)">
-                                    Edit
+                                    {{ $t('forms.edit') }}
                                 </b-dropdown-item>
                                 <b-dropdown-divider></b-dropdown-divider>
                                 <b-dropdown-item variant="danger" :disabled="!canWriteThreatCatalogue"
                                     @click="onDeleteClick(threat)">
-                                    Delete
+                                    {{ $t('forms.delete') }}
                                 </b-dropdown-item>
                             </b-dropdown>
                         </b-list-group-item>
@@ -141,9 +141,9 @@
                     <b-alert v-else show variant="info">{{ emptyMessage }}</b-alert>
 
                     <div v-if="totalPages > 1" class="pagination mt-3">
-                        <button @click="currentPage--" :disabled="currentPage === 1">Previous</button>
+                        <button @click="currentPage--" :disabled="currentPage === 1">{{ $t('threats.catalogue.previous') }}</button>
                         <button class="btn" :disabled="true">{{ currentPage }} / {{ totalPages }}</button>
-                        <button @click="currentPage++" :disabled="currentPage === totalPages">Next</button>
+                        <button @click="currentPage++" :disabled="currentPage === totalPages">{{ $t('threats.catalogue.next') }}</button>
                     </div>
                 </b-col>
             </b-row>
@@ -177,20 +177,20 @@ export default {
         ...mapGetters(['threatCatalogue', 'threatCatalogueStoreStatus', 'canWriteThreatCatalogue']),
         modelTypeOptions() {
             const types = [...new Set(this.threatCatalogue.map(t => t.modelType).filter(Boolean))].sort();
-            return [{ value: '', text: 'All frameworks' }, ...types.map(t => ({ value: t, text: t }))];
+            return [{ value: '', text: this.$t('threats.catalogue.allFrameworks') }, ...types.map(t => ({ value: t, text: t }))];
         },
         typeOptions() {
             const source = this.filterModelType
                 ? this.threatCatalogue.filter(t => t.modelType === this.filterModelType)
                 : this.threatCatalogue;
             const types = [...new Set(source.map(t => t.type).filter(Boolean))].sort();
-            return [{ value: '', text: 'All types' }, ...types.map(t => ({ value: t, text: t }))];
+            return [{ value: '', text: this.$t('threats.catalogue.allTypes') }, ...types.map(t => ({ value: t, text: t }))];
         },
         isFiltering() {
             return !!(this.searchQuery || this.filterModelType || this.filterType);
         },
         emptyMessage() {
-            return this.isFiltering ? 'No threats match your search.' : 'No threats in the catalogue yet.';
+            return this.isFiltering ? this.$t('threats.catalogue.noResults') : this.$t('threats.catalogue.noThreats');
         },
         allFilteredSelected() {
             return this.paginatedThreats.length > 0 &&
@@ -240,6 +240,10 @@ export default {
             this.isBootstrapping = true;
             try {
                 await this.$store.dispatch(tcActions.bootstrap);
+                this.$toast.success(this.$t('threats.catalogue.prompts.initialiseSuccess'));
+            } catch (e) {
+                console.error('Bootstrap failed:', e);
+                this.$toast.error(this.$t('threats.catalogue.errors.initialiseFailed'));
             } finally {
                 this.isBootstrapping = false;
             }
@@ -248,12 +252,23 @@ export default {
             this.$refs.threatForm.showModal();
         },
         async onEditClick(threat) {
-            const response = await this.$store.dispatch(tcActions.fetchById, threat.id);
-            this.$refs.threatForm.showModal({ id: threat.id, ...response.content });
+            try {
+                const response = await this.$store.dispatch(tcActions.fetchById, threat.id);
+                this.$refs.threatForm.showModal({ id: threat.id, ...response.content });
+            } catch (e) {
+                console.error('Failed to load threat:', e);
+                this.$toast.error(this.$t('threats.catalogue.errors.updateFailed'));
+            }
         },
 
         async onExportClick() {
-            await this.$store.dispatch(tcActions.export, [...this.selectedIds]);
+            try {
+                await this.$store.dispatch(tcActions.export, [...this.selectedIds]);
+                this.$toast.success(this.$t('threats.catalogue.prompts.exportSuccess'));
+            } catch (e) {
+                console.error('Export failed:', e);
+                this.$toast.error(this.$t('threats.catalogue.errors.exportFailed'));
+            }
         },
         async onImportClick() {
             if ('showOpenFilePicker' in window) {
@@ -269,7 +284,7 @@ export default {
                     console.warn('File picker cancelled');
                 }
             } else {
-                this.$toast.error('File picker not supported on this browser');
+                this.$toast.error(this.$t('threats.catalogue.errors.filePickerUnsupported'));
             }
         },
         async importThreatLibrary(file) {
@@ -291,8 +306,9 @@ export default {
             }
 
             try {
-                await this.$store.dispatch(tcActions.import, libraryData.threatLibrary);
-                this.$toast.success(this.$t('threats.catalogue.prompts.importSuccess'));
+                const results = await this.$store.dispatch(tcActions.import, libraryData.threatLibrary);
+                const msg = `${results.created} threat${results.created !== 1 ? 's' : ''} added, ${results.skipped} skipped`;
+                this.$toast.success(msg);
             } catch (e) {
                 console.error('Import failed:', e);
                 this.$toast.error(this.$t('threats.catalogue.errors.importFailed'));
@@ -318,21 +334,33 @@ export default {
         async onDeleteClick(threat) {
             const confirmed = await this.$bvModal.msgBoxConfirm(
                 `Delete "${threat.title}"? This cannot be undone.`,
-                { title: 'Delete Threat', okVariant: 'danger', okTitle: 'Delete', cancelTitle: 'Cancel', centered: true }
+                { title: this.$t('threats.catalogue.deleteTitle'), okVariant: 'danger', okTitle: this.$t('forms.delete'), cancelTitle: this.$t('forms.cancel'), centered: true }
             );
             if (confirmed) {
-                await this.$store.dispatch(tcActions.delete, threat.id);
+                try {
+                    await this.$store.dispatch(tcActions.delete, threat.id);
+                    this.$toast.success(this.$t('threats.catalogue.prompts.deleteSuccess'));
+                } catch (e) {
+                    console.error('Delete failed:', e);
+                    this.$toast.error(this.$t('threats.catalogue.errors.deleteFailed'));
+                }
             }
         },
         async onBulkDeleteClick() {
             const count = this.selectedIds.length;
             const confirmed = await this.$bvModal.msgBoxConfirm(
                 `Delete ${count} selected threat${count > 1 ? 's' : ''}? This cannot be undone.`,
-                { title: 'Delete Threats', okVariant: 'danger', okTitle: 'Delete', cancelTitle: 'Cancel', centered: true }
+                { title: this.$t('threats.catalogue.deleteBulkTitle'), okVariant: 'danger', okTitle: this.$t('forms.delete'), cancelTitle: this.$t('forms.cancel'), centered: true }
             );
             if (confirmed) {
-                await this.$store.dispatch(tcActions.bulkDelete, [...this.selectedIds]);
-                this.selectedIds = [];
+                try {
+                    await this.$store.dispatch(tcActions.bulkDelete, [...this.selectedIds]);
+                    this.$toast.success(this.$t('threats.catalogue.prompts.deleteSuccess'));
+                    this.selectedIds = [];
+                } catch (e) {
+                    console.error('Bulk delete failed:', e);
+                    this.$toast.error(this.$t('threats.catalogue.errors.deleteFailed'));
+                }
             }
         }
     }

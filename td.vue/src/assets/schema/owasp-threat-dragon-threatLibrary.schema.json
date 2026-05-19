@@ -40,6 +40,11 @@
           "score": {
             "description": "The custom score or risk rating for the threat",
             "type": "string"
+          },
+          "severity": {
+            "description": "The default severity level for the threat: TBD, Low, Medium, High or Critical",
+            "type": "string",
+            "enum": ["TBD", "Low", "Medium", "High", "Critical"]
           }
         },
         "required": [ "title", "modelType", "type", "description", "mitigation" ]

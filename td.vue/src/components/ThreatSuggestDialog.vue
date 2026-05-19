@@ -98,6 +98,7 @@ import TdFormRadioGroup from '@/components/FormRadioGroup.vue';
 import TdFormSelect from '@/components/FormSelect.vue';
 import { GetContextSuggestions } from '@/service/threats/oats/context-generator.js';
 import { v4 as uuidv4 } from 'uuid';
+import { getSeverityOptions } from '@/service/threats/index.js';
 export default {
     name: 'TdThreatSuggest',
     components: {
@@ -128,13 +129,7 @@ export default {
             ];
         },
         priorities() {
-            return [
-                { value: 'TBD', text: this.$t('threats.severity.tbd') },
-                { value: 'Low', text: this.$t('threats.severity.low') },
-                { value: 'Medium', text: this.$t('threats.severity.medium') },
-                { value: 'High', text: this.$t('threats.severity.high') },
-                { value: 'Critical', text: this.$t('threats.severity.critical') }
-            ];
+            return getSeverityOptions(this.$t.bind(this));
         },
         modalTitle() { return this.$t('threats.newThreat') + ' #' + (this.threatTop + 1); }
     },

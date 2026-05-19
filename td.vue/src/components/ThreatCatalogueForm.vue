@@ -7,7 +7,7 @@
             ok-variant="primary"
             header-bg-variant="primary"
             header-text-variant="light"
-            :title="isEditing ? 'Edit Threat' : 'New Threat'"
+            :title="isEditing ? $t('threats.catalogue.editThreat') : $t('threats.catalogue.newThreat')"
             ref="formModal"
         >
             <b-form>
@@ -32,7 +32,7 @@
                     <b-col>
                         <b-form-group
                             id="model-type-group"
-                            label="Framework"
+                            :label="$t('threats.catalogue.framework')"
                             label-for="model-type"
                         >
                             <select
@@ -67,7 +67,7 @@
                 </b-form-row>
 
                 <b-form-row>
-                    <b-col md="10">
+                    <b-col md="6">
                         <b-form-group
                             id="score-group"
                             :label="$t('threats.properties.score')"
@@ -78,6 +78,21 @@
                                 v-model="threat.score"
                                 type="text"
                             ></b-form-input>
+                        </b-form-group>
+                    </b-col>
+                    <b-col md="6">
+                        <b-form-group
+                            id="severity-group"
+                            :label="$t('threats.properties.severity')"
+                            label-for="severity"
+                        >
+                            <select
+                                id="severity"
+                                v-model="threat.severity"
+                                class="form-control custom-select"
+                            >
+                                <option v-for="opt in severityOptions" :key="opt.value" :value="opt.value">{{ opt.text }}</option>
+                            </select>
                         </b-form-group>
                     </b-col>
                 </b-form-row>
@@ -118,7 +133,7 @@
                     <b-col>
                         <b-form-group
                             id="tags-group"
-                            label="Tags"
+                            :label="$t('threats.catalogue.tags')"
                             label-for="tags"
                         >
                             <td-form-tags
@@ -126,7 +141,7 @@
                                 v-model="threat.tags"
                                 variant="primary"
                                 separator=",;"
-                                placeholder="Add tags..."
+                                :placeholder="$t('threats.catalogue.tagsPlaceholder')"
                             ></td-form-tags>
                         </b-form-group>
                     </b-col>
@@ -174,6 +189,7 @@ import ciaDie from '@/service/threats/models/ciadie.js';
 import linddun from '@/service/threats/models/linddun.js';
 import plot4ai from '@/service/threats/models/plot4ai.js';
 import stride from '@/service/threats/models/stride.js';
+import { getSeverityOptions } from '@/service/threats/index.js';
 
 const MODEL_ALL_TYPES = {
     CIA: cia,
@@ -206,6 +222,9 @@ export default {
                 { value: '', text: '-- Select type --' },
                 ...Object.values(model).map(key => ({ value: this.$t(key), text: this.$t(key) }))
             ];
+        },
+        severityOptions() {
+            return getSeverityOptions(this.$t.bind(this));
         }
     },
     methods: {
@@ -220,6 +239,7 @@ export default {
                     description: existingThreat.description || '',
                     mitigation: existingThreat.mitigation || '',
                     score: existingThreat.score || '',
+                    severity: existingThreat.severity || 'TBD',
                     tags: [...(existingThreat.tags || [])]
                 };
             } else {
@@ -232,6 +252,7 @@ export default {
                     description: '',
                     mitigation: '',
                     score: '',
+                    severity: 'TBD',
                     tags: []
                 };
             }
@@ -244,6 +265,7 @@ export default {
             try {
                 if (this.isEditing) {
                     await this.$store.dispatch(tcActions.update, { ...this.threat });
+                    this.$toast.success(this.$t('threats.catalogue.prompts.updateSuccess'));
                 } else {
                     await this.$store.dispatch(tcActions.create, { ...this.threat });
                     this.$toast.success(this.$t('threats.catalogue.prompts.createSuccess'));
@@ -251,21 +273,28 @@ export default {
                 this.hideModal();
             } catch (error) {
                 console.error('Failed to save catalogue threat:', error);
+                this.$toast.error(this.$t(this.isEditing ? 'threats.catalogue.errors.updateFailed' : 'threats.catalogue.errors.createFailed'));
             }
         },
         async confirmDelete() {
             const confirmed = await this.$bvModal.msgBoxConfirm(
                 `Delete "${this.threat.title}"? This cannot be undone.`,
                 {
-                    title: 'Delete Threat',
+                    title: this.$t('threats.catalogue.deleteTitle'),
                     okTitle: this.$t('forms.delete'),
                     cancelTitle: this.$t('forms.cancel'),
                     okVariant: 'danger',
                 }
             );
             if (confirmed) {
-                await this.$store.dispatch(tcActions.delete, this.threat.id);
-                this.hideModal();
+                try {
+                    await this.$store.dispatch(tcActions.delete, this.threat.id);
+                    this.$toast.success(this.$t('threats.catalogue.prompts.deleteSuccess'));
+                    this.hideModal();
+                } catch (error) {
+                    console.error('Failed to delete catalogue threat:', error);
+                    this.$toast.error(this.$t('threats.catalogue.errors.deleteFailed'));
+                }
             }
         }
     }

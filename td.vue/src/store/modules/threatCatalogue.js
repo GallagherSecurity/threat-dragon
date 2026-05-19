@@ -85,8 +85,9 @@ const actions = {
 
     [THREAT_CATALOGUE_IMPORT]: async ({ dispatch }, threatLibrary) => {
         const processed = threatLibrary.map(threat => ({ ...threat, id: uuidv4() }));
-        await threatCatalogueApi.importThreatLibraryAsync(processed);
+        const response = await threatCatalogueApi.importThreatLibraryAsync(processed);
         await dispatch(THREAT_CATALOGUE_FETCH_ALL);
+        return response.results;
     },
 
     [THREAT_CATALOGUE_CLEAR]: ({ commit }) => {
