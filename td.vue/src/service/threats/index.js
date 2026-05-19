@@ -142,7 +142,7 @@ export const createThreatFromCatalogue = function (catalogueThreat, number) {
         mitigation: catalogueThreat.mitigation,
         score: catalogueThreat.score || '',
         status: 'Open',
-        severity: '',
+        severity: 'TBD',
         new: true,
         number: number
     };

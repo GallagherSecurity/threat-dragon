@@ -94,13 +94,16 @@
                     <small v-show="isFiltering" class="text-muted">
                         Showing {{ filteredThreats.length }} of {{ threatCatalogue.length }} threats
                     </small>
+                    <small v-show="selectedIds.length" class="text-muted ml-3">
+                        {{ selectedIds.length }} selected
+                    </small>
                 </b-col>
             </b-row>
 
             <b-row class="mt-3">
                 <b-col md="8" offset-md="2">
-                    <b-list-group v-if="filteredThreats.length">
-                        <b-list-group-item v-for="threat in filteredThreats" :key="threat.id"
+                    <b-list-group v-if="paginatedThreats.length">
+                        <b-list-group-item v-for="threat in paginatedThreats" :key="threat.id"
                             class="d-flex justify-content-between align-items-start">
                             <div v-if="canWriteThreatCatalogue" class="mr-3 d-flex align-items-center">
                                 <input
@@ -136,6 +139,12 @@
                         </b-list-group-item>
                     </b-list-group>
                     <b-alert v-else show variant="info">{{ emptyMessage }}</b-alert>
+
+                    <div v-if="totalPages > 1" class="pagination mt-3">
+                        <button @click="currentPage--" :disabled="currentPage === 1">Previous</button>
+                        <button class="btn" :disabled="true">{{ currentPage }} / {{ totalPages }}</button>
+                        <button @click="currentPage++" :disabled="currentPage === totalPages">Next</button>
+                    </div>
                 </b-col>
             </b-row>
         </template>
@@ -159,7 +168,9 @@ export default {
             searchQuery: '',
             filterModelType: '',
             filterType: '',
-            selectedIds: []
+            selectedIds: [],
+            currentPage: 1,
+            pageSize: 15
         };
     },
     computed: {
@@ -182,8 +193,15 @@ export default {
             return this.isFiltering ? 'No threats match your search.' : 'No threats in the catalogue yet.';
         },
         allFilteredSelected() {
-            return this.filteredThreats.length > 0 &&
-                this.filteredThreats.every(t => this.selectedIds.includes(t.id));
+            return this.paginatedThreats.length > 0 &&
+                this.paginatedThreats.every(t => this.selectedIds.includes(t.id));
+        },
+        paginatedThreats() {
+            const start = (this.currentPage - 1) * this.pageSize;
+            return this.filteredThreats.slice(start, start + this.pageSize);
+        },
+        totalPages() {
+            return Math.ceil(this.filteredThreats.length / this.pageSize) || 1;
         },
         filteredThreats() {
             let threats = this.threatCatalogue;
@@ -202,6 +220,11 @@ export default {
                 );
             }
             return threats;
+        }
+    },
+    watch: {
+        filteredThreats() {
+            this.currentPage = 1;
         }
     },
     mounted() {
@@ -277,10 +300,10 @@ export default {
         },
         toggleSelectAll() {
             if (this.allFilteredSelected) {
-                const filteredIds = this.filteredThreats.map(t => t.id);
-                this.selectedIds = this.selectedIds.filter(id => !filteredIds.includes(id));
+                const pageIds = this.paginatedThreats.map(t => t.id);
+                this.selectedIds = this.selectedIds.filter(id => !pageIds.includes(id));
             } else {
-                const toAdd = this.filteredThreats.map(t => t.id).filter(id => !this.selectedIds.includes(id));
+                const toAdd = this.paginatedThreats.map(t => t.id).filter(id => !this.selectedIds.includes(id));
                 this.selectedIds = [...this.selectedIds, ...toAdd];
             }
         },
