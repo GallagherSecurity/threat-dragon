@@ -9,17 +9,8 @@
             </b-col>
         </b-row>
 
-        <!-- NOT_FOUND -->
-        <b-row v-if="threatCatalogueStoreStatus === 'NOT_FOUND'">
-            <b-col md="6" offset-md="3">
-                <b-alert show variant="danger" class="text-center">
-                    <h5>{{ $t('threats.catalogue.notFound') }}</h5>
-                </b-alert>
-            </b-col>
-        </b-row>
-
         <!-- NOT_INITIALIZED -->
-        <b-row v-else-if="threatCatalogueStoreStatus === 'NOT_INITIALIZED'">
+        <b-row v-if="threatCatalogueStoreStatus === 'NOT_INITIALIZED'">
             <b-col md="6" offset-md="3">
                 <b-card class="text-center p-4">
                     <h4>{{ $t('threats.catalogue.notInitialized') }}</h4>
@@ -140,10 +131,18 @@
                     </b-list-group>
                     <b-alert v-else show variant="info">{{ emptyMessage }}</b-alert>
 
-                    <div v-if="totalPages > 1" class="pagination mt-3">
-                        <button @click="currentPage--" :disabled="currentPage === 1">{{ $t('threats.catalogue.previous') }}</button>
-                        <button class="btn" :disabled="true">{{ currentPage }} / {{ totalPages }}</button>
-                        <button @click="currentPage++" :disabled="currentPage === totalPages">{{ $t('threats.catalogue.next') }}</button>
+                    <div v-if="filteredThreats.length" class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="d-flex align-items-center">
+                            <small class="text-muted mr-2">{{ $t('threats.catalogue.perPage') }}</small>
+                            <select v-model.number="pageSize" class="form-control form-control-sm" style="width:auto">
+                                <option v-for="n in pageSizeOptions" :key="n" :value="n">{{ n }}</option>
+                            </select>
+                        </div>
+                        <div v-if="totalPages > 1" class="pagination mb-0">
+                            <button @click="currentPage--" :disabled="currentPage === 1">{{ $t('threats.catalogue.previous') }}</button>
+                            <button class="btn" :disabled="true">{{ currentPage }} / {{ totalPages }}</button>
+                            <button @click="currentPage++" :disabled="currentPage === totalPages">{{ $t('threats.catalogue.next') }}</button>
+                        </div>
                     </div>
                 </b-col>
             </b-row>
@@ -170,7 +169,8 @@ export default {
             filterType: '',
             selectedIds: [],
             currentPage: 1,
-            pageSize: 15
+            pageSize: 25,
+            pageSizeOptions: [10, 25, 50, 100]
         };
     },
     computed: {
@@ -224,6 +224,9 @@ export default {
     },
     watch: {
         filteredThreats() {
+            this.currentPage = 1;
+        },
+        pageSize() {
             this.currentPage = 1;
         }
     },

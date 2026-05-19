@@ -17,12 +17,21 @@
             />
 
             <!-- Status messages -->
-            <b-alert v-if="threatCatalogueStoreStatus === 'NOT_CONFIGURED'" show variant="warning">
+            <b-alert v-if="threatCatalogueStoreStatus === 'NOT_CONFIGURED'" show variant="info">
                 {{ $t('threats.catalogue.notConfigured') }}
             </b-alert>
-            <b-alert v-else-if="threatCatalogueStoreStatus === 'NOT_INITIALIZED'" show variant="info">
-                {{ $t('threats.catalogue.notInitialized') }}
+            <b-alert v-else-if="threatCatalogueStoreStatus === 'NOT_FOUND'" show variant="danger">
+                {{ $t('threats.catalogue.notFound') }}
             </b-alert>
+            <template v-else-if="threatCatalogueStoreStatus === 'NOT_INITIALIZED'">
+                <b-alert v-if="canWriteThreatCatalogue" show variant="info">
+                    {{ $t('threats.catalogue.notInitialisedAdmin') }}
+                    <router-link :to="{ name: 'ManageThreatCatalogue' }">{{ $t('forms.manage') }}</router-link>
+                </b-alert>
+                <b-alert v-else show variant="warning">
+                    {{ $t('threats.catalogue.notInitialisedUser') }}
+                </b-alert>
+            </template>
             <b-alert v-else-if="!filteredThreats.length" show variant="info">
                 {{ $t('threats.catalogue.emptyCatalogue') }}
             </b-alert>
@@ -106,7 +115,7 @@ export default {
             diagram: (state) => state.threatmodel.selectedDiagram,
             threatTop: (state) => state.threatmodel.data.detail.threatTop
         }),
-        ...mapGetters(['threatCatalogue', 'threatCatalogueStoreStatus']),
+        ...mapGetters(['threatCatalogue', 'threatCatalogueStoreStatus', 'canWriteThreatCatalogue']),
         cellType() {
             return this.cellRef?.data?.type || null;
         },
@@ -169,20 +178,25 @@ export default {
             }
         },
         async applySelected() {
-            let threatTop = this.threatTop;
-            for (const catalogueThreat of this.selected) {
-                threatTop++;
-                const response = await threatCatalogueApi.fetchThreatContentAsync(catalogueThreat.id);
-                const fullThreat = response.data.content;
-                const threat = createThreatFromCatalogue(fullThreat, threatTop);
-                this.cellRef.data.threats.push(threat);
+            try {
+                let threatTop = this.threatTop;
+                for (const catalogueThreat of this.selected) {
+                    threatTop++;
+                    const response = await threatCatalogueApi.fetchThreatContentAsync(catalogueThreat.id);
+                    const fullThreat = response.data.content;
+                    const threat = createThreatFromCatalogue(fullThreat, threatTop);
+                    this.cellRef.data.threats.push(threat);
+                }
+                this.cellRef.data.hasOpenThreats = true;
+                this.$store.dispatch(tmActions.update, { threatTop });
+                this.$store.dispatch(tmActions.modified);
+                this.$store.dispatch(CELL_DATA_UPDATED, this.cellRef.data);
+                dataChanged.updateStyleAttrs(this.cellRef);
+                this.hideModal();
+            } catch (e) {
+                console.error('Failed to apply catalogue threats:', e);
+                this.$toast.error(this.$t('threats.catalogue.errors.importFailed'));
             }
-            this.cellRef.data.hasOpenThreats = true;
-            this.$store.dispatch(tmActions.update, { threatTop });
-            this.$store.dispatch(tmActions.modified);
-            this.$store.dispatch(CELL_DATA_UPDATED, this.cellRef.data);
-            dataChanged.updateStyleAttrs(this.cellRef);
-            this.hideModal();
         }
     }
 };
