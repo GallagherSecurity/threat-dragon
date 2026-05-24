@@ -25,25 +25,19 @@
 
         <!-- Normal -->
         <template v-else>
-            <b-row v-if="!canWriteThreatCatalogue" class="mb-3">
-                <b-col md="8" offset-md="2">
-                    <b-alert show variant="warning">{{ $t('threats.catalogue.readOnly') }}</b-alert>
-                </b-col>
-            </b-row>
-
             <b-row>
                 <b-col md="8" offset-md="2">
-                    <b-button variant="primary" :disabled="!canWriteThreatCatalogue" @click="onAddClick" class="mr-2">
+                    <b-button variant="primary" @click="onAddClick" class="mr-2">
                         + {{ $t('threats.catalogue.addNew') }}
                     </b-button>
-                    <b-button variant="secondary" :disabled="!canWriteThreatCatalogue" @click="onImportClick" class="mr-2">
+                    <b-button variant="secondary" @click="onImportClick" class="mr-2">
                         {{ $t('threats.catalogue.import') }}
                     </b-button>
                     <b-button variant="secondary" :disabled="!selectedIds.length" @click="onExportClick" class="mr-2">
                         {{ $t('threats.catalogue.actions.exportSelected') }} ({{ selectedIds.length }})
                     </b-button>
                     <b-button
-                        v-if="canWriteThreatCatalogue && filteredThreats.length"
+                        v-if="filteredThreats.length"
                         variant="outline-secondary"
                         class="mr-2"
                         @click="toggleSelectAll"
@@ -96,7 +90,7 @@
                     <b-list-group v-if="paginatedThreats.length">
                         <b-list-group-item v-for="threat in paginatedThreats" :key="threat.id"
                             class="d-flex justify-content-between align-items-start">
-                            <div v-if="canWriteThreatCatalogue" class="mr-3 d-flex align-items-center">
+                            <div class="mr-3 d-flex align-items-center">
                                 <input
                                     type="checkbox"
                                     :checked="selectedIds.includes(threat.id)"
@@ -118,12 +112,11 @@
                             </div>
                             <b-dropdown right variant="link" class="template-actions">
                                 <template #button-content>&#8942;</template>
-                                <b-dropdown-item :disabled="!canWriteThreatCatalogue" @click="onEditClick(threat)">
+                                <b-dropdown-item @click="onEditClick(threat)">
                                     {{ $t('forms.edit') }}
                                 </b-dropdown-item>
                                 <b-dropdown-divider></b-dropdown-divider>
-                                <b-dropdown-item variant="danger" :disabled="!canWriteThreatCatalogue"
-                                    @click="onDeleteClick(threat)">
+                                <b-dropdown-item variant="danger" @click="onDeleteClick(threat)">
                                     {{ $t('forms.delete') }}
                                 </b-dropdown-item>
                             </b-dropdown>
@@ -174,7 +167,7 @@ export default {
         };
     },
     computed: {
-        ...mapGetters(['threatCatalogue', 'threatCatalogueStoreStatus', 'canWriteThreatCatalogue']),
+        ...mapGetters(['threatCatalogue', 'threatCatalogueStoreStatus']),
         modelTypeOptions() {
             const types = [...new Set(this.threatCatalogue.map(t => t.modelType).filter(Boolean))].sort();
             return [{ value: '', text: this.$t('threats.catalogue.allFrameworks') }, ...types.map(t => ({ value: t, text: t }))];
