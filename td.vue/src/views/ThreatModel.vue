@@ -108,7 +108,6 @@ export default {
         TdThreatModelSummaryCard
     },
     computed: mapState({
-        enableTemplates: (state) => ['github', 'local'].includes(state.provider.selected),
         model: (state) => state.threatmodel.data,
         providerType: (state) => getProviderType(state.provider.selected),
         version: (state) => state.packageBuildVersion
