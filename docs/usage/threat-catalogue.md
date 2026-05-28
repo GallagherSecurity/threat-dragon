@@ -12,6 +12,10 @@ group: Modeling
 that allows organisations to build and maintain a library of reusable threats.
 Threats in the catalogue can be added directly to diagrams, ensuring consistency across threat models.
 
+![Threat Catalogue Button]({{ '/assets/images/threat-catalogue.png'
+ | relative_url }}){: style="max-width: 700px; width: 100%;" }
+
+
 **Note**: The threat catalogue is currently available for GitHub repositories only.
 Support for Atlassian Bitbucket, GitLab and Google Drive is coming in future releases.
 
@@ -21,17 +25,19 @@ When editing a diagram, you can add threats directly from the organisation's thr
 rather than creating them from scratch.
 
 1. Select an element on the diagram (process, data store, data flow, or actor)
-2. Open the threats panel for that element
-3. Click the **New Threat from Catalogue** button
-4. The threat catalogue selector will open, showing threats relevant to your diagram type and selected element
-5. Browse or search for threats using the search bar
-6. Threats are grouped by type — click a group heading to expand it
-7. Click one or more threats to select them (a checkmark will appear on selected threats)
-8. Click **Add selected to model** to add all selected threats to the element
+2. Click the **New Threat from Catalogue** button in the threat panel
+3. The threat catalogue selector will open, showing threats relevant to your diagram type and selected element 
+4. Browse or search for threats using the search bar
+5. Threats are grouped by type — click a group heading to expand it
+6. Click one or more threats to select them (a checkmark will appear on selected threats)
+7. Click **Add selected to model** to add all selected threats to the element
 
 **Note**: The catalogue automatically filters threats to only show those matching your diagram's
 framework (e.g. STRIDE, LINDDUN) and the type of element you have selected.
 Threats that do not apply to your context will not be shown.
+
+![Threat catalogue selector]({{ '/assets/images/threat-catalogue-selector.png'
+ | relative_url }}){:style="max-width: 500px; width: 100%;" }
 
 ## Managing the Threat Catalogue (Administrators)
 
@@ -41,6 +47,9 @@ are considered administrators and can manage the organisation's shared threat ca
 Administrators will see a **cog icon** in the navigation bar.
 Clicking the cog reveals a dropdown menu with a **Manage Threat Catalogue** option,
 which takes you to the Manage Threat Catalogue page where you can add, edit, import, export and delete threats.
+
+![Manage Threat Catalogue]({{ '/assets/images/manage-threat-catalogue.png'
+ | relative_url }}){: style="max-width: 400px; width: 100%;" }
 
 ### Bootstrapping the Threat Catalogue
 
@@ -55,6 +64,9 @@ This creates the necessary folder and metadata file in the content repository.
 
 This creates the `threats/` directory and `threat_catalogue.json` metadata file in the content repository.
 Bootstrapping only needs to be done once per repository.
+
+![Initialise Threat Catalogue]({{ '/assets/images/initialise-threat-catalogue.png' 
+ | relative_url }}){: style="max-width: 600px; width: 100%;" }
 
 ### Adding a Threat
 
@@ -98,6 +110,8 @@ Administrators can delete individual threats from the catalogue.
 **Warning**: Deleting a threat cannot be undone. Threats that have already been added to
 existing threat models are not affected.
 
+
+
 ### Bulk Deleting Threats
 
 Administrators can delete multiple threats at once using the bulk delete feature.
@@ -118,6 +132,9 @@ size to select more threats at once.
 **Warning**: Bulk deletion cannot be undone. Threats that have already been added to
 existing threat models are not affected.
 
+![Bulk Delete Threats]({{ '/assets/images/bulk-delete.png' 
+ | relative_url }}){: style="max-width: 600px; width: 100%;" }
+
 ### Importing a Threat Library
 
 Administrators can bulk import threats into the catalogue from a threat library JSON file.
@@ -130,11 +147,12 @@ This is useful for seeding the catalogue with a pre-built set of threats or migr
 
 A summary will be shown indicating how many threats were added and how many were skipped.
 
-**Duplicate threats are not permitted** — if a threat in the import file is identical to one already
+**Duplicate threats are not permitted**  if a threat in the import file is identical to one already
 in the catalogue, it will be skipped automatically. This means you can safely re-import a library
 file without creating duplicates. Only net-new threats will be added.
 
-**Note**: The imported file must conform to the [Threat Dragon threat library schema][threat-library-schema].
+
+
 Threat library files use a different schema to standard threat model files and are not interchangeable.
 The easiest way to obtain a valid file is to export threats from an existing catalogue using the **Export Selected** feature.
 
@@ -150,10 +168,12 @@ This is useful for sharing threats with other teams, backing up the catalogue, o
 3. Click the **Export Selected** button
 4. A threat library `.json` file will be downloaded to your local filesystem
 
-The exported file conforms to the [Threat Dragon threat library schema][threat-library-schema]
-and can be imported into any other Threat Dragon instance using the **Import Threats** feature.
+
 
 ### Searching and Filtering
+
+![Filter Threats]({{ '/assets/images/filtering-threats.png' 
+ | relative_url }}){: style="max-width: 800px; width: 100%;" }
 
 The Manage Threat Catalogue page provides search and filter controls to help you find threats quickly,
 which is especially useful when the catalogue grows large.
@@ -167,5 +187,4 @@ which is especially useful when the catalogue grows large.
 The list shows how many threats match the current filters out of the total in the catalogue.
 Selections made with checkboxes are preserved across filter changes, so you can build up a selection
 across multiple searches before exporting or deleting.
-
 
