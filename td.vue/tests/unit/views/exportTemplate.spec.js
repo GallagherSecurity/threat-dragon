@@ -75,7 +75,7 @@ describe('ExportTemplate.vue', () => {
         it('navigates to the threat model view', () => {
             expect(mockRouter.push).toHaveBeenCalledWith({
                 name: 'localThreatModel',
-                params: {},
+                params: { threatmodel: 'Test Model' },
             });
         });
     });
@@ -94,7 +94,7 @@ describe('ExportTemplate.vue', () => {
         it('navigates to the threat model route', () => {
             expect(mockRouter.push).toHaveBeenCalledWith({
                 name: 'localThreatModel',
-                params: {},
+                params: { threatmodel: 'Test Model' },
             });
         });
     });

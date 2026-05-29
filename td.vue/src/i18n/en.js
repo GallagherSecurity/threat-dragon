@@ -131,28 +131,19 @@ const messages = {
         editTemplate: 'Edit Template',
         exportTemplate: 'Export as Template',
         deleteConfirm: 'Are you sure you want to delete "{name}"?',
-        errors: {
-            invalidJson: 'Invalid JSON. Please check your template file and try again',
-            invalidTemplate: 'Invalid template format. Please check your template file and try again',
-            loadFailed: 'Failed to load templates. Please try again',
-            duplicateTemplate: 'A template with this name already exists. Please use a different name',
-            updateFailed: 'Failed to update template',
-            deleteFailed: 'Failed to delete template'
-        },
-        warnings: {
-            templateSave: 'Could not save the template. Check the developer console for more information',
-            invalidSchema: 'Template does not strictly match schema. Details in the developer console'
-        },
-        prompts: {
-            templateSaved: 'Template successfully saved',
-            templateDownloading: 'Downloading template'
-        },
-        repo: {
-            notInitialized: {
-                title: 'Template Repository Not Initialized',
-                userMessage: 'The template repository has not been initialized. Please contact your administrator.',
-                adminMessage: 'Please go to the Manage Templates page to initialize the template repository.'
-            },
+        deleteTitle: 'Delete Template',
+
+        // Form fields
+        name: 'Template Name',
+        description: 'Template Description',
+        tags: 'Tags',
+        addTagsPlaceholder: 'Add tags...',
+
+        // Permissions
+        readOnlyNotice: 'You have read-only access. You can view templates but cannot modify them.',
+
+        // Unified status messages (desktop vs web, admin vs user)
+        status: {
             notConfigured: {
                 title: 'Template Storage Not Configured',
                 desktop: 'Please set up a folder to store templates.',
@@ -163,13 +154,10 @@ const messages = {
                 desktop: 'The configured template folder no longer exists.',
                 web: 'The configured template repository could not be found.'
             },
-            bootstrap:{
-                bootstrapping:'Initializing..',
-                title: 'Initialize Template Repository',
-                description: 'This will create the necessary folder structure within the repository if it does not already exist.',
-                action: 'Initialize',
-                success: 'Template repository successfully initialized.',
-                error: 'Could not initialize the template repository. Check the developer console for more information.'
+            notInitialized: {
+                title: 'Template Storage Not Initialized',
+                user: 'No templates available yet. Contact your administrator.',
+                admin: 'Initialize the template storage to get started.'
             }
         },
 
