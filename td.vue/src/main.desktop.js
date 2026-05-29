@@ -43,12 +43,11 @@ const getConfirmModal = () => {
 window.electronAPI.onTemplatesResult((_event, result) => {
     console.debug('Templates result:', result);
 
-    // Commit to store
-    app.$store.commit(TEMPLATE_SET_CONTENT_STORE_STATUS, {
+    appProxy.$store.commit(TEMPLATE_SET_CONTENT_STORE_STATUS, {
         status: result.status,
         canWrite: result.canWrite || false
     });
-    app.$store.commit(TEMPLATE_SET_TEMPLATES, result.templates || []);
+    appProxy.$store.commit(TEMPLATE_SET_TEMPLATES, result.templates || []);
 });
 
 // request from electron to renderer to close the application
@@ -207,11 +206,11 @@ window.electronAPI.onSaveModelConfirmed((_event, fileName) =>  {
 });
 window.electronAPI.onImportTemplateSuccess((_event,message) =>  {
     console.debug('Template imported successfully');
-    app.$toast.success(message);
+    appProxy.$toast.success(message);
 });
 window.electronAPI.onImportTemplateError((_event,message) =>  {
     console.debug('Template import failed');
-    app.$toast.error(message);
+    appProxy.$toast.error(message);
 });
 window.electronAPI.onSaveModelFailed((_event, fileName, message) =>  {
     console.debug('Failed to save model file : ' + fileName);
@@ -220,67 +219,65 @@ window.electronAPI.onSaveModelFailed((_event, fileName, message) =>  {
 
 window.electronAPI.onFetchModelByIdResult((_event, result) => {
     console.debug('Fetch model by ID result:', result);
-    
-    // Load template (regenerates IDs and sets as current model)
-    app.$store.dispatch(tmActions.templateLoad, {
+
+    appProxy.$store.dispatch(tmActions.templateLoad, {
         templateData: result.model
     });
-    
-    // Route to new threat model page
-    const model = app.$store.state.threatmodel.data;
+
+    const model = appProxy.$store.state.threatmodel.data;
     const params = { threatmodel: model.summary.title };
-    app.$router.push({ name: `${providerNames.desktop}ThreatModel`, params });
+    appProxy.$router.push({ name: `${providerNames.desktop}ThreatModel`, params });
 });
 
 window.electronAPI.onExportTemplateSuccess((_event, message) => {
     console.debug('Template exported successfully');
-    app.$toast.success(message);
+    appProxy.$toast.success(message);
 });
 
 window.electronAPI.onExportTemplateError((_event, message) => {
     console.debug('Template export failed');
-    app.$toast.error(message);
+    appProxy.$toast.error(message);
 });
 
 window.electronAPI.onDeleteTemplateSuccess((_event, message) => {
     console.debug('Template deleted successfully');
-    app.$toast.success(message);
+    appProxy.$toast.success(message);
 }
 );
 
 window.electronAPI.onDeleteTemplateError((_event, message) => {
     console.debug('Template delete failed');
-    app.$toast.error(message);
+    appProxy.$toast.error(message);
 });
 
 window.electronAPI.onUpdateTemplateSuccess((_event, message) => {
     console.debug('Template updated successfully');
-    app.$toast.success(message);
+    appProxy.$toast.success(message);
 });
 
 window.electronAPI.onUpdateTemplateError((_event, message) => {
     console.debug('Template update failed');
-    app.$toast.error(message);
+    appProxy.$toast.error(message);
 });
 
 window.electronAPI.onBootstrapTemplatesSuccess((_event, message) => {
     console.debug('Templates bootstrapped successfully');
-    app.$toast.success(message);
+    appProxy.$toast.success(message);
 });
 
 window.electronAPI.onBootstrapTemplatesError((_event, message) => {
     console.debug('Templates bootstrap failed');
-    app.$toast.error(message);
+    appProxy.$toast.error(message);
 });
 
 window.electronAPI.onSetTemplateFolderSuccess((_event, message) => {
     console.debug('Template folder set successfully');
-    app.$toast.success(message);
+    appProxy.$toast.success(message);
 });
 
 window.electronAPI.onSetTemplateFolderError((_event, message) => {
     console.debug('Template folder setup failed');
-    app.$toast.error(message);
+    appProxy.$toast.error(message);
 });
 
 const localAuth = () => {
