@@ -28,7 +28,7 @@ describe('ExportTemplate.vue', () => {
             },
         });
         mockStore.dispatch = jest.fn();
-        mockRouter = { push: jest.fn() };
+        mockRouter = { push: jest.fn(), go: jest.fn() };
         wrapper = shallowMount(ExportTemplate, {
             localVue,
             store: mockStore,
@@ -72,11 +72,8 @@ describe('ExportTemplate.vue', () => {
             );
         });
 
-        it('navigates to the threat model view', () => {
-            expect(mockRouter.push).toHaveBeenCalledWith({
-                name: 'localThreatModel',
-                params: { threatmodel: 'Test Model' },
-            });
+        it('navigates back to the threat model view', () => {
+            expect(mockRouter.go).toHaveBeenCalledWith(-1);
         });
     });
 
@@ -91,11 +88,8 @@ describe('ExportTemplate.vue', () => {
             expect(mockEvt.preventDefault).toHaveBeenCalledTimes(1);
         });
 
-        it('navigates to the threat model route', () => {
-            expect(mockRouter.push).toHaveBeenCalledWith({
-                name: 'localThreatModel',
-                params: { threatmodel: 'Test Model' },
-            });
+        it('navigates back to the threat model route', () => {
+            expect(mockRouter.go).toHaveBeenCalledWith(-1);
         });
     });
 });

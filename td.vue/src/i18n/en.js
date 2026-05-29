@@ -196,6 +196,18 @@ const messages = {
             exportSuccess: 'Template exported successfully'
         },
 
+        // Warnings
+        warnings: {
+            templateSave: 'Could not save the template. Check the developer console for more information',
+            invalidSchema: 'Template does not strictly match schema. Details in the developer console'
+        },
+
+        // Prompts (success/info toasts)
+        prompts: {
+            templateSaved: 'Template successfully saved',
+            templateDownloading: 'Downloading template'
+        },
+
         // Errors
         errors: {
             invalidJson: 'Invalid JSON format',
