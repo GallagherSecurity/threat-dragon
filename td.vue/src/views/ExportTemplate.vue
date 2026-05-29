@@ -61,7 +61,7 @@
                                     :isPrimary="true" 
                                     :onBtnClick="onSaveClick" 
                                     icon="save"
-                                    :text="$t('template.saveTemplate')" 
+                                    :text="$t('template.actions.save')" 
                                 />
                                 <td-form-button 
                                     id="td-cancel-btn" 
@@ -124,32 +124,11 @@ export default {
             
             await this.$store.dispatch(tmActions.templateDownload, templateMetadata);
             
-            // Navigate back to threat model view using the current route context
-            const isLocalRoute = this.$route.name && this.$route.name.startsWith('local');
-            const routeName = isLocalRoute
-                ? 'localThreatModel'
-                : `${this.providerType}ThreatModel`;
-            const params = Object.assign({}, this.$route.params, {
-                threatmodel: this.model?.summary?.title
-            });
-            this.$router.push({
-                name: routeName,
-                params
-            });
+            this.$router.go(-1);
         },
         onCancelClick(evt) {
             evt.preventDefault();
-            const isLocalRoute = this.$route.name && this.$route.name.startsWith('local');
-            const routeName = isLocalRoute
-                ? 'localThreatModel'
-                : `${this.providerType}ThreatModel`;
-            const params = Object.assign({}, this.$route.params, {
-                threatmodel: this.model?.summary?.title
-            });
-            this.$router.push({
-                name: routeName,
-                params
-            });
+            this.$router.go(-1);
         }
     }
 };

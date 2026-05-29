@@ -17,6 +17,7 @@ import storeFactory from './store/index.js';
 import authActions from './store/actions/auth.js';
 import providerActions from './store/actions/provider.js';
 import tmActions from './store/actions/threatmodel.js';
+import { TEMPLATE_SET_CONTENT_STORE_STATUS, TEMPLATE_SET_TEMPLATES } from './store/actions/template.js';
 
 import BootstrapVue from './plugins/bootstrap-vue.js';
 import { FontAwesomeIcon } from './plugins/fontawesome-vue.js';
@@ -36,6 +37,18 @@ const getConfirmModal = () => {
         centered: true
     });
 };
+
+
+//request from electron to renderer with template store status and templates
+window.electronAPI.onTemplatesResult((_event, result) => {
+    console.debug('Templates result:', result);
+
+    appProxy.$store.commit(TEMPLATE_SET_CONTENT_STORE_STATUS, {
+        status: result.status,
+        canWrite: result.canWrite || false
+    });
+    appProxy.$store.commit(TEMPLATE_SET_TEMPLATES, result.templates || []);
+});
 
 // request from electron to renderer to close the application
 window.electronAPI.onCloseAppRequest(async (_event) =>  { // eslint-disable-line no-unused-vars
@@ -191,10 +204,80 @@ window.electronAPI.onSaveModelConfirmed((_event, fileName) =>  {
     appProxy.$store.dispatch(tmActions.notModified);
     appProxy.$toast.success(t('threatmodel.prompts.saved'));
 });
-
+window.electronAPI.onImportTemplateSuccess((_event,message) =>  {
+    console.debug('Template imported successfully');
+    appProxy.$toast.success(message);
+});
+window.electronAPI.onImportTemplateError((_event,message) =>  {
+    console.debug('Template import failed');
+    appProxy.$toast.error(message);
+});
 window.electronAPI.onSaveModelFailed((_event, fileName, message) =>  {
     console.debug('Failed to save model file : ' + fileName);
     appProxy.$toast.warning(message);
+});
+
+window.electronAPI.onFetchModelByIdResult((_event, result) => {
+    console.debug('Fetch model by ID result:', result);
+
+    appProxy.$store.dispatch(tmActions.templateLoad, {
+        templateData: result.model
+    });
+
+    const model = appProxy.$store.state.threatmodel.data;
+    const params = { threatmodel: model.summary.title };
+    appProxy.$router.push({ name: `${providerNames.desktop}ThreatModel`, params });
+});
+
+window.electronAPI.onExportTemplateSuccess((_event, message) => {
+    console.debug('Template exported successfully');
+    appProxy.$toast.success(message);
+});
+
+window.electronAPI.onExportTemplateError((_event, message) => {
+    console.debug('Template export failed');
+    appProxy.$toast.error(message);
+});
+
+window.electronAPI.onDeleteTemplateSuccess((_event, message) => {
+    console.debug('Template deleted successfully');
+    appProxy.$toast.success(message);
+}
+);
+
+window.electronAPI.onDeleteTemplateError((_event, message) => {
+    console.debug('Template delete failed');
+    appProxy.$toast.error(message);
+});
+
+window.electronAPI.onUpdateTemplateSuccess((_event, message) => {
+    console.debug('Template updated successfully');
+    appProxy.$toast.success(message);
+});
+
+window.electronAPI.onUpdateTemplateError((_event, message) => {
+    console.debug('Template update failed');
+    appProxy.$toast.error(message);
+});
+
+window.electronAPI.onBootstrapTemplatesSuccess((_event, message) => {
+    console.debug('Templates bootstrapped successfully');
+    appProxy.$toast.success(message);
+});
+
+window.electronAPI.onBootstrapTemplatesError((_event, message) => {
+    console.debug('Templates bootstrap failed');
+    appProxy.$toast.error(message);
+});
+
+window.electronAPI.onSetTemplateFolderSuccess((_event, message) => {
+    console.debug('Template folder set successfully');
+    appProxy.$toast.success(message);
+});
+
+window.electronAPI.onSetTemplateFolderError((_event, message) => {
+    console.debug('Template folder setup failed');
+    appProxy.$toast.error(message);
 });
 
 const localAuth = () => {
