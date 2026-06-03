@@ -28,7 +28,7 @@ jobs:
           keep_minimum_runs: 10
 
       - name: Delete unused workflows
-        uses: otto-de/purge-deprecated-workflow-runs@05bb48958a4a1c5e0e17e8d4a94868266a6548ea # v4.0.9
+        uses: otto-de/purge-deprecated-workflow-runs@4781dc30eb7236b195e896b9a26b14296341b63a # v4.0.10
         with:
           token: ${{ github.token }}
 
@@ -65,7 +65,7 @@ jobs:
           ref: main
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: '${{ env.IMAGE_NAME }}'
           format: 'template'
@@ -74,7 +74,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@95e58e9a2cdfd71adc6e0353d5c52f41a045d225 # v4.35.2
+        uses: github/codeql-action/upload-sarif@68bde559dea0fdcac2102bfdf6230c5f70eb485e # v4.35.4
         with:
           sarif_file: 'trivy-results.sarif'
 

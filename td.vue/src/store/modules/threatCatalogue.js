@@ -73,7 +73,7 @@ const actions = {
         await dispatch(THREAT_CATALOGUE_FETCH_ALL);
     },
 
-    [THREAT_CATALOGUE_FETCH_BY_ID]: async ({ commit }, id) => {
+    [THREAT_CATALOGUE_FETCH_BY_ID]: async (_, id) => {
         const response = await threatCatalogueApi.fetchThreatContentAsync(id);
         return response.data;
     },
