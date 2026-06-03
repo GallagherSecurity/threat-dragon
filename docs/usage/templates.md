@@ -72,10 +72,6 @@ to your organisation's template repository. Only administrators can add template
 the shared template gallery.
 
 ### Exporting an existing model as a template
-<<<<<<< HEAD
-
-=======
->>>>>>> main
 
 If you have created a threat model that would be useful as a template for others,
 you can export it as a template file that can be shared or imported later.

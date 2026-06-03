@@ -15,7 +15,6 @@ Threats in the catalogue can be added directly to diagrams, ensuring consistency
 ![Threat Catalogue Button]({{ '/assets/images/threat-catalogue.png'
  | relative_url }}){: style="max-width: 700px; width: 100%;" }
 
-
 **Note**: The threat catalogue is currently available for GitHub repositories only.
 Support for Atlassian Bitbucket, GitLab and Google Drive is coming in future releases.
 
@@ -26,7 +25,7 @@ rather than creating them from scratch.
 
 1. Select an element on the diagram (process, data store, data flow, or actor)
 2. Click the **New Threat from Catalogue** button in the threat panel
-3. The threat catalogue selector will open, showing threats relevant to your diagram type and selected element 
+3. The threat catalogue selector will open, showing threats relevant to your diagram type and selected element
 4. Browse or search for threats using the search bar
 5. Threats are grouped by type — click a group heading to expand it
 6. Click one or more threats to select them (a checkmark will appear on selected threats)
@@ -61,12 +60,11 @@ This creates the necessary folder and metadata file in the content repository.
 3. Click the **Initialise Catalogue** button
 4. The repository will be set up automatically
 
-
 This creates the `threats/` directory and `threat_catalogue.json` metadata file in the content repository.
 Bootstrapping only needs to be done once per repository.
 
-![Initialise Threat Catalogue]({{ '/assets/images/initialise-threat-catalogue.png' 
- | relative_url }}){: style="max-width: 600px; width: 100%;" }
+![Initialise Threat Catalogue]({{ '/assets/images/initialise-threat-catalogue.png'
+ | relative_url }}){: style="max-width: 600px; width: 100%;"}
 
 ### Adding a Threat
 
@@ -110,8 +108,6 @@ Administrators can delete individual threats from the catalogue.
 **Warning**: Deleting a threat cannot be undone. Threats that have already been added to
 existing threat models are not affected.
 
-
-
 ### Bulk Deleting Threats
 
 Administrators can delete multiple threats at once using the bulk delete feature.
@@ -132,7 +128,7 @@ size to select more threats at once.
 **Warning**: Bulk deletion cannot be undone. Threats that have already been added to
 existing threat models are not affected.
 
-![Bulk Delete Threats]({{ '/assets/images/bulk-delete.png' 
+![Bulk Delete Threats]({{ '/assets/images/bulk-delete.png'
  | relative_url }}){: style="max-width: 600px; width: 100%;" }
 
 ### Importing a Threat Library
@@ -151,8 +147,6 @@ A summary will be shown indicating how many threats were added and how many were
 in the catalogue, it will be skipped automatically. This means you can safely re-import a library
 file without creating duplicates. Only net-new threats will be added.
 
-
-
 Threat library files use a different schema to standard threat model files and are not interchangeable.
 The easiest way to obtain a valid file is to export threats from an existing catalogue using the **Export Selected** feature.
 
@@ -168,12 +162,10 @@ This is useful for sharing threats with other teams, backing up the catalogue, o
 3. Click the **Export Selected** button
 4. A threat library `.json` file will be downloaded to your local filesystem
 
-
-
 ### Searching and Filtering
 
-![Filter Threats]({{ '/assets/images/filtering-threats.png' 
- | relative_url }}){: style="max-width: 800px; width: 100%;" }
+![Filter Threats]({{ '/assets/images/filtering-threats.png'
+ | relative_url }}){: style="max-width: 800px; width: 100%;"}
 
 The Manage Threat Catalogue page provides search and filter controls to help you find threats quickly,
 which is especially useful when the catalogue grows large.
@@ -187,4 +179,3 @@ which is especially useful when the catalogue grows large.
 The list shows how many threats match the current filters out of the total in the catalogue.
 Selections made with checkboxes are preserved across filter changes, so you can build up a selection
 across multiple searches before exporting or deleting.
-

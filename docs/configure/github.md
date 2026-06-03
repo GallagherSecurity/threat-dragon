@@ -237,19 +237,11 @@ templates/
 ### Threat Catalogue Configuration
 
 The threat catalogue shares the same content repository as templates (`GITHUB_CONTENT_REPO`).
-No additional environment variable is required — if you have already configured `GITHUB_CONTENT_REPO`
+No additional environment variable is required, if you have already configured `GITHUB_CONTENT_REPO`
 for templates, the threat catalogue will use the same repository automatically.
 
-#### Administrator Access
-
-Threat catalogue management (add, edit, import, export, delete, bootstrap) requires administrator privileges.
-A user is considered an administrator if they have __push__ or __admin__ permissions on the `GITHUB_CONTENT_REPO`.
-
-#### Branch Protection Requirements
-
-The threat catalogue is stored on the `main` branch of the content repository.
-The same branch protection bypass requirements apply as for templates — see
-[Template Repository Configuration](#template-repository-configuration) above.
+The same administrator access and branch protection requirements apply as for templates —
+see [Template Repository Configuration](#template-repository-configuration) above.
 
 #### Threat Catalogue Repository Structure
 
@@ -263,7 +255,7 @@ threats/
 └── ...
 ```
 
-**Note**: The `threats/` directory sits alongside the `templates/` directory in the same repository.
+__Note__: The `threats/` directory sits alongside the `templates/` directory in the same repository.
 Both features can coexist without any conflict.
 
 ### Github environment variables
