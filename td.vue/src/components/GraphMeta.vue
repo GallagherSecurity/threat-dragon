@@ -125,7 +125,7 @@ export default {
             }
         }),
         isLocalProvider() {
-            return getProviderType(this.selectedProvider) === providerTypes.local;
+            return getProviderType(this.selectedProvider) === providerTypes.local || getProviderType(this.selectedProvider) === providerTypes.desktop;
         }
     },
     components: {
