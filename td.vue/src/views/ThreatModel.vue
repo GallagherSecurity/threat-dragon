@@ -116,7 +116,8 @@ export default {
     computed: mapState({
         model: (state) => state.threatmodel.data,
         providerType: (state) => getProviderType(state.provider.selected),
-        version: (state) => state.packageBuildVersion
+        version: (state) => state.packageBuildVersion,
+        enableTemplates: (state) => ['github', 'local'].includes(state.provider.selected)
     }),
     methods: {
         onEditClick(evt) {

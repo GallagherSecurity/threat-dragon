@@ -306,11 +306,14 @@ jobs:
       - name: Install front-end
         run: npm clean-install
 
+      - name: Install server
+        run: cd ../td.server && npm clean-install
+
       - name: Pre Dev
         run: npm run predev
 
-      - name: Build and run locally
-        run: npm run start:serve
+      - name: Start backend server
+        run: cd ../td.server && npm run start:server
 
       - name: Run visual regression tests
         run: npm run test:visual
