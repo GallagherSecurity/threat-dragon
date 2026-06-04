@@ -309,6 +309,9 @@ jobs:
       - name: Pre Dev
         run: npm run predev
 
+      - name: Build and run locally
+        run: npm run start:serve
+
       - name: Run visual regression tests
         run: npm run test:visual
 
