@@ -220,11 +220,12 @@ const saveThreatAsync = async (accessToken, threat) => {
 
 const bulkSaveThreatsAsync = async (accessToken, newThreats) => {
     const { threats, sha } = await getCatalogueFileAsync(accessToken);
-    const newEntries = await Promise.all(newThreats.map(async (threat) => {
+    const newEntries = await newThreats.reduce(async (prevPromise, threat) => {
+        const acc = await prevPromise;
         const { id, briefDescription, hash, description, mitigation, ...metadata } = threat;
         const { threatRef } = await createThreatContentFileAsync(accessToken, { ...metadata, description, mitigation });
-        return { id, threatRef, ...metadata, briefDescription, hash };
-    }));
+        return [...acc, { id, threatRef, ...metadata, briefDescription, hash }];
+    }, Promise.resolve([]));
     threats.push(...newEntries);
     await updateThreatCatalogueMetadataAsync(accessToken, threats, sha);
 };
@@ -249,7 +250,10 @@ const bulkDeleteThreatsAsync = async (accessToken, ids) => {
     const toDelete = threats.filter((t) => ids.includes(t.id));
     const remaining = threats.filter((t) => !ids.includes(t.id));
     await updateThreatCatalogueMetadataAsync(accessToken, remaining, sha);
-    await Promise.all(toDelete.map((t) => deleteThreatContentFileAsync(accessToken, t.threatRef)));
+    await toDelete.reduce(async (prevPromise, t) => {
+        await prevPromise;
+        return deleteThreatContentFileAsync(accessToken, t.threatRef);
+    }, Promise.resolve());
 };
 
 const deleteThreatEntryAsync = async (accessToken, id) => {

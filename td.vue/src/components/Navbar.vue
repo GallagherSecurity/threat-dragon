@@ -31,6 +31,9 @@
             <button type="button" class="td-dropdown-item" @click="onManageTemplates(); close()">
               Manage Templates
             </button>
+            <button type="button" class="td-dropdown-item" @click="onManageThreats(); close()">
+              Manage Threats
+            </button>
           </template>
           </td-dropdown>
         </li>
