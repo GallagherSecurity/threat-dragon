@@ -1,8 +1,9 @@
-import { BootstrapVue, BJumbotron, BButton, BAlert, BListGroupItem } from 'bootstrap-vue';
+import { BootstrapVue, BButton, BAlert, BListGroupItem } from 'bootstrap-vue';
 import { createLocalVue, shallowMount } from '@vue/test-utils';
 import Vuex from 'vuex';
 
 import TemplateGallery from '@/views/TemplateGallery.vue';
+import TdHero from '@/components/Hero.vue';
 import templateActions from '@/store/actions/template.js';
 import tmActions from '@/store/actions/threatmodel.js';
 
@@ -45,14 +46,14 @@ describe('TemplateGallery.vue', () => {
         });
     });
 
-    it('shows the jumbotron title', () => {
-        expect(wrapper.findComponent(BJumbotron).text()).toContain(
+    it('shows the hero title', () => {
+        expect(wrapper.findComponent(TdHero).text()).toContain(
             'template.select'
         );
     });
 
-    it('shows the jumbotron description', () => {
-        expect(wrapper.findComponent(BJumbotron).text()).toContain(
+    it('shows the hero description', () => {
+        expect(wrapper.findComponent(TdHero).text()).toContain(
             'template.selectDescription'
         );
     });
