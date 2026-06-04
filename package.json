@@ -17,6 +17,7 @@
     "clean:vue": "cd td.vue && npm run clean",
     "dev:vue": "cd td.vue && npm run dev",
     "dev:server": "cd td.server && npm run dev",
+    "markdown:lint": "npx --yes markdownlint-cli2@latest --config .markdownlint.yaml AGENTS.md scripts/README.md docs/*.md docs/**/*.md",
     "pretest": "npm-run-all pretest:server pretest:site",
     "pretest:server": "cd td.server && npm run pretest",
     "pretest:site": "cd td.vue && npm run pretest",
@@ -52,6 +53,16 @@
     "url": "https://owasp.org/www-project-threat-dragon/"
   },
   "license": "Apache-2.0",
+  "engines": {
+    "npm": ">=11.10.0"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "npm",
+      "version": ">=11.10.0",
+      "onFail": "error"
+    }
+  },
   "homepage": "https://owasp.org/www-project-threat-dragon/",
   "repository": {
     "type": "git",
@@ -62,7 +73,7 @@
     "url": "https://github.com/OWASP/threat-dragon/issues"
   },
   "devDependencies": {
-    "baseline-browser-mapping": "^2.10.29",
+    "baseline-browser-mapping": "^2.10.30",
     "npm-run-all2": "^8.0.4",
     "rimraf": "^6.1.3"
   },

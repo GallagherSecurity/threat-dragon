@@ -23,6 +23,7 @@
 !.markdownlint.yaml
 !.wordlist.txt
 !.spellcheck.yaml
+!.npmrc
 !CNAME
 
 # docker files
@@ -37,6 +38,9 @@
 !minimal.env
 !package.json
 !package-lock.json
+!scripts/
+!scripts/README.md
+!scripts/*.sh
 
 # documentation site
 !docs/
@@ -108,6 +112,7 @@
 !td.server/test/repositories/
 !td.server/test/repositories/*.spec.js
 !td.server/.babelrc
+!td.server/.npmrc
 !td.server/.eslintrc.js
 !td.server/README.md
 !td.server/dev.js
