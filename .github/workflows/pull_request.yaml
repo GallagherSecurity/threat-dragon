@@ -96,10 +96,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Use node LTS 24.15
+      - name: Use node LTS 24.16
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: '24.15'
+          node-version: '24.16'
 
       - name: Cache NPM dir
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
@@ -130,10 +130,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Use node LTS 24.15
+      - name: Use node LTS 24.16
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: '24.15'
+          node-version: '24.16'
 
       - name: Cache NPM dir
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
@@ -164,10 +164,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Use node LTS 24.15
+      - name: Use node LTS 24.16
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: '24.15'
+          node-version: '24.16'
 
       - name: Cache NPM dir
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
@@ -199,10 +199,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Use node LTS 24.15
+      - name: Use node LTS 24.16
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: '24.15'
+          node-version: '24.16'
 
       - name: Cache NPM dir
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
@@ -241,10 +241,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Use node LTS 24.15
+      - name: Use node LTS 24.16
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: '24.15'
+          node-version: '24.16'
 
       - name: Cache NPM dir
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
@@ -256,8 +256,7 @@ jobs:
             ${{ runner.os }}-
 
       - name: Install clean packages
-        # TODO: remove --legacy-peer-deps after the Vue 3 migration
-        run: npm clean-install --legacy-peer-deps
+        run: npm clean-install
 
       - name: Build Linux desktop app
         run: npm run build:desktop -- --linux AppImage --x64 --publish never
@@ -277,8 +276,6 @@ jobs:
     name: Site visual regression
     runs-on: ubuntu-24.04
     needs: site_unit_tests
-    # TODO: https://github.com/OWASP/threat-dragon/issues/1613
-    if: false
     defaults:
       run:
         working-directory: td.vue
@@ -287,10 +284,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Use node LTS 24.15
+      - name: Use node LTS 24.16
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: '24.15'
+          node-version: '24.16'
+
+      - name: Use Chrome 148
+        uses: browser-actions/setup-chrome@2e1d749697dd1612b833dba4a722266286fbefcd # v2
+        with:
+          chrome-version: '148.0.7778.96'
 
       - name: Cache NPM dir
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
@@ -304,11 +306,11 @@ jobs:
       - name: Install front-end
         run: npm clean-install
 
-      - name: Build and run locally
-        run: npm run start:serve
+      - name: Pre Dev
+        run: npm run predev
 
       - name: Run visual regression tests
-        run: npm run test:visual -- --url http://localhost:8080/
+        run: npm run test:visual
 
       - name: Upload visual artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -332,10 +334,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Use node LTS 24.15
+      - name: Use node LTS 24.16
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: '24.15'
+          node-version: '24.16'
 
       - name: Cache NPM dir
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
@@ -370,10 +372,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Use node LTS 24.15
+      - name: Use node LTS 24.16
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: '24.15'
+          node-version: '24.16'
 
       - name: Cache NPM dir
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
