@@ -60,9 +60,9 @@
                     <font-awesome-icon icon="plus"></font-awesome-icon>
                     {{ $t('threats.newThreatByContext') }}
             </a>
-            <a href="javascript:void(0)"
+            <a href="#"
                 v-if="!disableNewThreat && diagram.diagramType !== 'EOP'"
-                @click="AddThreatFromCatalogue()"
+                @click.prevent="AddThreatFromCatalogue()"
                 class="new-threat-by-type m-2"
             >
                     <font-awesome-icon icon="plus"></font-awesome-icon>
