@@ -1,6 +1,6 @@
-import { randomUUID } from 'crypto';
 import env from '../env/Env.js';
 import github from 'octonode';
+import { randomUUID } from 'crypto';
 
 
 
@@ -169,7 +169,7 @@ const getCatalogueFileAsync = async (accessToken) => {
 };
 
 const listThreatsAsync = async (accessToken) => {
-    if (!env.get().config.GITHUB_CONTENT_REPO) return { threats: [], status: 'NOT_CONFIGURED' };
+    if (!env.get().config.GITHUB_CONTENT_REPO) {return { threats: [], status: 'NOT_CONFIGURED' };}
     try {
         const { threats, sha } = await getCatalogueFileAsync(accessToken);
         return { threats, sha };
@@ -188,21 +188,21 @@ const listThreatsAsync = async (accessToken) => {
 
 const getThreatAsync = async (accessToken, id) => {
     const { threats } = await getCatalogueFileAsync(accessToken);
-    const entry = threats.find(t => t.id === id);
-    if (!entry) return null;
+    const entry = threats.find((t) => t.id === id);
+    if (!entry) {return null;}
     try {
         const result = await getThreatContentFileAsync(accessToken, entry.threatRef);
         const decoded = Buffer.from(result[0].content, 'base64').toString('utf8');
         return JSON.parse(decoded);
     } catch (e) {
-        if (e.statusCode === 404) return null;
+        if (e.statusCode === 404) {return null;}
         throw e;
     }
 };
 
 const getBulkThreatsAsync = async (accessToken, ids) => {
     const { threats: catalogue } = await getCatalogueFileAsync(accessToken);
-    const entries = ids.map(id => catalogue.find(t => t.id === id)).filter(Boolean);
+    const entries = ids.map((id) => catalogue.find((t) => t.id === id)).filter(Boolean);
     return Promise.all(entries.map(async (entry) => {
         const result = await getThreatContentFileAsync(accessToken, entry.threatRef);
         const decoded = Buffer.from(result[0].content, 'base64').toString('utf8');
@@ -220,17 +220,18 @@ const saveThreatAsync = async (accessToken, threat) => {
 
 const bulkSaveThreatsAsync = async (accessToken, newThreats) => {
     const { threats, sha } = await getCatalogueFileAsync(accessToken);
-    for (const threat of newThreats) {
+    const newEntries = await Promise.all(newThreats.map(async (threat) => {
         const { id, briefDescription, hash, description, mitigation, ...metadata } = threat;
         const { threatRef } = await createThreatContentFileAsync(accessToken, { ...metadata, description, mitigation });
-        threats.push({ id, threatRef, ...metadata, briefDescription, hash });
-    }
+        return { id, threatRef, ...metadata, briefDescription, hash };
+    }));
+    threats.push(...newEntries);
     await updateThreatCatalogueMetadataAsync(accessToken, threats, sha);
 };
 
 const updateThreatEntryAsync = async (accessToken, id, data) => {
     const { threats, sha } = await getCatalogueFileAsync(accessToken);
-    const index = threats.findIndex(t => t.id === id);
+    const index = threats.findIndex((t) => t.id === id);
     if (index === -1) {
         const err = new Error(`Threat ${id} not found`);
         err.statusCode = 404;
@@ -245,23 +246,21 @@ const updateThreatEntryAsync = async (accessToken, id, data) => {
 
 const bulkDeleteThreatsAsync = async (accessToken, ids) => {
     const { threats, sha } = await getCatalogueFileAsync(accessToken);
-    const toDelete = threats.filter(t => ids.includes(t.id));
-    const remaining = threats.filter(t => !ids.includes(t.id));
+    const toDelete = threats.filter((t) => ids.includes(t.id));
+    const remaining = threats.filter((t) => !ids.includes(t.id));
     await updateThreatCatalogueMetadataAsync(accessToken, remaining, sha);
-    for (const t of toDelete) {
-        await deleteThreatContentFileAsync(accessToken, t.threatRef);
-    }
+    await Promise.all(toDelete.map((t) => deleteThreatContentFileAsync(accessToken, t.threatRef)));
 };
 
 const deleteThreatEntryAsync = async (accessToken, id) => {
     const { threats, sha } = await getCatalogueFileAsync(accessToken);
-    const threat = threats.find(t => t.id === id);
+    const threat = threats.find((t) => t.id === id);
     if (!threat) {
         const err = new Error(`Threat ${id} not found`);
         err.statusCode = 404;
         throw err;
     }
-    await updateThreatCatalogueMetadataAsync(accessToken, threats.filter(t => t.id !== id), sha);
+    await updateThreatCatalogueMetadataAsync(accessToken, threats.filter((t) => t.id !== id), sha);
     await deleteThreatContentFileAsync(accessToken, threat.threatRef);
 };
 

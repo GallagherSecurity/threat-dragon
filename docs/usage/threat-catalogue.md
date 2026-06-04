@@ -28,7 +28,7 @@ rather than creating them from scratch.
 3. The threat catalogue selector will open, showing threats relevant to your diagram type and selected element
 4. Browse or search for threats using the search bar
 5. Threats are grouped by type — click a group heading to expand it
-6. Click one or more threats to select them (a checkmark will appear on selected threats)
+6. Click one or more threats to select them (selected threats are highlighted)
 7. Click **Add selected to model** to add all selected threats to the element
 
 **Note**: The catalogue automatically filters threats to only show those matching your diagram's
@@ -113,7 +113,7 @@ existing threat models are not affected.
 Administrators can delete multiple threats at once using the bulk delete feature.
 
 1. Navigate to the Manage Threat Catalogue page
-2. Use the checkboxes on the left of each threat to select the threats you want to delete
+2. Use the checkbox on the left of each threat to select the threats you want to delete
    - Optionally use the search bar or framework/type filters to narrow down the list first
    - Click **Select All** to select all threats visible on the current page
 3. Use the **per page** control at the bottom to adjust how many threats are shown per page —
@@ -156,7 +156,7 @@ Administrators can export a selection of threats from the catalogue as a threat 
 This is useful for sharing threats with other teams, backing up the catalogue, or migrating to another instance.
 
 1. Navigate to the Manage Threat Catalogue page
-2. Use the checkboxes to select the threats you want to export
+2. Use the checkbox to select the threats you want to export
    - Use filters and search to narrow down the list before selecting
    - Use **Select All** to select all threats on the current page
 3. Click the **Export Selected** button
@@ -177,5 +177,5 @@ which is especially useful when the catalogue grows large.
 - **Per page** — use the per page control at the bottom to set how many threats are shown per page (10, 25, 50 or 100)
 
 The list shows how many threats match the current filters out of the total in the catalogue.
-Selections made with checkboxes are preserved across filter changes, so you can build up a selection
+Selections made with checkbox are preserved across filter changes, so you can build up a selection
 across multiple searches before exporting or deleting.

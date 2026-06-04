@@ -1,5 +1,6 @@
-import { createHash } from "crypto";
 import { badRequest, notFound, serverError } from "./errors.js";
+import { createHash } from "crypto";
+
 
 import loggerHelper from "../helpers/logger.helper.js";
 import repositories from "../repositories";
@@ -10,7 +11,7 @@ const logger = loggerHelper.get("controllers/threatCatalogueController.js");
 const BRIEF_DESCRIPTION_LENGTH = 150;
 
 const computeBriefDescription = (description) => {
-    if (!description) return '';
+    if (!description) {return '';}
     return description.length > BRIEF_DESCRIPTION_LENGTH
         ? description.slice(0, BRIEF_DESCRIPTION_LENGTH) + '...'
         : description;
@@ -23,12 +24,13 @@ const computeThreatHash = (threat) => {
         (threat.title || '').trim().toLowerCase(),
         (threat.description || '').trim().toLowerCase()
     ].join('::');
-    return createHash('sha256').update(normalized).digest('hex');
+    return createHash('sha256').update(normalized).
+digest('hex');
 };
 
 const isDuplicate = (threats, incoming) => {
     const hash = computeThreatHash(incoming);
-    return threats.some(t => t.hash === hash);
+    return threats.some((t) => t.hash === hash);
 };
 
 const listCatalogueThreats = (req, res) => responseWrapper.sendResponseAsync(async () => {
@@ -79,7 +81,7 @@ const updateCatalogueThreat = async (req, res) => {
     try {
         const hash = computeThreatHash(updates);
         const { threats } = await repository.listThreatsAsync(accessToken);
-        if (threats.some(t => t.id !== id && t.hash === hash)) {
+        if (threats.some((t) => t.id !== id && t.hash === hash)) {
             return badRequest(`A catalogue threat with the title "${updates.title}" already exists for framework "${updates.modelType}"`, res, logger);
         }
 
@@ -90,7 +92,7 @@ const updateCatalogueThreat = async (req, res) => {
 
         return res.status(200).json({ status: 200, message: "Catalogue threat updated successfully" });
     } catch (err) {
-        if (err.statusCode === 404) return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);
+        if (err.statusCode === 404) {return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);}
         logger.error(err);
         return serverError(err.message || "Failed to update catalogue threat", res, logger);
     }
@@ -105,7 +107,7 @@ const deleteCatalogueThreat = async (req, res) => {
         await repository.deleteThreatEntryAsync(accessToken, id);
         return res.status(200).json({ status: 200, message: "Catalogue threat deleted successfully" });
     } catch (err) {
-        if (err.statusCode === 404) return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);
+        if (err.statusCode === 404) {return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);}
         logger.error(err);
         return serverError(err.message || "Failed to delete catalogue threat", res, logger);
     }
@@ -117,7 +119,7 @@ const getCatalogueThreatContent = async (req, res) => {
 
     try {
         const content = await repository.getThreatAsync(req.provider.access_token, id);
-        if (!content) return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);
+        if (!content) {return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);}
         return res.status(200).json({ status: 200, data: { content } });
     } catch (err) {
         logger.error(err);
@@ -195,7 +197,7 @@ const importThreatLibrary = async (req, res) => {
 
     try {
         const { threats: existing } = await repository.listThreatsAsync(accessToken);
-        const seen = new Set(existing.map(t => t.hash));
+        const seen = new Set(existing.map((t) => t.hash));
         const results = { created: 0, skipped: 0 };
 
         const toCreate = [];
@@ -203,12 +205,12 @@ const importThreatLibrary = async (req, res) => {
             const hash = computeThreatHash(threat);
             if (seen.has(hash)) {
                 results.skipped++;
-                continue;
+            } else {
+                seen.add(hash);
+                const { id, description, mitigation, ...metadata } = threat;
+                toCreate.push({ id, hash, briefDescription: computeBriefDescription(description), ...metadata, description, mitigation });
+                results.created++;
             }
-            seen.add(hash);
-            const { id, description, mitigation, ...metadata } = threat;
-            toCreate.push({ id, hash, briefDescription: computeBriefDescription(description), ...metadata, description, mitigation });
-            results.created++;
         }
 
         if (toCreate.length > 0) {
