@@ -41,11 +41,14 @@
                 :title="$t('nav.contentManagement')" />
             </template>
 
-            <template #default="{ close }">
-              <button type="button" class="td-dropdown-item" @click="onManageTemplates(); close()">
-                Manage Templates
-              </button>
-            </template>
+          <template #default="{ close }">
+            <button type="button" class="td-dropdown-item" @click="onManageTemplates(); close()">
+              Manage Templates
+            </button>
+            <button type="button" class="td-dropdown-item" @click="onManageThreats(); close()">
+              Manage Threats
+            </button>
+          </template>
           </td-dropdown>
         </li>
 
@@ -190,6 +193,13 @@ export default {
         },
         onManageTemplates() {
             this.$router.push('/admin/templates').catch(error => {
+                if (error.name != 'NavigationDuplicated') {
+                    throw error;
+                }
+            });
+        },
+        onManageThreats() {
+            this.$router.push('/admin/threats').catch(error => {
                 if (error.name != 'NavigationDuplicated') {
                     throw error;
                 }

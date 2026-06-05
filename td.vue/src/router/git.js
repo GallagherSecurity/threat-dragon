@@ -56,4 +56,11 @@ export const gitRoutes = [
     },
     ...adminTemplateRoutes,  // /admin/templates
 
+    {
+        path: '/admin/threats',
+        name: 'ManageThreatCatalogue',
+        component: () => import(/* webpackChunkName: "manage-threat-catalogue" */ '../views/ManageThreatCatalogue.vue'),
+        meta: { requiresAdmin: true }
+    },
+
 ];

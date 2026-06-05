@@ -30,6 +30,7 @@
             <td-keyboard-shortcuts />
             <td-threat-edit-dialog ref="threatEditDialog" />
             <td-threat-suggest-dialog ref="threatSuggestDialog" />
+            <td-threat-catalogue-selector ref="catalogueSelector" />
         </div>
     </div>
 </template>
@@ -48,6 +49,7 @@ import TdGraphMeta from '@/components/GraphMeta.vue';
 import TdKeyboardShortcuts from '@/components/KeyboardShortcuts.vue';
 import TdThreatEditDialog from '@/components/ThreatEditDialog.vue';
 import TdThreatSuggestDialog from './ThreatSuggestDialog.vue';
+import TdThreatCatalogueSelector from './ThreatCatalogueSelector.vue';
 
 import { DESKTOP_DIAGRAM_SAVE_REQUEST_EVENT } from '@/service/desktop/save.js';
 import { getProviderType } from '@/service/provider/providers.js';
@@ -64,7 +66,8 @@ export default {
         TdGraphMeta,
         TdKeyboardShortcuts,
         TdThreatEditDialog,
-        TdThreatSuggestDialog
+        TdThreatSuggestDialog,
+        TdThreatCatalogueSelector
     },
     computed: mapState({
         diagram: (state) => state.threatmodel.selectedDiagram,
@@ -98,7 +101,11 @@ export default {
             this.$refs.threatEditDialog.editThreat(threatId,state);
         },
         threatSuggest(type){
-            this.$refs.threatSuggestDialog.showModal(type);
+            if (type === 'catalogue') {
+                this.$refs.catalogueSelector.showModal();
+            } else {
+                this.$refs.threatSuggestDialog.showModal(type);
+            }
         },
         handleDesktopSaveRequest() {
             if (!this.graph) {

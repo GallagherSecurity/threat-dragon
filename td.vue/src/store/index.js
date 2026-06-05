@@ -12,6 +12,7 @@ import folder from './modules/folder.js';
 import threatmodel from './modules/threatmodel.js';
 import vuexPersist from '../plugins/vuex-persist.js';
 import template from './modules/template.js';
+import threatCatalogue from './modules/threatCatalogue.js';
 
 let store = null;
 const buildVersion = require('../../package.json').version;
@@ -35,7 +36,8 @@ const get = () => {
                 repo,
                 folder,
                 threatmodel,
-                template
+                template,
+                threatCatalogue
             },
             plugins: [vuexPersist.session.plugin]
         });

@@ -18,9 +18,8 @@ describe('components/GraphMeta.vue', () => {
             localVue.use(Vuex);
             const mockStore = new Vuex.Store({
                 state: {
-                    cell: {
-                        ref: null
-                    }
+                    cell: { ref: null },
+                    provider: { selected: 'local' }
                 }
             });
             wrapper = shallowMount(TdGraphMeta, {
@@ -73,7 +72,8 @@ describe('components/GraphMeta.vue', () => {
                                 threatTop:0,
                             },
                         }
-                    }
+                    },
+                    provider: { selected: 'local' }
                 }
             });
             wrapper = shallowMount(TdGraphMeta, {
@@ -126,7 +126,8 @@ describe('components/GraphMeta.vue', () => {
                                 threatTop:0,
                             },
                         }
-                    }
+                    },
+                    provider: { selected: 'local' }
                 }
             });
             wrapper = shallowMount(TdGraphMeta, {
@@ -184,7 +185,8 @@ describe('components/GraphMeta.vue', () => {
                                 threatTop:0,
                             },
                         }
-                    }
+                    },
+                    provider: { selected: 'local' }
                 },
                 actions:{ THREATMODEL_UPDATE: ()=> {}},
             });

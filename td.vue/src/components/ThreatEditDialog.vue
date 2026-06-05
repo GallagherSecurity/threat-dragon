@@ -270,6 +270,7 @@ import threatModels from '@/service/threats/models/index.js';
 import TdFormRadioGroup from '@/components/FormRadioGroup.vue';
 import TdFormSelect from '@/components/FormSelect.vue';
 import { getGame, getAllGames } from '../service/threats/models/eop';
+import { getSeverityOptions } from '@/service/threats/index.js';
 
 export default {
     name: 'TdThreatEditDialog',
@@ -312,17 +313,7 @@ export default {
             ];
         },
         priorities() {
-            return [
-                { value: 'TBD', text: this.$t('threats.severity.tbd') },
-                { value: 'Low', text: this.$t('threats.severity.low') },
-                { value: 'Medium', text: this.$t('threats.severity.medium') },
-                { value: 'High', text: this.$t('threats.severity.high') },
-
-                {
-                    value: 'Critical',
-                    text: this.$t('threats.severity.critical'),
-                },
-            ];
+            return getSeverityOptions(this.$t.bind(this));
         },
         modalTitle() {
             return this.$t('threats.edit') + ' #' + this.number;

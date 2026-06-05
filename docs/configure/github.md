@@ -234,6 +234,30 @@ templates/
 └── ...
 ```
 
+### Threat Catalogue Configuration
+
+The threat catalogue shares the same content repository as templates (`GITHUB_CONTENT_REPO`).
+No additional environment variable is required, if you have already configured `GITHUB_CONTENT_REPO`
+for templates, the threat catalogue will use the same repository automatically.
+
+The same administrator access and branch protection requirements apply as for templates —
+see [Template Repository Configuration](#template-repository-configuration) above.
+
+#### Threat Catalogue Repository Structure
+
+Once initialised, the threat catalogue will have the following structure within the content repository:
+
+```text
+threats/
+├── threat_catalogue.json    # Metadata index file
+├── {threatRef-1}.json       # Individual threat content files
+├── {threatRef-2}.json
+└── ...
+```
+
+__Note__: The `threats/` directory sits alongside the `templates/` directory in the same repository.
+Both features can coexist without any conflict.
+
 ### Github environment variables
 
 | Github specifics | Description | Default |

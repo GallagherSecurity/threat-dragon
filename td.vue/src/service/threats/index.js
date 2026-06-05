@@ -1,6 +1,14 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import models from './models/index.js';
+
+export const getSeverityOptions = (t) => [
+    { value: 'TBD', text: t('threats.severity.tbd') },
+    { value: 'Low', text: t('threats.severity.low') },
+    { value: 'Medium', text: t('threats.severity.medium') },
+    { value: 'High', text: t('threats.severity.high') },
+    { value: 'Critical', text: t('threats.severity.critical') }
+];
 import { tc } from '../../i18n/index.js';
 import store from '@/store/index.js';
 
@@ -128,6 +136,22 @@ export const createNewTypedThreat = function (modelType, cellType,number) {
         new: true,
         number: number,
         score: ''
+    };
+};
+
+export const createThreatFromCatalogue = function (catalogueThreat, number) {
+    return {
+        id: uuidv4(),
+        title: catalogueThreat.title,
+        type: catalogueThreat.type,
+        modelType: catalogueThreat.modelType,
+        description: catalogueThreat.description,
+        mitigation: catalogueThreat.mitigation,
+        score: catalogueThreat.score || '',
+        status: 'Open',
+        severity: catalogueThreat.severity || 'TBD',
+        new: true,
+        number: number
     };
 };
 
