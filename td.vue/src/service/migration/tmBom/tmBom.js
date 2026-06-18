@@ -1,54 +1,127 @@
-import summary from './summary';
+import boxes from './diagrams/boxes';
 import detail from './detail';
+import diagrams from './diagrams/diagrams';
+import flows from './diagrams/flows';
+import nodes from './diagrams/nodes';
+import schema from '@/assets/schema/threat-model.schema';
+import scope from './scope';
+import summary from './summary';
+import threats from './diagrams/threats/threats';
 
-/* why use a hard coded Threat Dragon version here?
- * the build version may increase for Threat Dragon, but this conversion / migration
- * has been written for a particular version of Threat Dragon
- * wich may not be the latest given in package.lock
- * Note : when this is revised, then change this version to match
- */
-const version = '2.4.1';
+const tdVersion = require('../../../../package.json').version;
+const tmbomVersion = tdVersion;
 
-const read = (model) => {
+const createKey = (source, target, key) => {
+    if (Object.hasOwn(source, key)) {
+        target[key] = source[key];
+    }
+};
 
-    // not used (yet) by TD, but needs to be preserved if present
+// export a Threat Dragon file to TM-BOM format, required keys for TM-BOM:
+// version, scope, trust_zones, trust_boundaries, actors, components
+// data_stores, data_sets, data_flows
+const exportAsTmbom = (model) => {
+    let tmbomNodes = nodes.convert(model);
+    let tmbomThreats = threats.convert(model);
+    let tmbom = {
+        $schema: schema.$id,
+        version: model.compatibility?.version || tmbomVersion,
+        scope: scope.convert(model),
+        diagrams: diagrams.convert(model),
+        trust_zones: boxes.convert(model, tmbomNodes),
+        trust_boundaries: [],
+        actors: tmbomNodes.actors,
+        components: tmbomNodes.components,
+        data_stores: tmbomNodes.data_stores,
+        data_sets: [],
+        data_flows: flows.convert(model),
+        threat_personas: tmbomThreats.threat_personas,
+        threats: tmbomThreats.threats,
+        controls: tmbomThreats.controls,
+        risks: tmbomThreats.risks
+    };
+
+    // compatibility object exists if original file was also TM-BOM
+    if (model.compatibility) {
+        // optional key values
+        createKey(model.compatibility, tmbom, 'description');
+        createKey(model.compatibility, tmbom, 'frozen');
+        createKey(model.compatibility, tmbom, 'released_at');
+        createKey(model.compatibility, tmbom, 'product_release_date');
+        createKey(model.compatibility, tmbom, 'release_docs_link');
+        createKey(model.compatibility, tmbom, 'reviewed_at');
+        createKey(model.compatibility, tmbom, 'repo_link');
+    }
+
+    return tmbom;
+};
+
+// import a TM-BOM file to Threat Dragon format
+export const importTmbom = (model) => {
+
+    // required values not used by TD but need to be preserved
     let compatibility = {
         version: model.version,
         description: model.description,
-        frozen: model.frozen,
-        release_docs_link: model.release_docs_link,
-        reviewed_at: model.reviewed_at,
-        repo_link: model.repo_link
     };
 
+    // optional values need to be preserved but only if present
+    createKey(model, compatibility, 'frozen');
+    createKey(model, compatibility, 'released_at');
+    createKey(model, compatibility, 'product_release_date');
+    createKey(model, compatibility, 'release_docs_link');
+    createKey(model, compatibility, 'reviewed_at');
+    createKey(model, compatibility, 'repo_link');
+
     return {
-        summary: summary.read(model),
-        detail: detail.read(model, version),
-        version: version,
+        summary: summary.merge(model),
+        detail: detail.merge(model, tdVersion),
+        version: tdVersion,
         compatibility
     };
 };
 
+// read a TM-BOM file
+const read = (model) => {
+    // not supported yet, return an empty Threat Dragon model with TM-BOM attached
+    return {
+        version: tdVersion,
+        summary: {
+            title: model.scope.title,
+            description: 'Empty Threat Dragon model from a TM-BOM',
+        },
+        detail: [],
+        tmBom: model
+    };
+
+};
+
+// write a TM-BOM file
 const write = (model) => {
-    let tmModel = new Object();
-
-    tmModel.version = model.compatibility ? model.compatibility.version : '1.0';
-
-    tmModel.scope = summary.write(model);
-
-    if (model.compatibility) {
-        tmModel.description = model.compatibility.description,
-        tmModel.frozen = model.compatibility.frozen,
-        tmModel.release_docs_link = model.compatibility.release_docs_link,
-        tmModel.reviewed_at = model.compatibility.reviewed_at,
-        tmModel.repo_link = model.compatibility.repo_link;
-    }
-
-    return tmModel;
+    // not supported yet, so return a nearly empty TM-BOM
+    return {
+        version: tmbomVersion,
+        scope: {
+            title: model.tmBom.scope.title,
+            description: 'Empty Threat Model Bill of Materials (TM-BOM)',
+            business_criticality: '',
+            data_sensitivity: '',
+            exposure: '',
+            tier: ''
+        },
+        trust_zones: [],
+        trust_boundaries: [],
+        actors: [],
+        components: [],
+        data_stores: [],
+        data_sets: [],
+        data_flows: []
+    };
 };
 
 export default {
+    exportAsTmbom,
+    importTmbom,
     read,
-    version,
     write
 };

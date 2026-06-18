@@ -35,7 +35,7 @@
                             :label="$t('threatmodel.diagram.eop.select')"
                             label-for="eop-game"
                         >
-                            <b-form-select
+                            <td-form-select
                                 id="eop-game-select"
                                 v-model="selectedGameId"
                                 :options="eopGames"
@@ -50,12 +50,12 @@
                             :label="$t('cards.properties.suit')"
                             label-for="card-suit"
                         >
-                            <b-form-select
+                            <td-form-select
                                 id="card-suit"
                                 v-model="card.suit"
                                 :options="cardSuits"
                             >
-                            </b-form-select>
+                            </td-form-select>
                         </b-form-group>
                     </b-col>
                     <b-col>
@@ -64,12 +64,12 @@
                             :label="$t('cards.properties.number')"
                             label-for="card-number"
                         >
-                            <b-form-select
+                            <td-form-select
                                 id="card-number"
                                 v-model="card.number"
                                 :options="filteredCardNumbers"
                             >
-                            </b-form-select>
+                            </td-form-select>
                         </b-form-group>
                     </b-col>
                 </b-form-row>
@@ -81,12 +81,12 @@
                             label-for="threat-type"
                             v-if="threat.modelType !== 'EOP'"
                         >
-                            <b-form-select
+                            <td-form-select
                                 id="threat-type"
                                 v-model="threat.type"
                                 :options="threatTypes"
                             >
-                            </b-form-select>
+                            </td-form-select>
                         </b-form-group>
                     </b-col>
                 </b-form-row>
@@ -146,12 +146,12 @@
                             :label="$t('threats.properties.status')"
                             label-for="status"
                         >
-                            <b-form-radio-group
+                            <td-form-radio-group
                                 id="status"
                                 v-model="threat.status"
                                 :options="statuses"
                                 buttons
-                            ></b-form-radio-group>
+                            ></td-form-radio-group>
                         </b-form-group>
                     </b-col>
 
@@ -176,12 +176,12 @@
                             :label="$t('threats.properties.severity')"
                             label-for="severity"
                         >
-                            <b-form-radio-group
+                            <td-form-radio-group
                                 id="severity"
                                 v-model="threat.severity"
                                 :options="priorities"
                                 buttons
-                            ></b-form-radio-group>
+                            ></td-form-radio-group>
                         </b-form-group>
                     </b-col>
                 </b-form-row>
@@ -267,10 +267,17 @@ import { CELL_DATA_UPDATED } from '@/store/actions/cell.js';
 import tmActions from '@/store/actions/threatmodel.js';
 import dataChanged from '@/service/x6/graph/data-changed.js';
 import threatModels from '@/service/threats/models/index.js';
+import TdFormRadioGroup from '@/components/FormRadioGroup.vue';
+import TdFormSelect from '@/components/FormSelect.vue';
 import { getGame, getAllGames } from '../service/threats/models/eop';
+import { getSeverityOptions } from '@/service/threats/index.js';
 
 export default {
     name: 'TdThreatEditDialog',
+    components: {
+        TdFormRadioGroup,
+        TdFormSelect
+    },
     computed: {
         ...mapState({
             cellRef: (state) => state.cell.ref,
@@ -306,17 +313,7 @@ export default {
             ];
         },
         priorities() {
-            return [
-                { value: 'TBD', text: this.$t('threats.severity.tbd') },
-                { value: 'Low', text: this.$t('threats.severity.low') },
-                { value: 'Medium', text: this.$t('threats.severity.medium') },
-                { value: 'High', text: this.$t('threats.severity.high') },
-
-                {
-                    value: 'Critical',
-                    text: this.$t('threats.severity.critical'),
-                },
-            ];
+            return getSeverityOptions(this.$t.bind(this));
         },
         modalTitle() {
             return this.$t('threats.edit') + ' #' + this.number;
@@ -367,6 +364,23 @@ export default {
         'card.suit'(newSuit, oldSuit) {
             if (!this.isLoadingThreat && newSuit !== oldSuit) {
                 this.card.number = null;
+                this.$nextTick(() => {
+                    const cards = this.activeGame?.getCardsBySuit(newSuit) ?? [];
+                    this.card.number = cards.length > 0 ? cards[cards.length - 1].value : null;
+                });
+            }
+        },
+        selectedGameId(newGameId) {
+            if (!this.isLoadingThreat && newGameId) {
+                const game = getGame(newGameId);
+                const suits = game?.getSuits() ?? [];
+                if (suits.length > 0) {
+                    this.card.suit = suits[0].value;
+                    this.$nextTick(() => {
+                        const cards = game?.getCardsBySuit(suits[0].value) ?? [];
+                        this.card.number = cards.length > 0 ? cards[cards.length - 1].value : null;
+                    });
+                }
             }
         }
     },
@@ -390,7 +404,7 @@ export default {
                     'Trying to access a non-existent threatId: ' + threatId
                 );
             } else {
-                this.selectedGameId = this.threat.eopGameId;
+                this.selectedGameId = this.threat.type || this.threat.eopGameId;
                 this.card.suit = this.activeGame?.getCardCategory(this.threat.cardNumber);
                 this.card.number = this.threat.cardNumber;
                 this.number = this.threat.number;
@@ -449,10 +463,9 @@ export default {
                 threatRef.number = this.number;
                 threatRef.score = this.threat.score;
                 if (threatRef.modelType === 'EOP') {
-                    threatRef.eopGameId = this.selectedGameId;
                     threatRef.cardSuit = this.card.suit;
                     threatRef.cardNumber = this.card.number;
-                    threatRef.type = null;
+                    threatRef.type = this.selectedGameId;
                 } else {
                     threatRef.type = this.threat.type;
                 }

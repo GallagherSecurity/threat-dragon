@@ -25,16 +25,18 @@
                 <b-card>
                     <template #header>
                         <h6 class="diagram-header-text">
-                            <a href="javascript:void(0)" @click="editDiagram(diagram)" class="diagram-edit">
+                            <a href="#" @click.prevent="editDiagram(diagram)" class="diagram-edit">
                                 {{ diagram.title }}
                             </a>
                         </h6>
                     </template>
-                    <a href="javascript:void(0)" @click="editDiagram(diagram)">
-                        <!-- "thumbnail": "./public/content/images/thumbnail.jpg", --> <b-img-lazy
-                            class="m-auto d-block td-diagram-thumb"
+                    <a href="#" @click.prevent="editDiagram(diagram)">
+                        <!-- "thumbnail": "./public/content/images/thumbnail.jpg", --> <td-image
+                            class="td-diagram-thumb"
                             :src="require(`../assets/${diagram.thumbnail ? diagram.thumbnail.split('/').pop() : 'thumbnail.jpg'}`)"
-                            :alt="diagram.title" />
+                            :alt="diagram.title"
+                            lazy
+                        />
                     </a>
                     <h6 v-if=diagram.description class="diagram-description-text">
                         {{ diagram.description }}
@@ -50,12 +52,19 @@
                     <td-form-button id="td-report-btn" :onBtnClick="onReportClick" icon="file-alt"
                         :text="$t('forms.report')" />
                     <!-- REPLACE the export template button with dropdown -->
-                    <b-dropdown right :text="$t('forms.manage')" id="manage-model-btn" v-if="enableTemplates">
-                        <b-dropdown-item @click="onExportTemplateClick" id="export-template-option">
-                            <font-awesome-icon icon="file-import" ></font-awesome-icon>
-                            {{ $t('forms.exportTemplate') }}
-                        </b-dropdown-item>
-                    </b-dropdown>
+                    <td-dropdown right variant="secondary" :text="$t('forms.manage')" id="manage-model-btn" v-if="enableTemplates">
+                        <template #default="{ close }">
+                            <button
+                                type="button"
+                                class="td-dropdown-item"
+                                @click="(evt) => { onExportTemplateClick(evt); close(); }"
+                                id="export-template-option"
+                            >
+                                <font-awesome-icon icon="file-import" ></font-awesome-icon>
+                                {{ $t('forms.exportTemplate') }}
+                            </button>
+                        </template>
+                    </td-dropdown>
                     <td-form-button id="td-close-btn" :onBtnClick="onCloseClick" icon="times"
                         :text="$t('forms.closeModel')" />
                 </b-btn-group>
@@ -79,6 +88,8 @@
 }
 
 .td-diagram-thumb {
+    display: block;
+    margin: auto;
     max-width: 200px;
     max-height: 160px;
 }
@@ -88,21 +99,25 @@
 import { mapState } from 'vuex';
 
 import { getProviderType } from '@/service/provider/providers.js';
+import TdDropdown from '@/components/Dropdown.vue';
 import TdFormButton from '@/components/FormButton.vue';
+import TdImage from '@/components/Image.vue';
 import TdThreatModelSummaryCard from '@/components/ThreatModelSummaryCard.vue';
 import tmActions from '@/store/actions/threatmodel.js';
 
 export default {
     name: 'ThreatModel',
     components: {
+        TdDropdown,
         TdFormButton,
+        TdImage,
         TdThreatModelSummaryCard
     },
     computed: mapState({
-        enableTemplates: (state) => ['github', 'local'].includes(state.provider.selected),
         model: (state) => state.threatmodel.data,
         providerType: (state) => getProviderType(state.provider.selected),
-        version: (state) => state.packageBuildVersion
+        version: (state) => state.packageBuildVersion,
+        enableTemplates: (state) => ['github', 'local'].includes(state.provider.selected)
     }),
     methods: {
         onEditClick(evt) {

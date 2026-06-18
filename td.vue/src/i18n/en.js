@@ -1,4 +1,4 @@
-const eng = {
+const messages = {
     auth: {
         sessionExpired: 'Your session has expired. Please log in again to continue.'
     },
@@ -112,71 +112,119 @@ const eng = {
         repo: 'repo',
         newThreatModel: 'Create a New Threat Model'
     },
-    template:{
-        startFromLocalTemplate: 'Start from a Local Template',
-        select: 'Select a Template from the list below',
+
+
+    
+    template: {
+        // Gallery & selection
+        select: 'Select a Template',
         selectDescription: 'Templates provide a starting point for new threat models, pre-populated with relevant components and threats.',
+        startFromLocalTemplate: 'Start from a Local Template',
         noTemplates: 'No templates found',
         templatesLocalSession: 'Remote templates are not available for local sessions.',
         search: 'Search templates...',
-        exportTemplate: 'Export as Template',
-        tags: 'Tags',
-        name: 'Template Name',
-        description: 'Template Description',
-        saveTemplate: 'Save Template',
-        addNew: 'Add New Template',
+
+        // Management
         manage: 'Manage Templates',
         manageDescription: 'Import, export, and manage your threat model templates here.',
+        addNew: 'Add New Template',
         editTemplate: 'Edit Template',
-        addTagsPlaceholder: 'Add tags...',
-        updateSuccess: 'Template updated successfully',
-        importSuccess: 'Template imported successfully',
-        deleteSuccess: 'Template deleted successfully',
-        deleteTitle: 'Confirm Delete',
+        exportTemplate: 'Export as Template',
         deleteConfirm: 'Are you sure you want to delete "{name}"?',
-        errors: {
-            invalidJson: 'Invalid JSON. Please check your template file and try again',
-            invalidTemplate: 'Invalid template format. Please check your template file and try again',
-            loadFailed: 'Failed to load templates. Please try again',
-            duplicateTemplate: 'A template with this name already exists. Please use a different name',
-            updateFailed: 'Failed to update template',
-            deleteFailed: 'Failed to delete template'
+        deleteTitle: 'Delete Template',
+
+        // Form fields
+        name: 'Template Name',
+        description: 'Template Description',
+        tags: 'Tags',
+        addTagsPlaceholder: 'Add tags...',
+
+        // Permissions
+        readOnlyNotice: 'You have read-only access. You can view templates but cannot modify them.',
+
+        // Unified status messages (desktop vs web, admin vs user)
+        status: {
+            notConfigured: {
+                title: 'Template Storage Not Configured',
+                desktop: 'Please set up a folder to store templates.',
+                web: 'Template repository not configured. Contact your administrator.'
+            },
+            notFound: {
+                title: 'Template Storage Not Found',
+                desktop: 'The configured template folder no longer exists.',
+                web: 'The configured template repository could not be found.'
+            },
+            notInitialized: {
+                title: 'Template Storage Not Initialized',
+                user: 'No templates available yet. Contact your administrator.',
+                admin: 'Initialize the template storage to get started.'
+            }
         },
+
+        // Actions (buttons, loading states)
+        actions: {
+            selectFolder: 'Select Folder',
+            initialize: 'Initialize',
+            initializing: 'Initializing...',
+            save: 'Save Template',
+        },
+
+        // Desktop-only: setup dialog
+        setupDialog: {
+            title: 'Set Up Template Storage',
+            createNew: 'Create a new template folder',
+            useDefault: 'Use default location',
+            defaultPath: 'AppData/Roaming/Threat Dragon/templates',
+            chooseCustom: 'Choose custom location',
+            selectExisting: 'Select existing template folder',
+            selectExistingHint: 'Pick a folder that already contains templates',
+            confirm: 'Set Up'
+        },
+
+        // Bootstrap
+        bootstrap: {
+            description: 'Create the template index at the configured storage location'
+        },
+
+        // Toast messages (success notifications)
+        toast: {
+            importSuccess: 'Template imported successfully',
+            updateSuccess: 'Template updated successfully',
+            deleteSuccess: 'Template deleted successfully',
+            configureSuccess: 'Template storage configured successfully',
+            initializeSuccess: 'Template storage initialized successfully',
+            exportSuccess: 'Template exported successfully'
+        },
+
+        // Warnings
         warnings: {
             templateSave: 'Could not save the template. Check the developer console for more information',
             invalidSchema: 'Template does not strictly match schema. Details in the developer console'
         },
+
+        // Prompts (success/info toasts)
         prompts: {
             templateSaved: 'Template successfully saved',
             templateDownloading: 'Downloading template'
         },
-        repo: {
-            
-            notInitialized: {
-                title: 'Template Repository Not Initialized',
-                userMessage: 'The template repository has not been initialized. Please contact your administrator.',
-                adminMessage: 'Please go to the Manage Templates page to initialize the template repository.'
-            },
-            notConfigured: {
-                title: 'Template Repository Not Configured',
-                userMessage: 'The template repository is not configured. Please set up the repository to access templates.'
-            },
-            notFound: {
-                title: 'Template Repository Not Found',
-                userMessage: 'The repository {repoName} is not a valid repository. Please check your configuration.'
-            },
-            bootstrap:{
-                bootstrapping:'Initializing..',
-                title: 'Initialize Template Repository',
-                description: 'This will create the necessary folder structure within the repository if it does not already exist.',
-                action: 'Initialize',
-                success: 'Template repository successfully initialized.',
-                error: 'Could not initialize the template repository. Check the developer console for more information.'
 
-
-            }
-        },
+        // Errors
+        errors: {
+            invalidJson: 'Invalid JSON format',
+            invalidTemplate: 'Invalid template format',
+            duplicate: 'A template with this name already exists',
+            loadFailed: 'Failed to load templates',
+            importFailed: 'Failed to import template',
+            updateFailed: 'Failed to update template',
+            deleteFailed: 'Failed to delete template',
+            exportFailed: 'Failed to export template',
+            noWriteAccess: 'Cannot write to selected location',
+            setupFailed: 'Failed to set up template storage',
+            initializeFailed: 'Failed to initialize template storage',
+            folderInvalid: 'Selected folder does not contain valid templates'
+        }
     },
+
     threatmodel: {
         contributors: 'Contributors',
         contributorsPlaceholder: 'Start typing to add a contributor',
@@ -243,8 +291,8 @@ const eng = {
             noModelOpen: 'No model open',
             otmUnsupported: 'Import of Open Threat Model file format not yet supported',
             save: 'Could not save the Threat Model. Check the developer console for more information',
-            tmUnsupported: 'Import of TM-BOM file format is experimental and subject to change that may break models',
-            v1Translate: 'Imported version 1.x models will be upgraded to the version 2.0 schema'
+            tmUnsupported: 'Import of TM-BOM files converts the file format to Threat Dragon',
+            v1Translate: 'Imported version 1.x model has been upgraded to the version 2.x format'
         },
         prompts: {
             created: 'Threat model successfully created',
@@ -373,7 +421,6 @@ const eng = {
         next:'Next',
         previous:'Previous',
         manage : 'Manage...',
-
         exportTemplate: 'Export As Template',
     },
     cards: {
@@ -386,6 +433,66 @@ const eng = {
         },
     },
     threats: {
+        catalogue: {
+            manage: 'Manage Threat Catalogue',
+            manageDescription: 'Create and manage reusable threats for your organisation.',
+            addNew: 'Add Threat',
+            import: 'Import Threats',
+            export: 'Export Threats',
+            noThreats: 'No threats in the catalogue yet.',
+            noResults: 'No threats match your search.',
+            emptyCatalogue: 'No threats in the catalogue yet.',
+            notConfigured: 'Threat catalogue not configured. Contact your administrator.',
+            notFound: 'Threat catalogue repository not found. Contact your administrator.',
+            notInitialized: 'Threat catalogue not initialised.',
+            notInitialisedAdmin: 'Threat catalogue not initialised. Set it up from the manage page.',
+            notInitialisedUser: 'Threat catalogue not initialised. Contact your administrator.',
+            bootstrapDescription: 'Initialise the catalogue to start managing reusable threats.',
+            readOnly: 'You have read-only access to the threat catalogue.',
+            search: 'Search threats...',
+            allFrameworks: 'All frameworks',
+            allTypes: 'All types',
+            framework: 'Framework',
+            tags: 'Tags',
+            tagsPlaceholder: 'Add tags...',
+            selectAll: 'Select All',
+            deselectAll: 'Deselect All',
+            previous: 'Previous',
+            next: 'Next',
+            perPage: 'Per page:',
+            addSelected: 'Add selected to model',
+            selectThreat: 'Select a threat from the catalogue to add to your model',
+            newThreat: 'New Threat',
+            editThreat: 'Edit Threat',
+            deleteConfirm: 'Delete "{title}"? This cannot be undone.',
+            deleteTitle: 'Delete Threat',
+            deleteBulkTitle: 'Delete Threats',
+            actions: {
+                initialise: 'Initialise Catalogue',
+                initialising: 'Initialising...',
+                exportSelected: 'Export Selected'
+            },
+            prompts: {
+                exportSuccess: 'Threat library exported',
+                importSuccess: 'Threat library imported successfully',
+                createSuccess: 'Threat added to catalogue',
+                updateSuccess: 'Threat updated',
+                deleteSuccess: 'Threat deleted',
+                initialiseSuccess: 'Threat catalogue initialised'
+            },
+            errors: {
+                exportFailed: 'Export failed',
+                importFailed: 'Import failed',
+                createFailed: 'Failed to create threat',
+                updateFailed: 'Failed to update threat',
+                deleteFailed: 'Failed to delete threat',
+                initialiseFailed: 'Failed to initialise threat catalogue',
+                duplicate: 'A threat with this title already exists for this framework',
+                invalidJson: 'Invalid JSON format',
+                invalidLibrary: 'Invalid threat library format',
+                filePickerUnsupported: 'File picker not supported on this browser'
+            }
+        },
         model: {
             cia: {
                 header: '--- CIA ---',
@@ -431,6 +538,16 @@ const eng = {
                 informationDisclosure: 'Information disclosure',
                 denialOfService: 'Denial of service',
                 elevationOfPrivilege: 'Elevation of privilege'
+            },
+            eop: {
+                header: '--- EoP ---',
+                dataValidationAndEncoding: 'Data Validation & Encoding', 
+                authentication: 'Authentication', 
+                sessionManagement: 'Session Management', 
+                authorization: 'Authorization', 
+                cryptography: 'Cryptography', 
+                cornucopia: 'Cornucopia',
+                wildCard: 'Wild Card'
             }
         },
         generic: {
@@ -451,6 +568,7 @@ const eng = {
         newThreat: 'New Threat',
         newThreatByType: 'New Threat by Type',
         newThreatByContext: 'New Threat by Context',
+        newThreatFromCatalogue: 'New Threat from Catalogue',
         properties: {
             description: 'Description',
             mitigation: 'Mitigations',
@@ -518,4 +636,4 @@ const eng = {
     }
 };
 
-export default eng;
+export default messages;

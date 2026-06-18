@@ -1,5 +1,4 @@
-import Vue from 'vue';
-import Vuex from 'vuex';
+import { createStore } from 'vuex';
 
 import auth from './modules/auth.js';
 import branch from './modules/branch.js';
@@ -13,6 +12,7 @@ import folder from './modules/folder.js';
 import threatmodel from './modules/threatmodel.js';
 import vuexPersist from '../plugins/vuex-persist.js';
 import template from './modules/template.js';
+import threatCatalogue from './modules/threatCatalogue.js';
 
 let store = null;
 const buildVersion = require('../../package.json').version;
@@ -20,8 +20,7 @@ const buildState = require('../../package.json').buildState;
 
 const get = () => {
     if (store === null) {
-        Vue.use(Vuex);
-        store = new Vuex.Store({
+        store = createStore({
             state: {
                 packageBuildVersion: buildVersion,
                 packageBuildState: buildState
@@ -37,7 +36,8 @@ const get = () => {
                 repo,
                 folder,
                 threatmodel,
-                template
+                template,
+                threatCatalogue
             },
             plugins: [vuexPersist.session.plugin]
         });

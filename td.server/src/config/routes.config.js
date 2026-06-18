@@ -7,7 +7,9 @@ import googleProviderThreatmodelController from '../controllers/googleProviderTh
 import healthcheck from '../controllers/healthz.js';
 import homeController from '../controllers/homecontroller.js';
 import templateController from '../controllers/templateController.js';
+import threatCatalogueController from '../controllers/threatCatalogueController.js';
 import threatmodelController from '../controllers/threatmodelcontroller.js';
+
 
 
 /**
@@ -22,7 +24,7 @@ const unauthRoutes = (router) => {
     router.get('/healthz', healthcheck.healthz);
     router.get('/api/config', configController.config);
     router.get('/api/threatmodel/organisation', threatmodelController.organisation);
-    
+
 
     router.get('/api/login/:provider', auth.login);
     router.get('/api/logout', auth.logout);
@@ -39,13 +41,15 @@ const unauthRoutes = (router) => {
 const routes = (router) => {
     router.post('/api/logout', auth.logout);
     router.post('/api/token/refresh', auth.refresh);
-   // Template routes
-    router.post('/api/templates/bootstrap', templateController.bootstrapTemplateRepository);// bootstrap template repo
-    router.get('/api/templates/', templateController.listTemplates);// list all templates
-    router.post('/api/templates/import', templateController.importTemplate);// import a new template
-    router.delete('/api/templates/:id', templateController.deleteTemplate);// delete a template
-    router.put('/api/templates/:id', templateController.updateTemplate);// update template metadata
-    router.get('/api/templates/:id/content', templateController.getTemplateContent);// get template content by id
+
+    // Template routes
+    router.get('/api/templates/', templateController.listTemplates);
+    router.get('/api/templates/:id/content', templateController.getTemplateContent);
+
+    // Threat catalogue routes (read — all authenticated users)
+    router.get('/api/threats/catalogue', threatCatalogueController.listCatalogueThreats);
+    router.get('/api/threats/catalogue/:id/content', threatCatalogueController.getCatalogueThreatContent);
+    router.post('/api/threats/catalogue/content/bulk', threatCatalogueController.bulkGetCatalogueContent);
 
     router.get('/api/threatmodel/repos', threatmodelController.repos);
     router.get('/api/threatmodel/:organisation/:repo/branches', threatmodelController.branches);
@@ -67,16 +71,41 @@ const routes = (router) => {
     router.get('/api/googleproviderthreatmodel/:file/data', googleProviderThreatmodelController.model);
 };
 
+/**
+ * Routes that  require authentication and authorisation
+ * Use with caution!!!!
+ * @param {express.Router} router
+ * @returns {express.Router}
+ */
+const adminRoutes = (router) => {
+    router.post('/api/templates/import', templateController.importTemplate);
+    router.delete('/api/templates/:id', templateController.deleteTemplate);
+    router.put('/api/templates/:id', templateController.updateTemplate);
+    router.post('/api/templates/bootstrap', templateController.bootstrapTemplateRepository);
+    
+
+    // Threat catalogue routes (write — admin only)
+    router.post('/api/threats/catalogue', threatCatalogueController.createCatalogueThreat);
+    router.put('/api/threats/catalogue/:id', threatCatalogueController.updateCatalogueThreat);
+    router.delete('/api/threats/catalogue/bulk', threatCatalogueController.bulkDeleteCatalogueThreats);
+    router.delete('/api/threats/catalogue/:id', threatCatalogueController.deleteCatalogueThreat);
+    router.post('/api/threats/catalogue/bootstrap', threatCatalogueController.bootstrapCatalogueRepository);
+    router.post('/api/threats/catalogue/import', threatCatalogueController.importThreatLibrary);
+};
+
+
 const config = (app) => {
     const router = express.Router();
     unauthRoutes(router);
 
-    // routes protected by authorization
     router.use(bearer.middleware);
     routes(router);
 
+    router.use(bearer.adminMiddleware);
+    adminRoutes(router);
     app.use('/', router);
 };
+
 
 export default {
     config

@@ -68,6 +68,27 @@ const template = async (data, filename) => {
     return result;
 };
 
+//method used to save the threat library locally
+const threatLibrary = async (data, filename) => {
+    let result = false;
+    if ('showSaveFilePicker' in self) {
+        result = await writeFile(data, filename);
+        
+        if (result) {
+            Vue.$toast.success(i18n.get().t('threats.catalogue.prompts.exportSuccess'));
+        } else {
+            Vue.$toast.warning(i18n.get().t('threats.catalogue.errors.exportFailed'));
+        }
+    }
+
+    else {
+        result = await downloadFile(data, filename);
+        Vue.$toast.success(i18n.get().t('threats.catalogue.prompts.exportSuccess'));
+    }
+
+    return result;
+};
+
 const repo = async (rootState, state) => {
     try {
         await threatmodelApi.updateAsync(
@@ -185,6 +206,7 @@ export default {
     google,
     googleCreate,
     local,
+    threatLibrary,
     repo,
     repoCreate,
     template

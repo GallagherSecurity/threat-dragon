@@ -1,6 +1,6 @@
 <template>
     <b-container fluid>
-        <b-jumbotron id="welcome-jumbotron">
+        <td-hero id="welcome-jumbotron">
             <b-row class="text-center mb-2">
                 <b-col md="12">
                     <h1 class="display-3 text-center">{{ $t("home.title") }}</h1>
@@ -8,10 +8,11 @@
             </b-row>
             <b-row>
                 <b-col md="4">
-                    <b-img class="td-cupcake"
-                           id="home-td-logo"
-                           :alt="$t('home.imgAlt')"
-                           src="@/assets/threatdragon_logo_image.svg"
+                    <td-image
+                        class="td-cupcake"
+                        id="home-td-logo"
+                        :alt="$t('home.imgAlt')"
+                        :src="threatDragonLogo"
                     />
                 </b-col>
                 <b-col md="8">
@@ -31,7 +32,7 @@
                     </b-row>
                 </b-col>
             </b-row>
-        </b-jumbotron>
+        </td-hero>
     </b-container>
 </template>
 
@@ -57,12 +58,20 @@
 <script>
 import {allProviders} from '@/service/provider/providers.js';
 import isElectron from 'is-electron';
+import threatDragonLogo from '@/assets/threatdragon_logo_image.svg';
+import TdHero from '@/components/Hero.vue';
+import TdImage from '@/components/Image.vue';
 import TdProviderLoginButton from '@/components/ProviderLoginButton.vue';
 import configActions from '@/store/actions/config.js';
 import {mapState} from 'vuex';
 
 export default {
     name: 'HomePage',
+    data() {
+        return {
+            threatDragonLogo
+        };
+    },
     computed:
         mapState({
             config: state => {
@@ -102,6 +111,8 @@ export default {
         }
     },
     components: {
+        TdHero,
+        TdImage,
         TdProviderLoginButton,
     },};
 </script>

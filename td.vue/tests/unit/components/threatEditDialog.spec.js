@@ -1,8 +1,10 @@
-import { BFormInput, BFormRadioGroup, BFormSelect, BFormTextarea, BModal, BootstrapVue } from 'bootstrap-vue';
+import { BFormInput, BFormTextarea, BModal, BootstrapVue } from 'bootstrap-vue';
 import { createLocalVue, shallowMount } from '@vue/test-utils';
 import Vuex from 'vuex';
 
 import dataChanged from '@/service/x6/graph/data-changed.js';
+import TdFormRadioGroup from '@/components/FormRadioGroup.vue';
+import TdFormSelect from '@/components/FormSelect.vue';
 import TdThreatEditDialog from '@/components/ThreatEditDialog.vue';
 
 describe('components/ThreatEditDialog.vue', () => {
@@ -79,7 +81,7 @@ describe('components/ThreatEditDialog.vue', () => {
         });
 
         it('has a threat type input', () => {
-            const input = wrapper.findAllComponents(BFormSelect)
+            const input = wrapper.findAllComponents(TdFormSelect)
                 .filter(x => x.attributes('id') === 'threat-type')
                 .at(0);
 
@@ -87,7 +89,7 @@ describe('components/ThreatEditDialog.vue', () => {
         });
 
         it('has a status input', () => {
-            const input = wrapper.findAllComponents(BFormRadioGroup)
+            const input = wrapper.findAllComponents(TdFormRadioGroup)
                 .filter(x => x.attributes('id') === 'status')
                 .at(0);
 
@@ -103,7 +105,7 @@ describe('components/ThreatEditDialog.vue', () => {
         });
 
         it('has a severity input', () => {
-            const input = wrapper.findAllComponents(BFormRadioGroup)
+            const input = wrapper.findAllComponents(TdFormRadioGroup)
                 .filter(x => x.attributes('id') === 'severity')
                 .at(0);
 
@@ -210,6 +212,21 @@ describe('components/ThreatEditDialog.vue', () => {
             expect(link.text()).toContain('VE2');
         });
 
+        it('renders link for EOP companion with suit and number', async () => {
+            const store=new Vuex.Store({state:{cell:{ref:{getData:jest.fn(),data:{threatFrequency:{availability:0,confidentiality:0,integrity:0},threats:[{...getThreatData(),modelType:'EOP'}]}}}},actions:{CELL_DATA_UPDATED:()=>{}}});
+            wrapper=shallowMount(TdThreatEditDialog,{localVue,mocks:{$t:k=>k},store});
+            wrapper.vm.$refs.editModal={show:jest.fn(),hide:jest.fn()};
+            wrapper.vm.editThreat(threatId);
+            wrapper.vm.selectedGameId='cornucopia-companion';
+            wrapper.vm.card.suit='Large Language Models';
+            wrapper.vm.card.number='LLM2';
+            await wrapper.vm.$nextTick();
+            const link=wrapper.find('a');
+            expect(link.exists()).toBe(true);
+            expect(link.attributes('href')).toContain('https://cornucopia.owasp.org/');
+            expect(link.text()).toContain('LLM2');
+        });
+
         it('hides link when model is not EOP', () => {
             const store=new Vuex.Store({
                 state:{cell:{ref:{getData:jest.fn(),data:{
@@ -254,7 +271,7 @@ describe('components/ThreatEditDialog.vue', () => {
             });
 
             it('has an eop game input', () => {
-                const input = wrapper.findAllComponents(BFormSelect)
+                const input = wrapper.findAllComponents(TdFormSelect)
                     .filter(x => x.attributes('id') === 'eop-game-select')
                     .at(0);
 
@@ -263,7 +280,7 @@ describe('components/ThreatEditDialog.vue', () => {
 
 
             it('has a card suit input', () => {
-                const input = wrapper.findAllComponents(BFormSelect)
+                const input = wrapper.findAllComponents(TdFormSelect)
                     .filter(x => x.attributes('id') === 'card-suit')
                     .at(0);
 
@@ -271,7 +288,7 @@ describe('components/ThreatEditDialog.vue', () => {
             });
 
             it('has a card number input', () => {
-                const input = wrapper.findAllComponents(BFormSelect)
+                const input = wrapper.findAllComponents(TdFormSelect)
                     .filter(x => x.attributes('id') === 'card-number')
                     .at(0);
 
@@ -279,7 +296,7 @@ describe('components/ThreatEditDialog.vue', () => {
             });
 
             it('does not show a threat type input', () => {
-                const inputs = wrapper.findAllComponents(BFormSelect)
+                const inputs = wrapper.findAllComponents(TdFormSelect)
                     .filter(x => x.attributes('id') === 'threat-type');
 
                 expect(inputs).toHaveLength(0);
@@ -295,7 +312,7 @@ describe('components/ThreatEditDialog.vue', () => {
             });
 
             it('has a threat type input', () => {
-                const input = wrapper.findAllComponents(BFormSelect)
+                const input = wrapper.findAllComponents(TdFormSelect)
                     .filter(x => x.attributes('id') === 'threat-type')
                     .at(0);
 
@@ -303,14 +320,14 @@ describe('components/ThreatEditDialog.vue', () => {
             });
 
             it('does not show card suit input', () => {
-                const inputs = wrapper.findAllComponents(BFormSelect)
+                const inputs = wrapper.findAllComponents(TdFormSelect)
                     .filter(x => x.attributes('id') === 'card-suit');
 
                 expect(inputs).toHaveLength(0);
             });
 
             it('does not show card number input', () => {
-                const inputs = wrapper.findAllComponents(BFormSelect)
+                const inputs = wrapper.findAllComponents(TdFormSelect)
                     .filter(x => x.attributes('id') === 'card-number');
 
                 expect(inputs).toHaveLength(0);

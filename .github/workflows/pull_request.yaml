@@ -5,6 +5,9 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 env:
   IMAGE_NAME: "pr-${{ github.event.number }}"
   ZAP_FILE: "zap-scan-pr-${{ github.event.number }}"
@@ -26,7 +29,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Lint markdown
-        uses: DavidAnson/markdownlint-cli2-action@07035fd053f7be764496c0f8d8f9f41f98305101 # v22.0.0
+        uses: DavidAnson/markdownlint-cli2-action@ded1f9488f68a970bc66ea5619e13e9b52e601cd # v23.2.0
         with:
           config: '.markdownlint.yaml'
           globs: |
@@ -48,7 +51,7 @@ jobs:
       # This is cached only per-commit, and is intended to help
       # with re-runs
       - name: Restore lychee cache
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: .lycheecache
           key: cache-lychee-${{ github.sha }}
@@ -93,13 +96,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Use node LTS 24.14
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      - name: Use node LTS 24.16
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: '24.14'
+          node-version: '24.16'
 
       - name: Cache NPM dir
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -127,13 +130,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Use node LTS 24.14
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      - name: Use node LTS 24.16
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: '24.14'
+          node-version: '24.16'
 
       - name: Cache NPM dir
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -161,13 +164,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Use node LTS 24.14
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      - name: Use node LTS 24.16
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: '24.14'
+          node-version: '24.16'
 
       - name: Cache NPM dir
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -184,35 +187,6 @@ jobs:
       - name: Run unit tests
         run: npm run test:desktop
 
-  codeql:
-    name: Analyze with codeql
-    runs-on: ubuntu-24.04
-    needs: [server_unit_tests, site_unit_tests, desktop_unit_tests]
-    permissions:
-      security-events: write
-
-    strategy:
-      fail-fast: false
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@38697555549f1db7851b81482ff19f1fa5c4fedc # v4.34.1
-        with:
-          languages: 'javascript'
-          config-file: ./.github/codeql/codeql-config.yml
-          # If you wish to specify custom queries, you can do so here or in a config file.
-          # By default, queries listed here will override any specified in a config file.
-          # Prefix the list here with "+" to use these queries and those in the config file.
-
-      - name: CodeQL autobuild
-        uses: github/codeql-action/autobuild@38697555549f1db7851b81482ff19f1fa5c4fedc # v4.34.1
-
-      - name: Perform vulnerability analysis
-        uses: github/codeql-action/analyze@38697555549f1db7851b81482ff19f1fa5c4fedc # v4.34.1
-
   e2e_smokes:
     name: Local site e2e smokes
     runs-on: ubuntu-24.04
@@ -225,13 +199,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Use node LTS 24.14
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      - name: Use node LTS 24.16
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: '24.14'
+          node-version: '24.16'
 
       - name: Cache NPM dir
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -249,7 +223,7 @@ jobs:
         run: npm run test:e2e-pr-smokes
 
       - name: Upload e2e videos
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: e2e_vids.zip
           path: tests/e2e/videos
@@ -267,13 +241,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Use node LTS 24.14
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      - name: Use node LTS 24.16
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: '24.14'
+          node-version: '24.16'
 
       - name: Cache NPM dir
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -282,8 +256,7 @@ jobs:
             ${{ runner.os }}-
 
       - name: Install clean packages
-        # TODO: remove --legacy-peer-deps after the Vue 3 migration
-        run: npm clean-install --legacy-peer-deps
+        run: npm clean-install
 
       - name: Build Linux desktop app
         run: npm run build:desktop -- --linux AppImage --x64 --publish never
@@ -292,10 +265,66 @@ jobs:
         run: xvfb-run -a npm run test:e2e:desktop
 
       - name: Upload desktop e2e logs
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: desktop-e2e-logs
           path: td.vue/wdio-logs
+          if-no-files-found: ignore
+        if: ${{ failure() }}
+
+  visual_regression_tests:
+    name: Site visual regression
+    runs-on: ubuntu-24.04
+    needs: site_unit_tests
+    defaults:
+      run:
+        working-directory: td.vue
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Use node LTS 24.16
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '24.16'
+
+      - name: Use Chrome 148
+        uses: browser-actions/setup-chrome@2e1d749697dd1612b833dba4a722266286fbefcd # v2
+        with:
+          chrome-version: '148.0.7778.96'
+
+      - name: Cache NPM dir
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+            ${{ runner.os }}-
+
+      - name: Install front-end
+        run: npm clean-install
+
+      - name: Install server
+        run: cd ../td.server && npm clean-install
+
+      - name: Pre Dev
+        run: npm run predev
+
+      - name: Start backend server
+        run: cd ../td.server && npm run start:server
+
+      - name: Run visual regression tests
+        run: npm run test:visual
+
+      - name: Upload visual artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: visual-regression-artifacts
+          path: |
+            td.vue/tests/e2e/visual/screenshots
+            td.vue/tests/e2e/visual/diffs
           if-no-files-found: ignore
         if: ${{ failure() }}
 
@@ -311,13 +340,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Use node LTS 24.14
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      - name: Use node LTS 24.16
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: '24.14'
+          node-version: '24.16'
 
       - name: Cache NPM dir
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -334,7 +363,7 @@ jobs:
         run: npm run test:e2e-pr
 
       - name: Upload e2e videos
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: e2e_vids.zip
           path: tests/e2e/videos
@@ -349,13 +378,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Use node LTS 24.14
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      - name: Use node LTS 24.16
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
-          node-version: '24.14'
+          node-version: '24.16'
 
       - name: Cache NPM dir
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -401,7 +430,7 @@ jobs:
           install: true
 
       - name: Cache Docker layers
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ hashFiles('Dockerfile') }}
@@ -411,7 +440,7 @@ jobs:
 
       - name: Build for amd64
         id: docker_build
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
           context: ./
           file: ./Dockerfile
@@ -424,7 +453,7 @@ jobs:
           load: true
 
       - name: Upload docker local image
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ env.IMAGE_NAME }}
           path: /tmp/${{ env.IMAGE_NAME }}.tar
@@ -446,7 +475,7 @@ jobs:
     runs-on: ubuntu-24.04
     needs: build_docker_image
     permissions:
-      contents: write
+      contents: read
 
     steps:
       - name: Checkout
@@ -463,11 +492,10 @@ jobs:
           docker load --input /tmp/${{ env.IMAGE_NAME }}.tar
 
       - name: Run Trivy vulnerability scanner
-        # Pinned to commit for v0.35.0
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: '${{ env.IMAGE_NAME }}'
           format: 'table'
           trivyignores: '.github/workflows/.trivyignore'
           exit-code: 1
-          skip-files: '/app/docs/configure/bitbucket.html'
+          skip-files: '/app/docs/configure/bitbucket.html,/app/docs/assets/search.json'

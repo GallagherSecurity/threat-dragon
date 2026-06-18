@@ -18,7 +18,6 @@ jest.mock('electron-devtools-installer', () => ({
     VUEJS_DEVTOOLS: 'VUEJS_DEVTOOLS'
 }));
 jest.mock('electron-updater', () => ({ autoUpdater: { checkForUpdatesAndNotify: jest.fn() } }));
-jest.mock('wdio-electron-service/main', () => ({}));
 
 function buildMockDeps () {
     appHandlers = {};
@@ -470,24 +469,24 @@ describe('desktop/desktop.js', () => {
 
         describe('handleUpdateMenu', () => {
             it('logs re-labeling menu for locale', () => {
-                ipcHandlers['update-menu'](null, 'fra');
-                expect(mockLogger.log.debug).toHaveBeenCalledWith(expect.stringContaining('fra'));
+                ipcHandlers['update-menu'](null, 'fr');
+                expect(mockLogger.log.debug).toHaveBeenCalledWith(expect.stringContaining('fr'));
             });
 
             it('calls menu.setLocale with locale', () => {
-                ipcHandlers['update-menu'](null, 'fra');
-                expect(mockMenu.setLocale).toHaveBeenCalledWith('fra');
+                ipcHandlers['update-menu'](null, 'fr');
+                expect(mockMenu.setLocale).toHaveBeenCalledWith('fr');
             });
 
             it('calls menu.getMenuTemplate after setLocale', () => {
                 mockMenu.getMenuTemplate.mockClear();
-                ipcHandlers['update-menu'](null, 'fra');
+                ipcHandlers['update-menu'](null, 'fr');
                 expect(mockMenu.getMenuTemplate).toHaveBeenCalled();
             });
 
             it('calls Menu.setApplicationMenu when update-menu is triggered', () => {
                 mockDeps.Menu.setApplicationMenu.mockClear();
-                ipcHandlers['update-menu'](null, 'fra');
+                ipcHandlers['update-menu'](null, 'fr');
                 expect(mockDeps.Menu.setApplicationMenu).toHaveBeenCalled();
             });
         });

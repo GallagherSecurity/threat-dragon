@@ -2,11 +2,11 @@
     <b-container fluid>
         <b-row>
             <b-col>
-                <b-jumbotron class="text-center">
+                <td-hero class="text-center">
                     <h4>
                         <slot></slot>
                     </h4>
-                </b-jumbotron>
+                </td-hero>
             </b-col>
         </b-row>
         <b-row>
@@ -32,23 +32,23 @@
                 <b-list-group>
                     <b-list-group-item
                         v-if="showBackItem"
-                        href="javascript:void(0)"
-                        @click="onBackClick">
+                        href="#"
+                        @click.prevent="onBackClick">
                         ...
                     </b-list-group-item>
 
                     <b-list-group-item
                         v-if="items.length === 0 && !!emptyStateText"
-                        @click="onEmptyStateClick"
-                        href="javascript:void(0)">
+                        @click.prevent="onEmptyStateClick"
+                        href="#">
                         {{ emptyStateText }}
                     </b-list-group-item>
 
                     <b-list-group-item
                         v-for="(item, idx) in displayedItems"
                         :key="idx"
-                        href="javascript:void(0)"
-                        @click="onItemClick(item)">
+                        href="#"
+                        @click.prevent="onItemClick(item)">
                         <span v-if="typeof item === 'string'">{{ item }}</span>
                         <span v-else class="d-flex justify-content-between align-items-center">
                             {{ item.value }}
@@ -77,8 +77,13 @@
 </template>
 
 <script>
+import TdHero from '@/components/Hero.vue';
+
 export default {
     name: 'TdSelectionPage',
+    components: {
+        TdHero
+    },
     data() {
         return {
             pageRef: this.page,
@@ -91,6 +96,9 @@ export default {
         },
         localFilter(newFilter) {
             this.$emit('update:filter', newFilter);
+        },
+        page(newPage) {
+            this.pageRef = newPage;
         }
     },
     props: {

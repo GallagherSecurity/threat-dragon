@@ -1,6 +1,8 @@
-import { BootstrapVue, BModal, BFormInput, BFormSelect, BButton } from 'bootstrap-vue';
+import { BootstrapVue, BModal, BFormInput, BButton } from 'bootstrap-vue';
 import { createLocalVue, shallowMount } from '@vue/test-utils';
 import AddBranchDialog from '@/components/AddBranchDialog.vue';
+import TdFormSelect from '@/components/FormSelect.vue';
+import TdOverlay from '@/components/Overlay.vue';
 
 describe('components/AddBranchDialog.vue', () => {
     let localVue, wrapper;
@@ -12,10 +14,8 @@ describe('components/AddBranchDialog.vue', () => {
 
     describe('with data', () => {
         const branches = ['main', 'develop', 'feature'];
-        let closeDialog;
 
         beforeEach(() => {
-            closeDialog = jest.fn();
             wrapper = shallowMount(AddBranchDialog, {
                 localVue,
                 propsData: {
@@ -25,7 +25,6 @@ describe('components/AddBranchDialog.vue', () => {
                     $t: key => key
                 }
             });
-            wrapper.vm.closeDialog = closeDialog;
         });
 
         it('displays the modal', () => {
@@ -37,11 +36,15 @@ describe('components/AddBranchDialog.vue', () => {
         });
 
         it('displays the reference branch select', () => {
-            expect(wrapper.findComponent(BFormSelect).exists()).toBe(true);
+            expect(wrapper.findComponent(TdFormSelect).exists()).toBe(true);
         });
 
         it('displays the add button', () => {
             expect(wrapper.findAllComponents(BButton).at(0).text()).toBe('branch.add');
+        });
+
+        it('wraps the add button in the Threat Dragon overlay', () => {
+            expect(wrapper.findComponent(TdOverlay).exists()).toBe(true);
         });
 
         it('displays the cancel button', () => {
@@ -50,7 +53,7 @@ describe('components/AddBranchDialog.vue', () => {
 
         it('calls closeDialog on cancel button click', async () => {
             await wrapper.findAllComponents(BButton).at(1).trigger('click');
-            expect(closeDialog).toHaveBeenCalled();
+            expect(wrapper.emitted('close-dialog')).toHaveLength(1);
         });
     });
 
@@ -89,34 +92,37 @@ describe('components/AddBranchDialog.vue', () => {
     });
 
     describe('addBranch', () => {
-        let closeDialog, dispatch;
+        let branches, commit, dispatch;
 
         beforeEach(() => {
-            const branches = ['main', 'develop', 'feature'];
-            closeDialog = jest.fn();
-            dispatch = jest.fn((branchActions, {branchName}) => {
-                if(branchActions === 'BRANCH_CREATE')
+            branches = ['main', 'develop', 'feature'];
+            commit = jest.fn();
+            dispatch = jest.fn((action, payload) => {
+                if (action === 'BRANCH_CREATE') {
+                    const { branchName } = payload;
                     branches.push(branchName);
+                    return Promise.resolve();
+                }
+                if (action === 'BRANCH_FETCH') {
+                    wrapper.setProps({ branches: [...branches] });
+                    return Promise.resolve();
+                }
+                return Promise.resolve();
             });
             wrapper = shallowMount(AddBranchDialog, {
                 localVue,
-                propsData: {
-                    branches
-                },
+                propsData: { branches },
                 mocks: {
                     $t: key => key,
-                    $store: {
-                        dispatch
-                    }
+                    $store: { dispatch, commit }
                 },
                 data() {
                     return {
-                        newBranchName:  'new-branch',
+                        newBranchName: 'new-branch',
                         refBranch: 'main'
                     };
                 }
             });
-            wrapper.vm.closeDialog = closeDialog;
         });
 
         it('dispatches the create action with correct payload', async () => {
@@ -125,9 +131,14 @@ describe('components/AddBranchDialog.vue', () => {
         });
 
         it('closes the dialog after adding the branch', async () => {
-            await wrapper.setData({ newBranchName: 'new-branch', refBranch: 'main'});
+            await wrapper.setData({ newBranchName: 'new-branch', refBranch: 'main' });
             await wrapper.vm.addBranch();
-            expect(closeDialog).toHaveBeenCalled();
+            expect(wrapper.emitted('close-dialog')).toHaveLength(1);
+        });
+
+        it('dispatches BRANCH_FETCH with { page: 1 } when polling for the new branch', async () => {
+            await wrapper.vm.addBranch();
+            expect(dispatch).toHaveBeenCalledWith('BRANCH_FETCH', { page: 1 });
         });
     });
 });

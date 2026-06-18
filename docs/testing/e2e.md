@@ -152,6 +152,22 @@ docker run -d --rm \
 
 These tests are used by the CI pipeline to determine if the deploy to Heroku was successful or not.
 
+### Visual Regression Tests
+
+Visual regression tests do a pixel by pixel comparison of the running application
+against baseline images. These tests are intended to flag UI regressions.
+
+The threshold is intentionally set low with a pixel ratio of `0.01`.  
+Baseline images are stored in `td.vue/tests/e2e/visual/baselines`
+
+These tests run against Chrome. There can be some minor differences between
+Chrome versions. The pull request workflow has a specific version pinned.
+
+To run visual regressions locally, from `td.vue` run `npm run test:visual`
+
+When intentional changes are made to the UI, you may need to regenerate the visual
+baselines with `npm run test:visual:update`.
+
 ## Cypress use of Electron
 
 Cypress uses the Electron server as a backend server, and has the Electron browser/renderer built in.
