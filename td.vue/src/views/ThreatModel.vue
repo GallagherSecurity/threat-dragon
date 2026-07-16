@@ -51,10 +51,9 @@
                         :text="$t('forms.edit')" />
                     <td-form-button id="td-report-btn" :onBtnClick="onReportClick" icon="file-alt"
                         :text="$t('forms.report')" />
-                    <!-- REPLACE the export template button with dropdown -->
-                    <td-dropdown right variant="secondary" :text="$t('forms.manage')" id="manage-model-btn" v-if="enableTemplates">
+                    <td-dropdown right variant="secondary" :text="$t('forms.export')" id="manage-model-btn" v-if="enableExport || enableTemplates">
                         <template #default="{ close }">
-                            <button
+                            <button v-if="enableTemplates"
                                 type="button"
                                 class="td-dropdown-item"
                                 @click="(evt) => { onExportTemplateClick(evt); close(); }"
@@ -62,6 +61,15 @@
                             >
                                 <font-awesome-icon icon="file-import" ></font-awesome-icon>
                                 {{ $t('forms.exportTemplate') }}
+                            </button>
+                            <button v-if="enableExport"
+                                type="button"
+                                class="td-dropdown-item"
+                                @click="(evt) => { onExportTmBomClick(evt); close(); }"
+                                id="export-tmbom-option"
+                            >
+                                <font-awesome-icon icon="file-import" ></font-awesome-icon>
+                                {{ $t('forms.exportTmBom') }}
                             </button>
                         </template>
                     </td-dropdown>
@@ -99,6 +107,7 @@
 import { mapState } from 'vuex';
 
 import { getProviderType } from '@/service/provider/providers.js';
+import { writeFile } from '@/service/save.js';
 import TdDropdown from '@/components/Dropdown.vue';
 import TdFormButton from '@/components/FormButton.vue';
 import TdImage from '@/components/Image.vue';
@@ -107,6 +116,12 @@ import tmActions from '@/store/actions/threatmodel.js';
 
 export default {
     name: 'ThreatModel',
+    props: {
+        enableExport: {
+            type: Boolean,
+            default: false
+        }
+    },
     components: {
         TdDropdown,
         TdFormButton,
@@ -142,6 +157,12 @@ export default {
                 : `${this.providerType}ThreatModelExportTemplate`;
             this.$router.push({ name: routeName, params: this.$route.params });
         },
+        async onExportTmBomClick(evt) {
+            evt.preventDefault();
+            const tmBom = this.$store.getters.tmBomExport;
+            console.debug('Export to TM-BOM ' + JSON.stringify(tmBom, null, 2));
+            await writeFile(tmBom, '');
+        },
         getThumbnailUrl(diagram) {
             if (!diagram || !diagram.diagramType) {
                 return '../assets/thumbnail.jpg';
@@ -156,10 +177,9 @@ export default {
     },
     mounted() {
         // make sure we are compatible with version 1.x and early 2.x
-        let threatTop = this.model.detail.threatTop === undefined ? 100 : this.model.detail.threatTop;
-        let diagramTop = this.model.detail.diagramTop === undefined ? 10 : this.model.detail.diagramTop;
-        let update = { diagramTop: diagramTop, version: this.version, threatTop: threatTop };
-        console.debug('updates: ' + JSON.stringify(update));
+        const threatTop = this.model.detail.threatTop === undefined ? 100 : this.model.detail.threatTop;
+        const diagramTop = this.model.detail.diagramTop === undefined ? 10 : this.model.detail.diagramTop;
+        const update = { diagramTop: diagramTop, version: this.version, threatTop: threatTop };
         this.$store.dispatch(tmActions.update, update);
         // if a diagram has just been closed, the history insists on marking the model as modified
         this.$store.dispatch(tmActions.notModified);

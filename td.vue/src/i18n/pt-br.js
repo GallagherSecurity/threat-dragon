@@ -238,9 +238,9 @@ const messages = {
             export: 'Não foi possível exportar o modelo de ameaça. Verifique o console do desenvolvedor para mais informações.',
             jsonSchema: 'Modelo não corresponde estritamente com o esquema. Detalhes no console do desenvolvedor',
             noModelOpen: 'Nenhum modelo aberto',
-            otmUnsupported: 'A importação do formato de arquivo Open Threat Model ainda não é suportada.',
+            otmImported: 'A importação do formato de arquivo Open Threat Model ainda não é suportada.',
             save: 'Não foi possível salvar o modelo de ameaça. Verifique o console do desenvolvedor para mais informações.',
-            tmUnsupported: 'A importação do formato de arquivo TM-BOM é experimental e está sujeita a alterações que podem quebrar modelos.',
+            tmBomImported: 'A importação do formato de arquivo TM-BOM é experimental e está sujeita a alterações que podem quebrar modelos.',
             v1Translate: 'Importar modelos versão 1.x serão atualizadas para os esquemas versão 2.0'
         },
         prompts: {
@@ -353,6 +353,8 @@ const messages = {
         exportHtml: 'Relatório HTML',
         exportPdf: 'Relatório PDF',
         exportTd: 'Original (Threat Dragon)',
+        exportTemplate: 'como modelo base',
+        exportTmBom: 'como TM-BOM',
         exportOtm: 'Open Threat Model (OTM)',
         import: 'Importar',
         ok: 'OK',
@@ -368,9 +370,7 @@ const messages = {
         saveModelAs: 'Salvar Modelo como',
         search: 'Buscar',
         next: 'próximo',
-        previous: 'anterior',
-        manage: 'Gerenciar...',
-        exportTemplate: 'Exportar como modelo base'
+        previous: 'anterior'
     },
     cards: {
         details: 'Detalhes do cartão',
@@ -471,7 +471,11 @@ const messages = {
         status: {
             notApplicable: 'N/A',
             open: 'Aberta',
-            mitigated: 'Mitigada'
+            mitigated: 'Mitigada',
+            accepted: 'Accepted',
+            transferred: 'Transferred',
+            avoided: 'Avoided',
+            eliminated: 'Eliminated'
         },
         severity: {
             tbd: 'A definir',
@@ -502,6 +506,10 @@ const messages = {
         threatStats : {
             total: 'Ameaças totais',
             mitigated: 'Total Mitigada',
+            accepted: 'Total Accepted',
+            transferred: 'Total Transferred',
+            avoided: 'Total Avoided',
+            eliminated: 'Total Eliminated',
             notApplicable: 'Total Não Aplicável',
             notMitigated : 'Não Mitigada',
             openCritical : 'Aberta / Severidade Crítica',

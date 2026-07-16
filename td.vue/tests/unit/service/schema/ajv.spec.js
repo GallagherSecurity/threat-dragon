@@ -6,45 +6,56 @@ import v2Model from './test-v2-model';
 import template from './test-template';
 
 describe('service/schema/ajv.js', () => {
-    let invalidV2Model = JSON.parse(JSON.stringify(v2Model));
+    const invalidV2Model = JSON.parse(JSON.stringify(v2Model));
     delete invalidV2Model.summary.title;
-    let invalidTmModel = JSON.parse(JSON.stringify(tmModel));
+    const invalidTmModel = JSON.parse(JSON.stringify(tmModel));
     invalidTmModel['version'] = 0;
+
+    beforeEach(() => {
+        console.debug = jest.fn();
+        console.warn = jest.fn();
+    });
 
     describe('isValid', () => {
         it('validates V1 models', () => {
             expect(schema.isValid(v1Model)).toBe(true);
+            expect(console.warn).not.toHaveBeenCalled();
         });
 
         it('validates V2 models', () => {
             expect(schema.isValid(v2Model)).toBe(true);
+            expect(console.warn).not.toHaveBeenCalled();
         });
 
         it('validates TM models', () => {
             expect(schema.isValid(tmModel)).toBe(true);
+            expect(console.warn).not.toHaveBeenCalled();
         });
 
         it('validates OTM models', () => {
             expect(schema.isValid(otmModel)).toBe(true);
+            expect(console.warn).not.toHaveBeenCalled();
         });
 
         it('detects no schema match', () => {
             expect(schema.isValid({'invalidJson': 'made up'})).toBe(false);
+            expect(console.warn).toHaveBeenCalled();
         });
 
         it('rejects invalid JSON', () => {
             expect(schema.isValid('invalidJson')).toBe(false);
+            expect(console.warn).toHaveBeenCalled();
         });
     });
 
     describe('checkTmBom', () => {
         it('reports TM-BOM schema passing', () => {
-            let report = schema.checkTmBom(tmModel);
+            const report = schema.checkTmBom(tmModel);
             expect(report).toBe(null);
         });
 
         it('reports TM-BOM schema errors', () => {
-            let report = schema.checkTmBom(invalidTmModel);
+            const report = schema.checkTmBom(invalidTmModel);
             expect(report[0].message).toBe('must be string');
         });
 
@@ -52,12 +63,12 @@ describe('service/schema/ajv.js', () => {
 
     describe('checkV2', () => {
         it('reports V2 schema passing', () => {
-            let report = schema.checkV2(v2Model);
+            const report = schema.checkV2(v2Model);
             expect(report).toBe(null);
         });
 
         it('reports V2 schema errors', () => {
-            let report = schema.checkV2(invalidV2Model);
+            const report = schema.checkV2(invalidV2Model);
             expect(report[0].message).toContain("required property 'title'");
         });
 
@@ -69,7 +80,7 @@ describe('service/schema/ajv.js', () => {
         });
 
         it('rejects invalid V1 Threat Dragon models', () => {
-            let invalidModel = JSON.parse(JSON.stringify(v1Model));
+            const invalidModel = JSON.parse(JSON.stringify(v1Model));
             delete invalidModel.summary.title;
             expect(schema.isV1(invalidModel)).toBe(false);
         });
@@ -131,7 +142,7 @@ describe('service/schema/ajv.js', () => {
         });
 
         it('rejects invalid OTM models', () => {
-            let invalidModel = JSON.parse(JSON.stringify(otmModel));
+            const invalidModel = JSON.parse(JSON.stringify(otmModel));
             invalidModel['otmVersion'] = 0;
             expect(schema.isOtm(invalidModel)).toBe(false);
         });
@@ -160,10 +171,12 @@ describe('service/schema/ajv.js', () => {
     describe('validateTemplateFormat', () => {
         it('reports valid template format', () => {
             expect(schema.validateTemplateFormat(template).valid).toBe(true);
+            expect(console.warn).not.toHaveBeenCalled();
         });
 
         it('rejects invalid template format', () => {
             expect(schema.validateTemplateFormat(v2Model).valid).toBe(false);
+            expect(console.warn).toHaveBeenCalled();
         });
     });
 

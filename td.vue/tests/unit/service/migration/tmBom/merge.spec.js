@@ -1,12 +1,12 @@
 import tmBom from '@/service/migration/tmBom/tmBom';
 
 import huskyaiModel from '@/service/demo/huskyai.tmbom.json';
-import tmBomModel from './tmbom-test-model';
+import tmBomModel from '../tmbom-test-model';
 
 describe('service/migration/tmBom/tmBom.importTmbom', () => {
 
-    describe('import/merge new model', () => {
-        let testModel  = tmBom.importTmbom(huskyaiModel);
+    describe('import/merge Husky AI model', () => {
+        const testModel = tmBom.importTmbom(huskyaiModel);
 
         it('provides version', () => {
             expect(testModel.version.length).toBeGreaterThanOrEqual(5);
@@ -43,7 +43,8 @@ describe('service/migration/tmBom/tmBom.importTmbom', () => {
     });
 
     describe('import/merge test model', () => {
-        let testModel  = tmBom.importTmbom(tmBomModel);
+        console.warn = jest.fn();
+        const testModel = tmBom.importTmbom(tmBomModel);
 
         it('provides version', () => {
             expect(testModel.version.length).toBeGreaterThanOrEqual(5);

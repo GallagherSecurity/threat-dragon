@@ -1,5 +1,5 @@
 import scope from '@/service/migration/tmBom/scope';
-import tdModel from './td-test-model';
+import tdModel from '../td-test-model';
 
 jest.mock('@/service/migration/tmBom/diagrams/assumptions');
 
@@ -28,14 +28,14 @@ describe('service/migration/tmBom/scope.js', () => {
 
 	    describe('provides TM-BOM scope defaults', () => {
 	        it('creates default scope values', () => {
-                let noDescription = JSON.parse(JSON.stringify(tdModel));
+                const noDescription = JSON.parse(JSON.stringify(tdModel));
                 delete noDescription.summary.description;
                 testScope = scope.convert(noDescription);
 	            expect(testScope.description.length).toBeGreaterThan(1);
 	        });
 
 	        it('provides scope compatibility defaults', () => {
-                let noCompatibility = JSON.parse(JSON.stringify(tdModel));
+                const noCompatibility = JSON.parse(JSON.stringify(tdModel));
                 delete noCompatibility.summary.compatibility;
                 testScope = scope.convert(noCompatibility);
                 expect(testScope.business_criticality.length).toBeGreaterThan(1);

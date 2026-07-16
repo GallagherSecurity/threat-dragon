@@ -11,7 +11,6 @@ console.log('Server API protocol: ' + serverApiProtocol + ' and port: ' + server
 
 // Check if TLS credentials are available in the environment file
 const hasTlsCredentials = process.env.APP_USE_TLS && process.env.APP_TLS_CERT_PATH && process.env.APP_TLS_KEY_PATH && process.env.APP_HOSTNAME;
-let port;
 
 // Shared proxy configuration with request/response logging for visual debug
 const timestamp = () => new Date().toISOString();
@@ -36,7 +35,7 @@ const proxyConfig = {
     },
 };
 
-// Configure dev server to use HTTPS with env.port if TLS credentials are available, otherwise use HTTP with port 8080
+// Configure dev server to use HTTPS with TLS credentials when available.
 const devServerConfig = hasTlsCredentials
     ? {
         https: {
@@ -49,11 +48,11 @@ const devServerConfig = hasTlsCredentials
     }
     : {
         // note that client webSocketURL config has been removed, as it was incompatible with desktop version
-        port: 8080,
+        port: PORT,
         proxy: proxyConfig,
         allowedHosts: [appHostname],
     };
-port = devServerConfig.port;
+const port = devServerConfig.port;
 
 console.log(`Running on ${hasTlsCredentials ? `HTTPS (Port ${port})` : `HTTP (Port ${port})`}`);
 
@@ -86,10 +85,11 @@ module.exports = {
                 },
                 mac: {
                     category: 'public.app-category.developer-tools',
+                    executableName: 'Threat Dragon',
                     icon: './src/icons/icon.icns',
                     hardenedRuntime: true,
-                    entitlements: './node_modules/electron-builder-notarize/entitlements.mac.inherit.plist',
-                    entitlementsInherit: './node_modules/electron-builder-notarize/entitlements.mac.inherit.plist',
+                    entitlements: './node_modules/app-builder-lib/templates/entitlements.mac.plist',
+                    entitlementsInherit: './node_modules/app-builder-lib/templates/entitlements.mac.plist',
                     target: [
                         {
                             target: 'default',

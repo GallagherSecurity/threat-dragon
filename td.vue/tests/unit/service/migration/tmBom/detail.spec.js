@@ -1,7 +1,7 @@
 import diagrams from '@/service/migration/tmBom/diagrams/diagrams';
 import detail from '@/service/migration/tmBom/detail';
 
-import tmBomModel from './tmbom-test-model';
+import tmBomModel from '../tmbom-test-model';
 
 jest.mock('@/service/migration/tmBom/diagrams/diagrams');
 
@@ -28,7 +28,7 @@ describe('service/migration/tmBom/detail.js', () => {
         });
 
         it('handles empty threats', () => {
-		    let emptyThreatsModel = JSON.parse(JSON.stringify(tmBomModel));
+		    const emptyThreatsModel = JSON.parse(JSON.stringify(tmBomModel));
 		    emptyThreatsModel.threats = [];
             diagrams.merge.mockReturnValue(testDiagrams);
 		    testDetail = detail.merge(emptyThreatsModel);
@@ -36,7 +36,7 @@ describe('service/migration/tmBom/detail.js', () => {
         });
 
         it('handles missing threats', () => {
-		    let noThreatsModel = JSON.parse(JSON.stringify(tmBomModel));
+		    const noThreatsModel = JSON.parse(JSON.stringify(tmBomModel));
 		    delete noThreatsModel.threats;
             diagrams.merge.mockReturnValue(testDiagrams);
 		    testDetail = detail.merge(noThreatsModel);

@@ -1,3 +1,5 @@
+const shared = require('../eslint.shared.js');
+
 module.exports = {
     "env": {
         "es2021": true,
@@ -253,7 +255,8 @@ module.exports = {
         "yoda": [
             "error",
             "never"
-        ]
+        ],
+        ...shared.rules
     },
     // Temporary override: githubrepo.js exceeds max-lines due to threat catalogue functionality at repo layer
     "overrides": [

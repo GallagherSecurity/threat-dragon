@@ -5,6 +5,7 @@ import Vuex from 'vuex';
 import dataChanged from '@/service/x6/graph/data-changed.js';
 import TdFormRadioGroup from '@/components/FormRadioGroup.vue';
 import TdFormSelect from '@/components/FormSelect.vue';
+import TdThreatStatusSelector from '@/components/ThreatStatusSelector.vue';
 import TdThreatEditDialog from '@/components/ThreatEditDialog.vue';
 
 describe('components/ThreatEditDialog.vue', () => {
@@ -26,7 +27,7 @@ describe('components/ThreatEditDialog.vue', () => {
     });
 
     const getStore = () => new Vuex.Store({
-        state: { cell: { ref: { getData: jest.fn(), data: { threatFrequency:{availability: 0,confidentiality: 0,integrity: 0}, threats: [ getThreatData() ]}}}},
+        state: { cell: { ref: { getData: jest.fn(), data: { threatFrequency:{availability: 0, confidentiality: 0, integrity: 0}, threats: [ getThreatData() ]}}}},
         actions: { CELL_DATA_UPDATED: () => {} }
     });
 
@@ -88,12 +89,12 @@ describe('components/ThreatEditDialog.vue', () => {
             expect(input.exists()).toEqual(true);
         });
 
-        it('has a status input', () => {
-            const input = wrapper.findAllComponents(TdFormRadioGroup)
+        it('has a threat status selector', () => {
+            const selector = wrapper.findAllComponents(TdThreatStatusSelector)
                 .filter(x => x.attributes('id') === 'status')
                 .at(0);
 
-            expect(input.exists()).toEqual(true);
+            expect(selector.exists()).toEqual(true);
         });
 
         it('has a score input', () => {
@@ -160,7 +161,7 @@ describe('components/ThreatEditDialog.vue', () => {
                 expect(mockStore.dispatch)
                     .toHaveBeenCalledWith('CELL_DATA_UPDATED', {
                         hasOpenThreats: false,
-                        threatFrequency:{availability: 0,confidentiality: 0,integrity: 0},
+                        threatFrequency:{availability: 0, confidentiality: 0, integrity: 0},
                         threats: []
                     });
             });
@@ -187,8 +188,8 @@ describe('components/ThreatEditDialog.vue', () => {
         });
 
         it('updates the data', () => {
-            expect(mockStore.dispatch).toHaveBeenNthCalledWith(1,'CELL_DATA_UPDATED',{threatFrequency:{availability: 0,confidentiality: 0,integrity: 0}, threats: [ getThreatData() ] });
-            expect(mockStore.dispatch).toHaveBeenNthCalledWith(2,'THREATMODEL_MODIFIED');
+            expect(mockStore.dispatch).toHaveBeenNthCalledWith(1, 'CELL_DATA_UPDATED', {threatFrequency:{availability: 0, confidentiality: 0, integrity: 0}, threats: [ getThreatData() ] });
+            expect(mockStore.dispatch).toHaveBeenNthCalledWith(2, 'THREATMODEL_MODIFIED');
         });
 
         it('updates the styles', () => {
@@ -198,9 +199,9 @@ describe('components/ThreatEditDialog.vue', () => {
 
     describe('cornucopia link', () => {
         it('renders link for EOP with suit and number', async () => {
-            const store=new Vuex.Store({state:{cell:{ref:{getData:jest.fn(),data:{threatFrequency:{availability:0,confidentiality:0,integrity:0},threats:[{...getThreatData(),modelType:'EOP'}]}}}},actions:{CELL_DATA_UPDATED:()=>{}}});
-            wrapper=shallowMount(TdThreatEditDialog,{localVue,mocks:{$t:k=>k},store});
-            wrapper.vm.$refs.editModal={show:jest.fn(),hide:jest.fn()};
+            const store=new Vuex.Store({state:{cell:{ref:{getData:jest.fn(), data:{threatFrequency:{availability:0, confidentiality:0, integrity:0}, threats:[{...getThreatData(), modelType:'EOP'}]}}}}, actions:{CELL_DATA_UPDATED:() => {}}});
+            wrapper=shallowMount(TdThreatEditDialog, {localVue, mocks:{$t:k => k}, store});
+            wrapper.vm.$refs.editModal={show:jest.fn(), hide:jest.fn()};
             wrapper.vm.editThreat(threatId);
             wrapper.vm.selectedGameId='cornucopia';
             wrapper.vm.card.suit='DATA VALIDATION & ENCODING';
@@ -213,9 +214,9 @@ describe('components/ThreatEditDialog.vue', () => {
         });
 
         it('renders link for EOP companion with suit and number', async () => {
-            const store=new Vuex.Store({state:{cell:{ref:{getData:jest.fn(),data:{threatFrequency:{availability:0,confidentiality:0,integrity:0},threats:[{...getThreatData(),modelType:'EOP'}]}}}},actions:{CELL_DATA_UPDATED:()=>{}}});
-            wrapper=shallowMount(TdThreatEditDialog,{localVue,mocks:{$t:k=>k},store});
-            wrapper.vm.$refs.editModal={show:jest.fn(),hide:jest.fn()};
+            const store=new Vuex.Store({state:{cell:{ref:{getData:jest.fn(), data:{threatFrequency:{availability:0, confidentiality:0, integrity:0}, threats:[{...getThreatData(), modelType:'EOP'}]}}}}, actions:{CELL_DATA_UPDATED:() => {}}});
+            wrapper=shallowMount(TdThreatEditDialog, {localVue, mocks:{$t:k => k}, store});
+            wrapper.vm.$refs.editModal={show:jest.fn(), hide:jest.fn()};
             wrapper.vm.editThreat(threatId);
             wrapper.vm.selectedGameId='cornucopia-companion';
             wrapper.vm.card.suit='Large Language Models';
@@ -229,14 +230,14 @@ describe('components/ThreatEditDialog.vue', () => {
 
         it('hides link when model is not EOP', () => {
             const store=new Vuex.Store({
-                state:{cell:{ref:{getData:jest.fn(),data:{
-                    threatFrequency:{availability:0,confidentiality:0,integrity:0},
+                state:{cell:{ref:{getData:jest.fn(), data:{
+                    threatFrequency:{availability:0, confidentiality:0, integrity:0},
                     threats:[ getThreatData() ]
                 }}}},
-                actions:{CELL_DATA_UPDATED:()=>{}}
+                actions:{CELL_DATA_UPDATED:() => {}}
             });
-            wrapper = shallowMount(TdThreatEditDialog,{localVue,mocks:{$t:key=>key},store});
-            wrapper.vm.$refs.editModal={show:jest.fn(),hide:jest.fn()};
+            wrapper = shallowMount(TdThreatEditDialog, {localVue, mocks:{$t:key => key}, store});
+            wrapper.vm.$refs.editModal={show:jest.fn(), hide:jest.fn()};
             wrapper.vm.editThreat(threatId);
             const link=wrapper.find('a');
             expect(link.exists()).toBe(false);

@@ -146,12 +146,10 @@
                             :label="$t('threats.properties.status')"
                             label-for="status"
                         >
-                            <td-form-radio-group
+                            <td-threat-status-selector
                                 id="status"
                                 v-model="threat.status"
-                                :options="statuses"
-                                buttons
-                            ></td-form-radio-group>
+                            ></td-threat-status-selector>
                         </b-form-group>
                     </b-col>
 
@@ -269,6 +267,7 @@ import dataChanged from '@/service/x6/graph/data-changed.js';
 import threatModels from '@/service/threats/models/index.js';
 import TdFormRadioGroup from '@/components/FormRadioGroup.vue';
 import TdFormSelect from '@/components/FormSelect.vue';
+import TdThreatStatusSelector from '@/components/ThreatStatusSelector.vue';
 import { getGame, getAllGames } from '../service/threats/models/eop';
 import { getSeverityOptions } from '@/service/threats/index.js';
 
@@ -276,7 +275,8 @@ export default {
     name: 'TdThreatEditDialog',
     components: {
         TdFormRadioGroup,
-        TdFormSelect
+        TdFormSelect,
+        TdThreatStatusSelector
     },
     computed: {
         ...mapState({
@@ -298,19 +298,6 @@ export default {
             }, this);
             if (!res.includes(this.threat.type)) res.push(this.threat.type);
             return res;
-        },
-        statuses() {
-            return [
-                {
-                    value: 'NotApplicable',
-                    text: this.$t('threats.status.notApplicable'),
-                },
-                { value: 'Open', text: this.$t('threats.status.open') },
-                {
-                    value: 'Mitigated',
-                    text: this.$t('threats.status.mitigated'),
-                },
-            ];
         },
         priorities() {
             return getSeverityOptions(this.$t.bind(this));

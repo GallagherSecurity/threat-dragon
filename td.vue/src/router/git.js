@@ -1,5 +1,5 @@
 import { providerTypes } from '@/service/provider/providerTypes';
-import { getTemplateRoutes,adminTemplateRoutes } from './template';
+import { getTemplateRoutes, adminTemplateRoutes } from './template';
 
 const providerType = providerTypes.git;
 
@@ -54,7 +54,7 @@ export const gitRoutes = [
         name: `${providerType}Report`,
         component: () => import(/* webpackChunkName: "report-model" */ '../views/ReportModel.vue')
     },
-    ...adminTemplateRoutes,  // /admin/templates
+    ...adminTemplateRoutes, // /admin/templates
 
     {
         path: '/admin/threats',

@@ -5,7 +5,8 @@
 import axios from 'axios';
 
 import env from '../env/Env.js';
-import repositories from "../repositories";
+import oauthHelper from '../helpers/oauth.helper.js';
+import repositories from '../repositories';
 
 const name = 'gitlab';
 
@@ -35,13 +36,7 @@ const getOauthRedirectUrl = () => {
  * @param {string} code
  * @returns {String}
  */
-const getOauthReturnUrl = (code) => {
-    let returnUrl = `/#/oauth-return?code=${code}`;
-    if (env.get().config.NODE_ENV === 'development') {
-        returnUrl = `http://localhost:8080${returnUrl}`;
-    }
-    return returnUrl;
-};
+const getOauthReturnUrl = (code) => oauthHelper.getOauthReturnUrl(code);
 
 /**
  * Finishes the OAuth login, issues a JWT
@@ -69,7 +64,7 @@ const completeLoginAsync = async (code) => {
     const providerResp = await axios.post(url, body, options);
 
 
-    repositories.set("gitlabrepo");
+    repositories.set('gitlabrepo');
     const repo = repositories.get();
     const fullUser = await repo.userAsync(providerResp.data.access_token);
 

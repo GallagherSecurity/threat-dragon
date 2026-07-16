@@ -17,6 +17,9 @@
     "clean:vue": "cd td.vue && npm run clean",
     "dev:vue": "cd td.vue && npm run dev",
     "dev:server": "cd td.server && npm run dev",
+    "lint": "npm-run-all lint:server lint:vue",
+    "lint:server": "cd td.server && npm run lint",
+    "lint:vue": "cd td.vue && npm run lint",
     "markdown:lint": "npx --yes markdownlint-cli2@latest --config .markdownlint.yaml AGENTS.md scripts/README.md docs/*.md docs/**/*.md",
     "pretest": "npm-run-all pretest:server pretest:site",
     "pretest:server": "cd td.server && npm run pretest",
@@ -49,19 +52,12 @@
   "description": "OWASP Threat Dragon - a free, open source threat modeling tool",
   "author": {
     "name": "OWASP Threat Dragon",
-    "email": "jon.gadsden@owasp.org",
+    "email": "threat-dragon-project@owasp.org",
     "url": "https://owasp.org/www-project-threat-dragon/"
   },
   "license": "Apache-2.0",
   "engines": {
     "npm": ">=11.10.0"
-  },
-  "devEngines": {
-    "packageManager": {
-      "name": "npm",
-      "version": ">=11.10.0",
-      "onFail": "error"
-    }
   },
   "homepage": "https://owasp.org/www-project-threat-dragon/",
   "repository": {
@@ -69,11 +65,11 @@
     "url": "git://github.com/OWASP/threat-dragon.git"
   },
   "bugs": {
-    "email": "jon.gadsden@owasp.org",
+    "email": "threat-dragon-project@owasp.org",
     "url": "https://github.com/OWASP/threat-dragon/issues"
   },
   "devDependencies": {
-    "baseline-browser-mapping": "^2.10.30",
+    "baseline-browser-mapping": "^2.10.38",
     "npm-run-all2": "^8.0.4",
     "rimraf": "^6.1.3"
   },
@@ -88,6 +84,7 @@
     "micromatch": ">=4.0.8",
     "minimatch@<3.0.5": ">=3.0.5",
     "tar-fs": ">=3.0.8",
-    "ws": ">=8.18.0"
+    "ws": ">=8.18.0",
+    "shell-quote": ">=1.8.4"
   }
 }

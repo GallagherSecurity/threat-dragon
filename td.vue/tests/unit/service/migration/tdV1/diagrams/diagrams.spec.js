@@ -1,5 +1,5 @@
 import diagrams from '@/service/migration/tdV1/diagrams/diagrams';
-import v1Model from '../v1-threat-model';
+import v1Model from '../../v1-test-model';
 
 const testVersion = 'testVersion';
 
@@ -62,7 +62,7 @@ describe('service/migration/tdV1/diagrams/diagrams.js', () => {
     });
 
     describe('reads model with no diagrams', () => {
-        let emptyDiagrams = new Array();
+        const emptyDiagrams = [];
 
         it('converts diagrams', () => {
             v2Diagrams = diagrams.read(emptyDiagrams, testVersion);

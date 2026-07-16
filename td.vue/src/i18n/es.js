@@ -238,9 +238,9 @@ const messages = {
             export: 'Could not export the Threat Model. Check the developer console for more information',
             jsonSchema: 'Model does not strictly match schema. Details from the developer console',
             noModelOpen: 'No model open',
-            otmUnsupported: 'Import of Open Threat Model file format not yet supported',
+            otmImported: 'Import of Open Threat Model converts the file to Threat Dragon',
             save: 'Could not save the Threat Model. Check the developer console for more information',
-            tmUnsupported: 'Import of TM-BOM files converts the file format to Threat Dragon',
+            tmBomImported: 'Import of TM-BOM converts the file format to Threat Dragon',
             v1Translate: 'Los modelos importados de la versión 1.x serán actualizados acorde al esquema de la versión 2.0'
         },
         prompts: {
@@ -353,6 +353,8 @@ const messages = {
         exportHtml: 'Reporte HTML',
         exportPdf: 'Reporte PDF',
         exportTd: 'Original (Threat Dragon)',
+        exportTemplate: 'As Template',
+        exportTmBom: 'As TM-BOM',
         exportOtm: 'Open Threat Model (OTM)',
         import: 'Importar',
         ok: 'OK',
@@ -368,9 +370,7 @@ const messages = {
         saveModelAs: 'Guardar modelo como',
         search: 'Buscar',
         next: 'próximo',
-        previous: 'Previo',
-        manage : 'Manage...',
-        exportTemplate: 'Export As Template',
+        previous: 'Previo'
     },
     cards: {
         details: 'Detalles de la carta',
@@ -471,7 +471,11 @@ const messages = {
         status: {
             notApplicable: 'N/A',
             open: 'Abierto',
-            mitigated: 'Mitigado'
+            mitigated: 'Mitigado',
+            accepted: 'Accepted',
+            transferred: 'Transferred',
+            avoided: 'Avoided',
+            eliminated: 'Eliminated'
         },
         severity: {
             tbd: 'Por confirmar',
@@ -502,6 +506,10 @@ const messages = {
         threatStats: {
             total: 'Total amenazas ',
             mitigated: 'Total amenazas mitigadas',
+            accepted: 'Total Accepted',
+            transferred: 'Total Transferred',
+            avoided: 'Total Avoided',
+            eliminated: 'Total Eliminated',
             notApplicable: 'Total Not Applicable',
             notMitigated: 'No Mitigadas',
             openCritical: 'Abierto / Crítica Prioridad',

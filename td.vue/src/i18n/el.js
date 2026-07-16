@@ -238,9 +238,9 @@ const messages = {
             export: 'Could not export the Threat Model. Check the developer console for more information',
             jsonSchema: 'Model does not strictly match schema. Details from the developer console',
             noModelOpen: 'No model open',
-            otmUnsupported: 'Import of Open Threat Model file format not yet supported',
+            otmImported: 'Import of Open Threat Model converts the file to Threat Dragon',
             save: 'Could not save the Threat Model. Check the developer console for more information',
-            tmUnsupported: 'Import of TM-BOM files converts the file format to Threat Dragon',
+            tmBomImported: 'Import of TM-BOM converts the file format to Threat Dragon',
             v1Translate: 'Τα εισαχθέντα μοντέλα της έκδοσης 1.x models θα αναβαθμιστούν στο σχήμα της έκδοσης 2.0'
         },
         prompts: {
@@ -353,6 +353,8 @@ const messages = {
         exportHtml: 'Αναφορά HTML',
         exportPdf: 'Αναφορά PDF',
         exportTd: 'Πρωτότυπο (Threat Dragon)',
+        exportTemplate: 'Αs Template',
+        exportTmBom: 'As TM-BOM',
         exportOtm: 'Open Threat Model (OTM)',
         import: 'Εισαγωγή',
         ok: 'OK',
@@ -368,9 +370,7 @@ const messages = {
         saveModelAs: 'Αποθήκευση Μοντέλου ως',
         search: 'Αναζήτηση',
         next: 'Επόμενο',
-        previous: 'προηγούμενος',
-        manage : 'Manage...',
-        exportTemplate: 'Export As Template',
+        previous: 'προηγούμενος'
     },
     cards: {
         details: 'Λεπτομέρειες κάρτας',
@@ -471,7 +471,11 @@ const messages = {
         status: {
             notApplicable: 'Δεν έχει εφαρμογή',
             open: 'Ανοιχτή',
-            mitigated: 'Καλύφθηκε'
+            mitigated: 'Καλύφθηκε',
+            accepted: 'Accepted',
+            transferred: 'Transferred',
+            avoided: 'Avoided',
+            eliminated: 'Eliminated'
         },
         severity: {
             tbd: 'TBD',
@@ -502,6 +506,10 @@ const messages = {
         threatStats: {
             total: 'Σύνολο απειλών',
             mitigated: 'Σύνολο μετριασμένων',
+            accepted: 'Total Accepted',
+            transferred: 'Total Transferred',
+            avoided: 'Total Avoided',
+            eliminated: 'Total Eliminated',
             notApplicable: 'Total Not Applicable',
             notMitigated: 'Μη μετριασμένες',
             openCritical: 'Ανοιχτές / Κρίσιμη Προτεραιότητα',

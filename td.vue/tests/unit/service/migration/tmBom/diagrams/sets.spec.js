@@ -1,11 +1,11 @@
 import dataSets from '@/service/migration/tmBom/diagrams/sets';
-import tmBomModel from '../tmbom-test-model';
+import tmBomModel from '../../tmbom-test-model';
 import { components as nodes } from './mockTdComponents.json';
 
 describe('service/migration/tmBom/diagrams/sets.js', () => {
 
     describe('updates component descriptions', () => {
-        let components = dataSets.merge(tmBomModel, nodes);
+        const components = dataSets.merge(tmBomModel, nodes);
 
         it('adds the data set title', () => {
             expect(components[0].data.description).not.toContain('title data_set');
@@ -57,11 +57,11 @@ describe('service/migration/tmBom/diagrams/sets.js', () => {
     });
 
     describe('handles empty data sets', () => {
-        let noDataSetModel = JSON.parse(JSON.stringify(tmBomModel));
+        const noDataSetModel = JSON.parse(JSON.stringify(tmBomModel));
         delete noDataSetModel.data_sets;
 
         it('preserves the components', () => {
-            let components = dataSets.merge(noDataSetModel, nodes);
+            const components = dataSets.merge(noDataSetModel, nodes);
             expect(components).toStrictEqual(nodes);
         });
     });

@@ -1,7 +1,12 @@
 const express = require('express');
 const cfg = require('./dataset-github');
+const gitlabCfg = require('./dataset-gitlab');
 const { generateItems } = require('./data-generator');
 const { buildPagedResponse } = require('./response-builder');
+
+const createdGitLabBranches = [];
+const mockServerPort = process.env.SERVER_API_PORT || '3000';
+const appPort = process.env.APP_PORT || '8080';
 
 const getAllRepos = () => {
     const { names, total, orgs } = cfg.repos;
@@ -18,7 +23,15 @@ const getAllRepos = () => {
     }));
 };
 
-const getAllBranches = () => {
+const getAllBranches = (provider = 'github') => {
+    if (provider === 'gitlab') {
+        return [...gitlabCfg.branches.names, ...createdGitLabBranches].map((name, idx) => ({
+            name,
+            commit: { sha: `gitlab123def${idx}` },
+            protected: idx === 0,
+        }));
+    }
+
     const { names, total } = cfg.branches;
     return generateItems(names, total).map((name, idx) => ({
         name,
@@ -35,6 +48,65 @@ const createFakeJwt = () => {
     return `header.${jwtPayload}.fake-signature`;
 };
 
+const isGitLabRepo = (organisation, repo) => organisation === gitlabCfg.repos.org && repo === gitlabCfg.repos.subgroupRepo;
+
+const repoPathFromParams = (params, repoParamName = 'repo') => {
+    if (Array.isArray(params[1])) {
+        return params[1].join('/');
+    }
+    return params[repoParamName] || params[1];
+};
+
+const getBranchResponse = (req, res) => {
+    const page = parseInt(req.query.page, 10) || 1;
+    const organisation = req.params.organisation || req.params[0];
+    const repo = repoPathFromParams(req.params);
+    const provider = isGitLabRepo(organisation, repo) ? 'gitlab' : 'github';
+    const allBranches = getAllBranches(provider);
+    const perPage = provider === 'gitlab' ? allBranches.length : cfg.branches.perPage;
+    const { items, pagination } = buildPagedResponse(allBranches, page, perPage);
+    res.status(200).json({
+        status: 200,
+        data: {
+            branches: items.map(b => ({ name: b.name, protected: b.protected })),
+            pagination,
+        }
+    });
+};
+
+const getModelsResponse = (req, res) => {
+    const organisation = req.params.organisation || req.params[0];
+    const repo = repoPathFromParams(req.params);
+    const models = isGitLabRepo(organisation, repo)
+        ? gitlabCfg.models.names
+        : ['Demo Threat Model', 'Web Application', 'API Gateway'];
+
+    res.status(200).json({
+        status: 200,
+        data: models
+    });
+};
+
+const getModelDataResponse = (_req, res) => {
+    res.status(200).json({
+        status: 200,
+        data: gitlabCfg.models.data
+    });
+};
+
+const createBranchResponse = (req, res) => {
+    const branchName = req.params.branch || req.params[2];
+
+    if (!createdGitLabBranches.includes(branchName)) {
+        createdGitLabBranches.push(branchName);
+    }
+
+    res.status(200).json({
+        status: 200,
+        data: { name: branchName }
+    });
+};
+
 const createMockApp = () => {
     const app = express();
     app.use(express.json());
@@ -43,7 +115,7 @@ const createMockApp = () => {
         res.status(200).json({
             status: 200,
             data: {
-                githubEnabled: true, bitbucketEnabled: false, gitlabEnabled: false,
+                githubEnabled: true, bitbucketEnabled: false, gitlabEnabled: true,
                 googleEnabled: false, localEnabled: true,
                 allowedLocales: ['en'], defaultLocale: 'en',
             }
@@ -53,12 +125,12 @@ const createMockApp = () => {
     app.get('/api/login/:provider', (_req, res) => {
         res.status(200).json({
             status: 200,
-            data: 'http://localhost:3000/api/oauth/return?code=fake-code'
+            data: `http://localhost:${mockServerPort}/api/oauth/return?code=fake-code`
         });
     });
 
     app.get('/api/oauth/return', (req, res) => {
-        res.redirect(`http://localhost:8080/#/oauth-return?code=${req.query.code || 'fake-code'}`);
+        res.redirect(`http://localhost:${appPort}/#/oauth-return?code=${req.query.code || 'fake-code'}`);
     });
 
     app.get('/api/oauth/:provider', (_req, res) => {
@@ -81,10 +153,11 @@ const createMockApp = () => {
         });
     });
 
-    app.get('/api/threatmodel/organisation', (_req, res) => {
+    app.get('/api/threatmodel/organisation', (req, res) => {
+        const hostname = req.query.provider === 'gitlab' ? 'gitlab.example.test' : 'api.github.com';
         res.status(200).json({
             status: 200,
-            data: { protocol: 'https', hostname: 'api.github.com', port: '', }
+            data: { protocol: 'https', hostname, port: '', }
         });
     });
 
@@ -108,25 +181,17 @@ const createMockApp = () => {
         });
     });
 
-    app.get('/api/threatmodel/:organisation/:repo/branches', (req, res) => {
-        const page = parseInt(req.query.page, 10) || 1;
-        const allBranches = getAllBranches();
-        const { items, pagination } = buildPagedResponse(allBranches, page, cfg.branches.perPage);
-        res.status(200).json({
-            status: 200,
-            data: {
-                branches: items.map(b => ({ name: b.name, protected: b.protected })),
-                pagination,
-            }
-        });
-    });
+    app.get('/api/threatmodel/:organisation/:repo/branches', getBranchResponse);
+    app.get(/^\/api\/threatmodel\/([^/]+)\/(.+)\/branches$/, getBranchResponse);
 
-    app.get('/api/threatmodel/:organisation/:repo/:branch/models', (_req, res) => {
-        res.status(200).json({
-            status: 200,
-            data: ['Demo Threat Model', 'Web Application', 'API Gateway']
-        });
-    });
+    app.get('/api/threatmodel/:organisation/:repo/:branch/models', getModelsResponse);
+    app.get(/^\/api\/threatmodel\/([^/]+)\/(.+)\/([^/]+)\/models$/, getModelsResponse);
+
+    app.get('/api/threatmodel/:organisation/:repo/:branch/:model/data', getModelDataResponse);
+    app.get(/^\/api\/threatmodel\/([^/]+)\/(.+)\/([^/]+)\/([^/]+)\/data$/, getModelDataResponse);
+
+    app.post('/api/threatmodel/:organisation/:repo/:branch/createBranch', createBranchResponse);
+    app.post(/^\/api\/threatmodel\/([^/]+)\/(.+)\/([^/]+)\/createBranch$/, createBranchResponse);
 
     return app;
 };

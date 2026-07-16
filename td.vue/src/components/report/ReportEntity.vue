@@ -101,43 +101,43 @@ export default {
         properties: function () {
             let properties = '';
             if (this.entity.data.bidirection) {
-                properties += this.$t('threatmodel.properties.bidirection')  + ', ';
+                properties += this.$t('threatmodel.properties.bidirection') + ', ';
             }
             if (this.entity.data.handlesCardPayment) {
-                properties += this.$t('threatmodel.properties.handlesCardPayment')  + ', ';
+                properties += this.$t('threatmodel.properties.handlesCardPayment') + ', ';
             }
             if (this.entity.data.handlesGoodsOrServices) {
-                properties += this.$t('threatmodel.properties.handlesGoodsOrServices')  + ', ';
+                properties += this.$t('threatmodel.properties.handlesGoodsOrServices') + ', ';
             }
             if (this.entity.data.isALog) {
-                properties += this.$t('threatmodel.properties.isALog')  + ', ';
+                properties += this.$t('threatmodel.properties.isALog') + ', ';
             }
             if (this.entity.data.isEncrypted) {
-                properties += this.$t('threatmodel.properties.isEncrypted')  + ', ';
+                properties += this.$t('threatmodel.properties.isEncrypted') + ', ';
             }
             if (this.entity.data.isSigned) {
-                properties += this.$t('threatmodel.properties.isSigned')  + ', ';
+                properties += this.$t('threatmodel.properties.isSigned') + ', ';
             }
             if (this.entity.data.isWebApplication) {
-                properties += this.$t('threatmodel.properties.isWebApplication')  + ', ';
+                properties += this.$t('threatmodel.properties.isWebApplication') + ', ';
             }
             if (this.entity.data.privilegeLevel) {
                 properties += this.$t('threatmodel.properties.privilegeLevel') + ': ' + this.entity.data.privilegeLevel + ', ';
             }
             if (this.entity.data.providesAuthentication) {
-                properties += this.$t('threatmodel.properties.providesAuthentication')  + ', ';
+                properties += this.$t('threatmodel.properties.providesAuthentication') + ', ';
             }
             if (this.entity.data.protocol) {
-                properties += this.$t('threatmodel.properties.protocol') + ' (' + this.entity.data.protocol  + '), ';
+                properties += this.$t('threatmodel.properties.protocol') + ' (' + this.entity.data.protocol + '), ';
             }
             if (this.entity.data.publicNetwork) {
-                properties += this.$t('threatmodel.properties.publicNetwork')  + ', ';
+                properties += this.$t('threatmodel.properties.publicNetwork') + ', ';
             }
             if (this.entity.data.storesCredentials) {
-                properties += this.$t('threatmodel.properties.storesCredentials')  + ', ';
+                properties += this.$t('threatmodel.properties.storesCredentials') + ', ';
             }
             if (this.entity.data.storesInventory) {
-                properties += this.$t('threatmodel.properties.storesInventory')  + ', ';
+                properties += this.$t('threatmodel.properties.storesInventory') + ', ';
             }
             if (properties.length > 2) {
                 properties = properties.slice(0, -2);
@@ -163,7 +163,11 @@ export default {
             return ({
                 'NotApplicable': this.$t('threats.status.notApplicable'),
                 'Open': this.$t('threats.status.open'),
-                'Mitigated': this.$t('threats.status.mitigated')
+                'Mitigated': this.$t('threats.status.mitigated'),
+                'Accepted': this.$t('threats.status.accepted'),
+                'Transferred': this.$t('threats.status.transferred'),
+                'Avoided': this.$t('threats.status.avoided'),
+                'Eliminated': this.$t('threats.status.eliminated')
             })[status] ?? 'Unknown';
         }
     }

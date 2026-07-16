@@ -32,6 +32,7 @@ Config
 cooldowns
 cooldown
 cron
+Cloudflare
 CVE
 CVEs
 CVSS
@@ -104,7 +105,9 @@ Mitigations
 modelRef
 ModelRef
 msa
+namespaced
 nav
+nightlies
 npm
 npx
 NSIS
@@ -154,6 +157,7 @@ Trisqel
 trivy
 Trivy
 TSV
+txt
 UI
 Uncheck
 unpatched

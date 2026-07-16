@@ -1,6 +1,6 @@
 import flows from '@/service/migration/tmBom/diagrams/flows';
-import tdModel from '../td-test-model';
-import tmBomModel from '../tmbom-test-model';
+import tdModel from '../../td-test-model';
+import tmBomModel from '../../tmbom-test-model';
 
 describe('service/migration/tmBom/diagrams/flows.js', () => {
 
@@ -85,9 +85,9 @@ describe('service/migration/tmBom/diagrams/flows.js', () => {
         });
 
         describe('handles model with no data flows', () => {
-            let noDataFlowsModel = JSON.parse(JSON.stringify(tmBomModel));
+            const noDataFlowsModel = JSON.parse(JSON.stringify(tmBomModel));
             delete noDataFlowsModel.data_flows;
-            let dataFlows = flows.merge(noDataFlowsModel);
+            const dataFlows = flows.merge(noDataFlowsModel);
 
             it('adds no data flows', () => {
                 expect(dataFlows).toEqual([]);

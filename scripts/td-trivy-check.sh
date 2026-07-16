@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
 
 script_name="td-trivy-check.sh"
+script_dir="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 default_target_image="threat-dragon:trivy-check"
 default_trivy_image="aquasec/trivy:latest"
 skip_files="/app/docs/configure/bitbucket.html,/app/docs/assets/search.json"
+
+# shellcheck source=scripts/td-repo-root.sh
+. "$script_dir/td-repo-root.sh"
 
 usage() {
     cat <<'EOF'
 Usage: td-trivy-check.sh [options]
 
 Build the local Threat Dragon Docker image for linux/amd64 and scan it with
-Trivy using the same ignore file, fail level, and skip-files list used in CI.
+Trivy using the same ignore file and skip-files list used in CI.
 
 Options:
   --repo-dir PATH      Threat Dragon checkout. Defaults to TD_REPO_DIR,
@@ -98,6 +102,8 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 
+td_require_repo_root "$script_name"
+
 need_command git
 need_command docker
 
@@ -124,7 +130,6 @@ docker run \
     "$trivy_image" \
     image \
     --exit-code 1 \
-    --severity CRITICAL,HIGH \
     --ignorefile /workspace/.trivyignore \
     --skip-files "$skip_files" \
     "$target_image"

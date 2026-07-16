@@ -14,12 +14,16 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: lreading/dependabot-npm-force-overrides@a1c38a755edfdbaf02080e62069ba188773bd5bd # v1.0.1
+      - uses: lreading/dependabot-npm-force-overrides@b628c8f156b893d3afc176b01775a5964efb1ad6 # v1.1.0
         with:
           github-token: ${{ github.token }}
+          sign-commit: true
+          ssh-signing-key: ${{ secrets.DEPENDABOT_OVERRIDES_SSH_SIGNING_KEY }}
+          commit-user-name: lreading
+          commit-user-email: lreading@users.noreply.github.com

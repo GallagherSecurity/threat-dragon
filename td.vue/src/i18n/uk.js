@@ -238,9 +238,9 @@ const messages = {
             export: 'Could not export the Threat Model. Check the developer console for more information',
             jsonSchema: 'Model does not strictly match schema. Details from the developer console',
             noModelOpen: 'No model open',
-            otmUnsupported: 'Import of Open Threat Model file format not yet supported',
+            otmImported: 'Import of Open Threat Model converts the file to Threat Dragon',
             save: 'Could not save the Threat Model. Check the developer console for more information',
-            tmUnsupported: 'Import of TM-BOM files converts the file format to Threat Dragon',
+            tmBomImported: 'Import of TM-BOM converts the file format to Threat Dragon',
             v1Translate: 'Imported version 1.x model has been upgraded to the version 2.x format'
         },
         prompts: {
@@ -353,6 +353,8 @@ const messages = {
         exportHtml: 'HTML Report',
         exportPdf: 'PDF Report',
         exportTd: 'Original (Threat Dragon)',
+        exportTemplate: 'As Template',
+        exportTmBom: 'As TM-BOM',
         exportOtm: 'Open Threat Model (OTM)',
         import: 'Import',
         ok: 'OK',
@@ -368,9 +370,7 @@ const messages = {
         saveModelAs: 'Save Model As',
         search: 'Search',
         next:'Next',
-        previous:'Previous',
-        manage : 'Manage...',
-        exportTemplate: 'Export As Template',
+        previous:'Previous'
     },
     cards: {
         details: 'Деталі картки',
@@ -471,7 +471,11 @@ const messages = {
         status: {
             notApplicable: 'N/A',
             open: 'Open',
-            mitigated: 'Mitigated'
+            mitigated: 'Mitigated',
+            accepted: 'Accepted',
+            transferred: 'Transferred',
+            avoided: 'Avoided',
+            eliminated: 'Eliminated'
         },
         severity: {
             tbd: 'TBD',
@@ -502,6 +506,10 @@ const messages = {
         threatStats: {
             total: 'Total Threats',
             mitigated: 'Total Mitigated',
+            accepted: 'Total Accepted',
+            transferred: 'Total Transferred',
+            avoided: 'Total Avoided',
+            eliminated: 'Total Eliminated',
             notApplicable: 'Total Not Applicable',
             notMitigated: 'Total Open',
             openCritical: 'Open / Critical Severity',

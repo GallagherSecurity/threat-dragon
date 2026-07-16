@@ -238,9 +238,9 @@ const messages = {
             export: 'Could not export the Threat Model. Check the developer console for more information',
             jsonSchema: 'Model does not strictly match schema. Details from the developer console',
             noModelOpen: 'No model open',
-            otmUnsupported: 'Import of Open Threat Model file format not yet supported',
+            otmImported: 'Import of Open Threat Model converts the file to Threat Dragon',
             save: 'Could not save the Threat Model. Check the developer console for more information',
-            tmUnsupported: 'Import of TM-BOM files converts the file format to Threat Dragon',
+            tmBomImported: 'Import of TM-BOM converts the file format to Threat Dragon',
             v1Translate: 'バージョン1.xのモデルは、インポート時にバージョン2.0のフォーマットに変換されます。'
         },
         prompts: {
@@ -353,6 +353,8 @@ const messages = {
         exportHtml: 'HTMLとして保存',
         exportPdf: 'PDFとして保存',
         exportTd: 'オリジナル(Threat Dragon)',
+        exportTemplate: 'As Template',
+        exportTmBom: 'As TM-BOM',
         exportOtm: '脅威モデル(OTM)を開く',
         import: 'インポート',
         ok: 'OK',
@@ -368,9 +370,7 @@ const messages = {
         saveModelAs: '名前を付けてモデルを保存',
         search: '検索',
         next: '次',
-        previous: '前の',
-        manage : 'Manage...',
-        exportTemplate: 'Export As Template',
+        previous: '前の'
     },
     cards: {
         details: 'カードの詳細',
@@ -471,7 +471,11 @@ const messages = {
         status: {
             notApplicable: 'N/A',
             open: '未対応',
-            mitigated: '解決済み'
+            mitigated: '解決済み',
+            accepted: 'Accepted',
+            transferred: 'Transferred',
+            avoided: 'Avoided',
+            eliminated: 'Eliminated'
         },
         severity: {
             tbd: '未定',
@@ -502,6 +506,10 @@ const messages = {
         threatStats: {
             total: '脅威総数',
             mitigated: '対策済みの脅威',
+            accepted: 'Total Accepted',
+            transferred: 'Total Transferred',
+            avoided: 'Total Avoided',
+            eliminated: 'Total Eliminated',
             notApplicable: 'Total Not Applicable',
             notMitigated: '未対策の脅威',
             openCritical: '未対応 / 最優先事項',

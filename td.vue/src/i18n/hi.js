@@ -238,9 +238,9 @@ const messages = {
             export: 'Could not export the Threat Model. Check the developer console for more information',
             jsonSchema: 'Model does not strictly match schema. Details from the developer console',
             noModelOpen: 'No model open',
-            otmUnsupported: 'Import of Open Threat Model file format not yet supported',
+            otmImported: 'Import of Open Threat Model converts the file to Threat Dragon',
             save: 'Could not save the Threat Model. Check the developer console for more information',
-            tmUnsupported: 'Import of TM-BOM files converts the file format to Threat Dragon',
+            tmBomImported: 'Import of TM-BOM converts the file format to Threat Dragon',
             v1Translate: 'Imported version 1.x model has been upgraded to the version 2.x format'
         },
         prompts: {
@@ -353,6 +353,8 @@ const messages = {
         exportHtml: 'HTML रिपोर्टें',
         exportPdf: 'पीडीएफ रिपोर्टें',
         exportTd: 'Original (Threat Dragon)',
+        exportTemplate: 'As Template',
+        exportTmBom: 'As TM-BOM',
         exportOtm: 'Open Threat Model (OTM)',
         import: 'आयात',
         ok: 'ठीक है',
@@ -368,9 +370,7 @@ const messages = {
         saveModelAs: 'मॉडल को इस रूप में सहेजें',
         search: 'खोज',
         next: 'अगला',
-        previous: 'पहले का',
-        manage : 'Manage...',
-        exportTemplate: 'Export As Template',
+        previous: 'पहले का'
     },
     cards: {
         details: 'कार्ड विवरण',
@@ -471,7 +471,11 @@ const messages = {
         status: {
             notApplicable: 'लागू नहीं',
             open: 'खुला',
-            mitigated: 'शमन'
+            mitigated: 'शमन',
+            accepted: 'Accepted',
+            transferred: 'Transferred',
+            avoided: 'Avoided',
+            eliminated: 'Eliminated'
         },
         severity: {
             tbd: 'टीबीए',
@@ -502,6 +506,10 @@ const messages = {
         threatStats: {
             total: 'कुल खतरे',
             mitigated: 'कुल शमन',
+            accepted: 'Total Accepted',
+            transferred: 'Total Transferred',
+            avoided: 'Total Avoided',
+            eliminated: 'Total Eliminated',
             notApplicable: 'Total Not Applicable',
             notMitigated: 'कम नहीं किया गया',
             openCritical: 'ओपन / महत्वपूर्ण प्राथमिकता',

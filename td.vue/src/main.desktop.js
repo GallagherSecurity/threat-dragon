@@ -10,6 +10,7 @@ import router from './router/index.js';
 import desktopSave from './service/desktop/save.js';
 import { providerNames } from './service/provider/providers.js';
 import threatDragonV1 from './service/migration/tdV1/threatDragonV1';
+import { importOtm } from './service/migration/otm/otm';
 import { importTmbom } from './service/migration/tmBom/tmBom';
 
 import schema from './service/schema/ajv';
@@ -22,8 +23,6 @@ import { TEMPLATE_SET_CONTENT_STORE_STATUS, TEMPLATE_SET_TEMPLATES } from './sto
 import BootstrapVue from './plugins/bootstrap-vue.js';
 import { FontAwesomeIcon } from './plugins/fontawesome-vue.js';
 import Toast, { toastOptions, installToastGlobalProperties } from './plugins/toastification.js';
-
-let appProxy;
 
 const t = (...args) => i18nFactory.get().t(...args);
 
@@ -51,7 +50,7 @@ window.electronAPI.onTemplatesResult((_event, result) => {
 });
 
 // request from electron to renderer to close the application
-window.electronAPI.onCloseAppRequest(async (_event) =>  { // eslint-disable-line no-unused-vars
+window.electronAPI.onCloseAppRequest(async (_event) => { // eslint-disable-line no-unused-vars
     console.debug('Close application request');
     if (!appProxy.$store.getters.modelChanged || await getConfirmModal()) {
         console.debug('Closing application');
@@ -61,7 +60,7 @@ window.electronAPI.onCloseAppRequest(async (_event) =>  { // eslint-disable-line
 });
 
 // request from electron to renderer to close the model
-window.electronAPI.onCloseModelRequest(async (_event, fileName) =>  {
+window.electronAPI.onCloseModelRequest(async (_event, fileName) => {
     console.debug('Close model request for file name : ' + fileName);
     if (!appProxy.$store.getters.modelChanged || await getConfirmModal()) {
         console.debug('Closing model and diagram');
@@ -80,7 +79,7 @@ window.electronAPI.onCloseModelRequest(async (_event, fileName) =>  {
 });
 
 // request from electron to renderer to start a new model
-window.electronAPI.onNewModelRequest(async (_event, fileName) =>  {
+window.electronAPI.onNewModelRequest(async (_event, fileName) => {
     console.debug('New model request  with file name : ' + fileName);
     if (!appProxy.$store.getters.modelChanged || await getConfirmModal()) {
         console.debug('Opening new model');
@@ -94,7 +93,7 @@ window.electronAPI.onNewModelRequest(async (_event, fileName) =>  {
 });
 
 // provide renderer with model contents from electron
-window.electronAPI.onOpenModel((_event, fileName, jsonModel) =>  {
+window.electronAPI.onOpenModel((_event, fileName, jsonModel) => {
     console.debug('Open model with file name : ' + fileName);
     let params;
 
@@ -118,9 +117,10 @@ window.electronAPI.onOpenModel((_event, fileName, jsonModel) =>  {
             fileName = '';
             window.electronAPI.modelOpened(fileName);
         } else if (schema.isOtm(jsonModel)) {
-            console.error('Convert OTM to dragon format not yet supported');
-            appProxy.$toast.error(t('threatmodel.warnings.otmUnsupported'), { timeout: false });
-            return;
+            jsonModel = openOtm(jsonModel);
+            console.debug('force re-selection of file name for OTM');
+            fileName = '';
+            window.electronAPI.modelOpened(fileName);
         } else {
             console.warn('Model does not strictly match possible schemas: ' + JSON.stringify(schema.checkV2(jsonModel, null, 2)));
             appProxy.$toast.warning(t('threatmodel.warnings.jsonSchema'));
@@ -154,7 +154,7 @@ window.electronAPI.onOpenModel((_event, fileName, jsonModel) =>  {
 });
 
 // request from electron to renderer to provide new model contents
-window.electronAPI.onOpenModelRequest(async (_event, fileName) =>  {
+window.electronAPI.onOpenModelRequest(async (_event, fileName) => {
     console.debug('Open request for model file name : ' + fileName);
     if (!appProxy.$store.getters.modelChanged || await getConfirmModal()) {
         console.debug('Confirm model can be opened');
@@ -163,7 +163,7 @@ window.electronAPI.onOpenModelRequest(async (_event, fileName) =>  {
 });
 
 // request from electron to renderer to print the model report
-window.electronAPI.onPrintModelRequest(async (_event, format) =>  {
+window.electronAPI.onPrintModelRequest(async (_event, format) => {
     console.debug('Print report request for model using format : ' + format);
     if (!appProxy.$store.getters.modelChanged || await getConfirmModal()) {
         console.debug('Printing model as ' + format);
@@ -182,13 +182,13 @@ window.electronAPI.onPrintModelRequest(async (_event, format) =>  {
 });
 
 // advice from electron to renderer that the model has been printed
-window.electronAPI.onPrintModelConfirmed((_event, fileName) =>  {
+window.electronAPI.onPrintModelConfirmed((_event, fileName) => {
     console.debug('Print model confirmed for file : ' + fileName);
     appProxy.$toast.success(t('threatmodel.prompts.exported'));
 });
 
 // request from electron to renderer to provide the model data so that it can be saved
-window.electronAPI.onSaveModelRequest((_event, fileName) =>  {
+window.electronAPI.onSaveModelRequest((_event, fileName) => {
     console.debug('Save model request for file name : ' + fileName);
     desktopSave.requestSave({
         routeName: appProxy.$route.name,
@@ -198,21 +198,24 @@ window.electronAPI.onSaveModelRequest((_event, fileName) =>  {
 });
 
 // advice from electron to renderer that the model has been saved
-window.electronAPI.onSaveModelConfirmed((_event, fileName) =>  {
+window.electronAPI.onSaveModelConfirmed((_event, fileName) => {
     console.debug('Save model confirmed for file : ' + fileName);
     appProxy.$store.dispatch(tmActions.stash);
     appProxy.$store.dispatch(tmActions.notModified);
     appProxy.$toast.success(t('threatmodel.prompts.saved'));
 });
-window.electronAPI.onImportTemplateSuccess((_event,message) =>  {
+
+window.electronAPI.onImportTemplateSuccess((_event, message) => {
     console.debug('Template imported successfully');
     appProxy.$toast.success(message);
 });
-window.electronAPI.onImportTemplateError((_event,message) =>  {
+
+window.electronAPI.onImportTemplateError((_event, message) => {
     console.debug('Template import failed');
     appProxy.$toast.error(message);
 });
-window.electronAPI.onSaveModelFailed((_event, fileName, message) =>  {
+
+window.electronAPI.onSaveModelFailed((_event, fileName, message) => {
     console.debug('Failed to save model file : ' + fileName);
     appProxy.$toast.warning(message);
 });
@@ -287,8 +290,14 @@ const localAuth = () => {
 
 const openTmBom = (jsonModel) => {
     console.info('Convert TM-BOM to internal TD format');
-    appProxy.$toast.warning(t('threatmodel.warnings.tmUnsupported'), { timeout: false });
+    appProxy.$toast.warning(t('threatmodel.warnings.tmBomImported'), { timeout: false });
     return importTmbom(jsonModel);
+};
+
+const openOtm = (jsonModel) => {
+    console.info('Convert OTM to internal TD format');
+    appProxy.$toast.warning(t('threatmodel.warnings.otmImported'), { timeout: false });
+    return importOtm(jsonModel);
 };
 
 const app = createApp(App);
@@ -299,4 +308,4 @@ app.use(BootstrapVue);
 app.use(Toast, toastOptions);
 installToastGlobalProperties(app, toastOptions);
 app.component('font-awesome-icon', FontAwesomeIcon);
-appProxy = app.mount('#app');
+const appProxy = app.mount('#app');

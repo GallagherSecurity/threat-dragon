@@ -238,9 +238,9 @@ const messages = {
             export: 'Could not export the Threat Model. Check the developer console for more information',
             jsonSchema: 'Model does not strictly match schema. Details from the developer console',
             noModelOpen: 'No model open',
-            otmUnsupported: 'Import of Open Threat Model file format not yet supported',
+            otmImported: 'Import of Open Threat Model converts the file to Threat Dragon',
             save: 'Could not save the Threat Model. Check the developer console for more information',
-            tmUnsupported: 'Import of TM-BOM files converts the file format to Threat Dragon',
+            tmBomImported: 'Import of TM-BOM converts the file format to Threat Dragon',
             v1Translate: 'Model versi 1.x yang diimpor akan ditingkatkan ke skema versi 2.0'
         },
         prompts: {
@@ -353,6 +353,8 @@ const messages = {
         exportHtml: 'Laporan HTML',
         exportPdf: 'Laporan PDF',
         exportTd: 'Asli (Threat Dragon)',
+        exportTemplate: 'As Template',
+        exportTmBom: 'As TM-BOM',
         exportOtm: 'Model Ancaman Terbuka (OTM)',
         import: 'Impor',
         ok: 'OK',
@@ -368,9 +370,7 @@ const messages = {
         saveModelAs: 'Simpan Model Sebagai',
         search: 'Cari',
         next: 'Berikutnya',
-        previous: 'sebelumnya',
-        manage : 'Manage...',
-        exportTemplate: 'Export As Template',
+        previous: 'sebelumnya'
     },
     cards: {
         details: 'Detail kartu',
@@ -471,7 +471,11 @@ const messages = {
         status: {
             notApplicable: 'N/A',
             open: 'Terbuka',
-            mitigated: 'Diredam'
+            mitigated: 'Diredam',
+            accepted: 'Accepted',
+            transferred: 'Transferred',
+            avoided: 'Avoided',
+            eliminated: 'Eliminated'
         },
         severity: {
             tbd: 'TBD',
@@ -502,6 +506,10 @@ const messages = {
         threatStats: {
             total: 'Total Ancaman',
             mitigated: 'Total Diredam',
+            accepted: 'Total Accepted',
+            transferred: 'Total Transferred',
+            avoided: 'Total Avoided',
+            eliminated: 'Total Eliminated',
             notApplicable: 'Total Not Applicable',
             notMitigated: 'Belum Diredam',
             openCritical: 'Terbuka / Prioritas Kritis',

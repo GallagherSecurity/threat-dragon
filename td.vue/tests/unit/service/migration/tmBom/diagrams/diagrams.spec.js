@@ -1,10 +1,14 @@
 import diagrams from '@/service/migration/tmBom/diagrams/diagrams';
-import tmBomModel from '../tmbom-test-model';
-import tdModel from '../td-test-model';
+import tdModel from '../../td-test-model';
+import tmBomModel from '../../tmbom-test-model';
 
 describe('service/migration/tmBom/diagrams/diagrams.js', () => {
     let testDiagrams;
     const version = 'x.y.zz';
+
+    beforeEach(() => {
+        console.warn = jest.fn();
+    });
 
     describe('merge', () => {
         beforeEach(() => {
@@ -37,7 +41,7 @@ describe('service/migration/tmBom/diagrams/diagrams.js', () => {
 
     describe('merge main diagram', () => {
         beforeEach(() => {
-            delete(tmBomModel.diagrams);
+            delete (tmBomModel.diagrams);
             testDiagrams = diagrams.merge(tmBomModel, version);
         });
 
@@ -48,7 +52,7 @@ describe('service/migration/tmBom/diagrams/diagrams.js', () => {
     });
 
     describe('convert', () => {
-        let noCompatibilityModel = JSON.parse(JSON.stringify(tdModel));
+        const noCompatibilityModel = JSON.parse(JSON.stringify(tdModel));
         delete noCompatibilityModel.detail.compatibility.diagrams;
 
         it('copies saved diagrams from compatibility', () => {

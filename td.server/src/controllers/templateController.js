@@ -1,22 +1,22 @@
 import { badRequest, notFound, serverError } from "./errors.js";
 
-import env from "../env/Env.js";
-import loggerHelper from "../helpers/logger.helper.js";
-import repositories from "../repositories";
-import responseWrapper from "./responseWrapper.js";
+import env from '../env/Env.js';
+import loggerHelper from '../helpers/logger.helper.js';
+import repositories from '../repositories';
+import responseWrapper from './responseWrapper.js';
 
-const logger = loggerHelper.get("controllers/templateController.js");
+const logger = loggerHelper.get('controllers/templateController.js');
 
 
 const fetchTemplateMetadata = async (repository, accessToken) => {
-  // Fetch the metadata file from the repository
-  const result = await repository.listTemplatesAsync(accessToken);
-  const file = result[0];
-  const decoded = Buffer.from(file.content, "base64").toString("utf8");
-  const parsed = JSON.parse(decoded);
-  const templates = Array.isArray(parsed) ? parsed : parsed.templates || [];
+    // Fetch the metadata file from the repository
+    const result = await repository.listTemplatesAsync(accessToken);
+    const file = result[0];
+    const decoded = Buffer.from(file.content, 'base64').toString('utf8');
+    const parsed = JSON.parse(decoded);
+    const templates = Array.isArray(parsed) ? parsed : parsed.templates || [];
   
-  return { templates, sha: file.sha };
+    return { templates, sha: file.sha };
 };
 
 /**
@@ -31,8 +31,8 @@ const fetchTemplateMetadata = async (repository, accessToken) => {
  * @returns {Promise<void>}
  */
 const listTemplates = (req, res) => responseWrapper.sendResponseAsync(async () => {
-  const repository = repositories.get();
-  const contentRepo = env.get().config.GITHUB_CONTENT_REPO;
+    const repository = repositories.get();
+    const contentRepo = env.get().config.GITHUB_CONTENT_REPO;
   
   if (!contentRepo) {
     return {
@@ -71,30 +71,30 @@ const importTemplate = async (req, res) => {
   const accessToken = req.provider.access_token;
   const { templateMetadata, model } = req.body;
 
-  try {
-    const { templates, sha } = await fetchTemplateMetadata(repository, accessToken);
+    try {
+        const { templates, sha } = await fetchTemplateMetadata(repository, accessToken);
 
-    const isDuplicate = templates.some(
-      (t) => (t.name || "").toLowerCase() === templateMetadata.name.toLowerCase()
-    );
+        const isDuplicate = templates.some(
+            (t) => (t.name || '').toLowerCase() === templateMetadata.name.toLowerCase()
+        );
 
-    if (isDuplicate) {
-      return badRequest(`A template with the name "${templateMetadata.name}" already exists`, res, logger);
+        if (isDuplicate) {
+            return badRequest(`A template with the name "${templateMetadata.name}" already exists`, res, logger);
+        }
+
+        templates.push(templateMetadata);
+
+        await repository.updateMetadataAsync(accessToken, templates, sha);
+        await repository.createContentFileAsync(accessToken, templateMetadata.modelRef, model);
+
+        return res.status(201).json({
+            status: 201,
+            message: 'Template imported successfully'
+        });
+    } catch (error) {
+        logger.error('Import template error:', error);
+        return serverError(error.message || 'Failed to import template', res, logger);
     }
-
-    templates.push(templateMetadata);
-
-    await repository.updateMetadataAsync(accessToken, templates, sha);
-    await repository.createContentFileAsync(accessToken, templateMetadata.modelRef, model);
-
-    return res.status(201).json({
-      status: 201,
-      message: "Template imported successfully"
-    });
-  } catch (error) {
-    logger.error("Import template error:", error);
-    return serverError(error.message || "Failed to import template", res, logger);
-  }
 };
 
 const deleteTemplate = async (req, res) => {
@@ -102,28 +102,28 @@ const deleteTemplate = async (req, res) => {
   const accessToken = req.provider.access_token;
   const { id } = req.params;
 
-  try {
-    const { templates, sha } = await fetchTemplateMetadata(repository, accessToken);
+    try {
+        const { templates, sha } = await fetchTemplateMetadata(repository, accessToken);
 
-    const template = templates.find((t) => t.id === id);
-    if (!template) {
-      return notFound(`Template with ID "${id}" not found`, res, logger);
-    }
+        const template = templates.find((t) => t.id === id);
+        if (!template) {
+            return notFound(`Template with ID "${id}" not found`, res, logger);
+        }
 
-    const updatedTemplates = templates.filter((t) => t.id !== id);
+        const updatedTemplates = templates.filter((t) => t.id !== id);
 
-    await repository.updateMetadataAsync(accessToken, updatedTemplates, sha);
-    await repository.deleteContentFileAsync(accessToken, template.modelRef);
+        await repository.updateMetadataAsync(accessToken, updatedTemplates, sha);
+        await repository.deleteContentFileAsync(accessToken, template.modelRef);
     
 
-    return res.status(200).json({
-      status: 200,
-      message: "Template deleted successfully"
-    });
-  } catch (err) {
-    logger.error(err);
-    return serverError(err.message || "Failed to delete template", res, logger);
-  }
+        return res.status(200).json({
+            status: 200,
+            message: 'Template deleted successfully'
+        });
+    } catch (err) {
+        logger.error(err);
+        return serverError(err.message || 'Failed to delete template', res, logger);
+    }
 };
 
 const updateTemplate = async (req, res) => {
@@ -132,35 +132,35 @@ const updateTemplate = async (req, res) => {
   const { id } = req.params;
   const { name, description, tags } = req.body;
 
-  try {
-    logger.debug(`API updateTemplate request: ${logger.transformToString(req)}`);
+    try {
+        logger.debug(`API updateTemplate request: ${logger.transformToString(req)}`);
 
-    const { templates, sha } = await fetchTemplateMetadata(repository, accessToken);
+        const { templates, sha } = await fetchTemplateMetadata(repository, accessToken);
 
-    const templateIndex = templates.findIndex((t) => t.id === id);
-    if (templateIndex === -1) {
-      return notFound(`Template with ID "${id}" not found`, res, logger);
+        const templateIndex = templates.findIndex((t) => t.id === id);
+        if (templateIndex === -1) {
+            return notFound(`Template with ID "${id}" not found`, res, logger);
+        }
+
+        templates[templateIndex] = {
+            ...templates[templateIndex],
+            name: name.trim(),
+            ...(description && { description: description.trim() }),
+            ...(Array.isArray(tags) && { tags }),
+            id: id, // Preserve original ID
+            modelRef: templates[templateIndex].modelRef // Preserve content file reference
+        };
+
+        await repository.updateMetadataAsync(accessToken, templates, sha);
+
+        return res.status(200).json({
+            status: 200,
+            message: 'Template updated successfully'
+        });
+    } catch (err) {
+        logger.error(err);
+        return serverError(err.message || 'Failed to update template', res, logger);
     }
-
-    templates[templateIndex] = {
-      ...templates[templateIndex],
-      name: name.trim(),
-      ...(description && { description: description.trim() }),
-      ...(Array.isArray(tags) && { tags }),
-      id: id, // Preserve original ID
-      modelRef: templates[templateIndex].modelRef // Preserve content file reference
-    };
-
-    await repository.updateMetadataAsync(accessToken, templates, sha);
-
-    return res.status(200).json({
-      status: 200,
-      message: "Template updated successfully"
-    });
-  } catch (err) {
-    logger.error(err);
-    return serverError(err.message || "Failed to update template", res, logger);
-  }
 };
 
 /**
@@ -171,36 +171,36 @@ const updateTemplate = async (req, res) => {
  * @returns {Object} The template content/model
  */
 const getTemplateContent = (req, res) => {
-  const repository = repositories.get();
-  const accessToken = req.provider.access_token;
-  const { id } = req.params;
+    const repository = repositories.get();
+    const accessToken = req.provider.access_token;
+    const { id } = req.params;
 
-  logger.debug(`API getTemplateContent request: ${logger.transformToString(req)}`);
+    logger.debug(`API getTemplateContent request: ${logger.transformToString(req)}`);
 
-  return responseWrapper.sendResponseAsync(async () => {
-    const { templates } = await fetchTemplateMetadata(repository, accessToken);
+    return responseWrapper.sendResponseAsync(async () => {
+        const { templates } = await fetchTemplateMetadata(repository, accessToken);
 
-    const templateMetadata = templates.find((t) => t.id === id);
-    if (!templateMetadata) {
-      return notFound(`Template with ID "${id}" not found`, res, logger);
-    }
+        const templateMetadata = templates.find((t) => t.id === id);
+        if (!templateMetadata) {
+            return notFound(`Template with ID "${id}" not found`, res, logger);
+        }
 
-    try {
-      const contentResult = await repository.getContentFileAsync(accessToken, templateMetadata.modelRef);
-      const contentFile = contentResult[0];
-      const decoded = Buffer.from(contentFile.content, "base64").toString("utf8");
-      const templateContent = JSON.parse(decoded);
+        try {
+            const contentResult = await repository.getContentFileAsync(accessToken, templateMetadata.modelRef);
+            const contentFile = contentResult[0];
+            const decoded = Buffer.from(contentFile.content, 'base64').toString('utf8');
+            const templateContent = JSON.parse(decoded);
 
-      return {
-        content: templateContent,
-      };
-    } catch (error) {
-      if (error.statusCode === 404) {
-        return notFound(`Template content for "${templateMetadata.name}" not found`, res, logger);
-      }
-      throw error;
-    }
-  }, req, res, logger);
+            return {
+                content: templateContent,
+            };
+        } catch (error) {
+            if (error.statusCode === 404) {
+                return notFound(`Template content for "${templateMetadata.name}" not found`, res, logger);
+            }
+            throw error;
+        }
+    }, req, res, logger);
 };
 
 
@@ -209,43 +209,43 @@ const bootstrapTemplateRepository = async (req, res) => {
   const accessToken = req.provider.access_token;
   const contentRepo = env.get().config.GITHUB_CONTENT_REPO;
 
-  if (!contentRepo) {
-    return badRequest("Template repository not configured. Set GITHUB_CONTENT_REPO environment variable.", res, logger);
-  }
-
-  try {
-    logger.debug(`API bootstrapTemplateRepository request: ${logger.transformToString(req)}`);
-
-    // Check if already initialized - prevent accidental overwrites
-    try {
-      await repository.listTemplatesAsync(accessToken);
-      // If we get here, metadata exists - don't overwrite
-      return badRequest("Template repository already initialized", res, logger);
-    } catch (checkError) {
-      // 404 is expected - means we can proceed with initialization
-      if (checkError.statusCode !== 404) {
-        throw checkError;
-      }
+    if (!contentRepo) {
+        return badRequest('Template repository not configured. Set GITHUB_CONTENT_REPO environment variable.', res, logger);
     }
 
-    // Create the initial empty metadata file
-    await repository.createMetadataAsync(accessToken);
+    try {
+        logger.debug(`API bootstrapTemplateRepository request: ${logger.transformToString(req)}`);
 
-    return res.status(201).json({
-      status: 201,
-      message: "Template repository initialized successfully"
-    });
-  } catch (err) {
-    logger.error(err);
-    return serverError(err.message || "Failed to initialize template repository", res, logger);
-  }
+        // Check if already initialized - prevent accidental overwrites
+        try {
+            await repository.listTemplatesAsync(accessToken);
+            // If we get here, metadata exists - don't overwrite
+            return badRequest('Template repository already initialized', res, logger);
+        } catch (checkError) {
+            // 404 is expected - means we can proceed with initialization
+            if (checkError.statusCode !== 404) {
+                throw checkError;
+            }
+        }
+
+        // Create the initial empty metadata file
+        await repository.createMetadataAsync(accessToken);
+
+        return res.status(201).json({
+            status: 201,
+            message: 'Template repository initialized successfully'
+        });
+    } catch (err) {
+        logger.error(err);
+        return serverError(err.message || 'Failed to initialize template repository', res, logger);
+    }
 };
 
 export default {
-  listTemplates,
-  importTemplate,
-  deleteTemplate,
-  updateTemplate,
-  getTemplateContent,
-  bootstrapTemplateRepository,
+    listTemplates,
+    importTemplate,
+    deleteTemplate,
+    updateTemplate,
+    getTemplateContent,
+    bootstrapTemplateRepository,
 };

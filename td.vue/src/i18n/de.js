@@ -82,7 +82,7 @@ const messages = {
     },
     repository: {
         select: 'Wählen Sie ein',
-        from: 'Repository aus folgender Liste',  //in line with Github wording https://docs.github.com/de/repositories
+        from: 'Repository aus folgender Liste', //in line with Github wording https://docs.github.com/de/repositories
         noneFound: 'Kein Repository gefunden. Legen Sie zum Starten eine neues Repository an.'
     },
     branch: {
@@ -238,9 +238,9 @@ const messages = {
             export: 'Could not export the Threat Model. Check the developer console for more information',
             jsonSchema: 'Model does not strictly match schema. Details from the developer console',
             noModelOpen: 'No model open',
-            otmUnsupported: 'Import of Open Threat Model file format not yet supported',
+            otmImported: 'Import of Open Threat Model converts the file to Threat Dragon',
             save: 'Could not save the Threat Model. Check the developer console for more information',
-            tmUnsupported: 'Import of TM-BOM files converts the file format to Threat Dragon',
+            tmBomImported: 'Import of TM-BOM converts the file format to Threat Dragon',
             v1Translate: 'Importierte Version 1.x Modelle werden auf das Version 2.0 Schema gehoben' //in line with wording of BSI Leitfaden zur Entwicklung sicherer Webanwendungen
         },
         prompts: {
@@ -353,6 +353,8 @@ const messages = {
         exportHtml: 'Speichern als HTML',
         exportPdf: 'Speichern als PDF',
         exportTd: 'Original (Threat Dragon)',
+        exportTemplate: 'Export As Template',
+        exportTmBom: 'As TM-BOM',
         exportOtm: 'Open Threat Model (OTM)',
         import: 'Importieren',
         ok: 'OK',
@@ -368,9 +370,7 @@ const messages = {
         saveModelAs: 'Modell speichern als',
         search: 'Suchen',
         next: 'nächste',
-        previous: 'vorherige',
-        manage : 'Manage...',
-        exportTemplate: 'Export As Template',
+        previous: 'vorherige'
     },
     cards: {
         details: 'Kartendetails',
@@ -471,7 +471,11 @@ const messages = {
         status: {
             notApplicable: 'N/A',
             open: 'Offen',
-            mitigated: 'Abgeschwächt'
+            mitigated: 'Abgeschwächt',
+            accepted: 'Accepted',
+            transferred: 'Transferred',
+            avoided: 'Avoided',
+            eliminated: 'Eliminated'
         },
         severity: {
             tbd: '',
@@ -502,6 +506,10 @@ const messages = {
         threatStats: {
             total: 'Bedrohungen insgesamt',
             mitigated: 'Bedrohungen abgeschwächt',
+            accepted: 'Total Accepted',
+            transferred: 'Total Transferred',
+            avoided: 'Total Avoided',
+            eliminated: 'Total Eliminated',
             notApplicable: 'Total Not Applicable',
             notMitigated: 'Nicht abgeschwächt',
             openCritical: 'Offen / Kritische Priorität',

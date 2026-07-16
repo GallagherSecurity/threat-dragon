@@ -238,9 +238,9 @@ const messages = {
             export: '无法导出威胁模型。检查开发者控制台查阅更多信息',
             jsonSchema: '模型与模式不完全匹配。详情请参见开发者控制台。',
             noModelOpen: '没有打开的模型',
-            otmUnsupported: '目前尚不支持导入开放威胁模型文件格式',
+            otmImported: '目前尚不支持导入开放威胁模型文件格式',
             save: '无法保存威胁模型。请查看开发者控制台以获取更多信息。',
-            tmUnsupported: 'TM-BOM文件格式的导入功能尚处于实验阶段，可能随时变更，此类变更可能导致模型损坏。',
+            tmBomImported: 'TM-BOM文件格式的导入功能尚处于实验阶段，可能随时变更，此类变更可能导致模型损坏。',
             v1Translate: '导入的 1.x 版模型将升级到 2.0 版本'
         },
         prompts: {
@@ -353,6 +353,8 @@ const messages = {
         exportHtml: '导出HTML',
         exportPdf: '导出PDF',
         exportTd: '原始 (Threat Dragon)',
+        exportTemplate: 'As Template',
+        exportTmBom: 'As TM-BOM',
         exportOtm: '开放威胁模型 (OTM)',
         import: '导入',
         ok: 'OK',
@@ -368,9 +370,7 @@ const messages = {
         saveModelAs: '模型另存为',
         search: '搜索',
         next: '下一个',
-        previous: '上一个',
-        manage : 'Manage...',
-        exportTemplate: 'Export As Template',
+        previous: '上一个'
     },
     cards: {
         details: '卡片详情',
@@ -471,7 +471,11 @@ const messages = {
         status: {
             notApplicable: '不适用',
             open: '未解决',
-            mitigated: '缓解'
+            mitigated: '缓解',
+            accepted: 'Accepted',
+            transferred: 'Transferred',
+            avoided: 'Avoided',
+            eliminated: 'Eliminated'
         },
         severity: {
             tbd: '待定',
@@ -502,6 +506,10 @@ const messages = {
         threatStats: {
             total: '威胁总数',
             mitigated: '已缓解总数',
+            accepted: 'Total Accepted',
+            transferred: 'Total Transferred',
+            avoided: 'Total Avoided',
+            eliminated: 'Total Eliminated',
             notApplicable: '不适用总计',
             notMitigated: '未缓解',
             openCritical: '未解决/关键优先级',
