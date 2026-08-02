@@ -91,6 +91,42 @@
 
                     <b-form-row>
                         <b-col>
+                            <b-form-group
+                                id="required-standards-group"
+                                :label="$t('threatmodel.requiredStandards')"
+                                label-for="required-standards">
+                                <td-dropdown
+                                    id="required-standards"
+                                    variant="secondary"
+                                    :text="requiredStandardsLabel"
+                                    class="required-standards-dropdown"
+                                >
+                                    <template #default="{ close }">
+                                        <div v-if="allStandards.length === 0" class="td-dropdown-item text-muted" style="pointer-events:none;">
+                                            {{ $t('threatmodel.requiredStandardsPlaceholder') }}
+                                        </div>
+                                        <label
+                                            v-for="standard in allStandards"
+                                            :key="standard.id"
+                                            class="td-dropdown-item d-flex align-items-center gap-2"
+                                            @click.stop
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                :value="standard.id"
+                                                v-model="requiredStandards"
+                                                class="mr-2"
+                                            />
+                                            {{ standard.name }}
+                                        </label>
+                                    </template>
+                                </td-dropdown>
+                            </b-form-group>
+                        </b-col>
+                    </b-form-row>
+
+                    <b-form-row>
+                        <b-col>
                             <h5>{{ $t('threatmodel.diagram.diagrams') }}</h5>
                         </b-col>
                     </b-form-row>
@@ -204,6 +240,7 @@ import TdDropdown from '@/components/Dropdown.vue';
 import TdFormButton from '@/components/FormButton.vue';
 import TdFormTags from '@/components/FormTags.vue';
 import tmActions from '@/store/actions/threatmodel.js';
+import standardsActions from '@/store/actions/standards.js';
 
 export default {
     name: 'ThreatModelEdit',
@@ -228,10 +265,30 @@ export default {
             set(contributors) {
                 this.$store.dispatch(tmActions.contributorsUpdated, contributors);
             }
+        },
+        allStandards() {
+            return this.$store.getters.allStandards;
+        },
+        requiredStandardsLabel() {
+            if (!this.requiredStandards.length) return this.$t('threatmodel.requiredStandardsSelect');
+            return this.allStandards
+                .filter((s) => this.requiredStandards.includes(s.id))
+                .map((s) => s.name)
+                .join(', ');
+        },
+        requiredStandards: {
+            get() {
+                return this.model && this.model.summary ? (this.model.summary.requiredStandards || []) : [];
+            },
+            set(selected) {
+                this.model.summary.requiredStandards = selected;
+                this.$store.dispatch(tmActions.modified);
+            }
         }
     },
     async mounted() {
         this.init();
+        this.$store.dispatch(standardsActions.fetch);
     },
     methods: {
         init() {

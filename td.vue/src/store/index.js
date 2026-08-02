@@ -12,6 +12,7 @@ import repo from './modules/repository.js';
 import template from './modules/template.js';
 import threatmodel from './modules/threatmodel.js';
 import threatCatalogue from './modules/threatCatalogue.js';
+import standards from './modules/standards.js';
 import vuexPersist from '../plugins/vuex-persist.js';
 
 let store = null;
@@ -37,7 +38,8 @@ const get = () => {
                 repo,
                 template,
                 threatmodel,
-                threatCatalogue
+                threatCatalogue,
+                standards
             },
             plugins: [vuexPersist.session.plugin]
         });

@@ -228,6 +228,9 @@ const messages = {
     threatmodel: {
         contributors: 'Contributors',
         contributorsPlaceholder: 'Start typing to add a contributor',
+        requiredStandards: 'Required Compliance Standards',
+        requiredStandardsSelect: 'Select standards...',
+        requiredStandardsPlaceholder: 'No standards configured, contact your administrator to add some',
         description: 'High level system description',
         dragAndDrop: 'Drag and drop or ',
         editing: 'Editing',

@@ -11,6 +11,7 @@ import metadataController from '../controllers/metadataController.js';
 import templateController from '../controllers/templateController.js';
 import threatCatalogueController from '../controllers/threatCatalogueController.js';
 import threatmodelController from '../controllers/threatmodelcontroller.js';
+import standardsController from '../controllers/standardsController.js';
 
 
 
@@ -49,6 +50,9 @@ const routes = (router) => {
     // Template routes
     router.get('/api/templates/', templateController.listTemplates);
     router.get('/api/templates/:id/content', templateController.getTemplateContent);
+
+    // Standards routes (read — all authenticated users)
+    router.get('/api/standards', standardsController.listStandards);
 
     // Threat catalogue routes (read — all authenticated users)
     router.get('/api/threats/catalogue', threatCatalogueController.listCatalogueThreats);
@@ -93,6 +97,10 @@ const adminRoutes = (router) => {
     router.put('/api/templates/:id', templateController.updateTemplate);
     router.post('/api/templates/bootstrap', templateController.bootstrapTemplateRepository);
     
+
+    // Standards routes (write — admin only)
+    router.post('/api/standards', standardsController.createStandard);
+    router.delete('/api/standards/:id', standardsController.deleteStandard);
 
     // Threat catalogue routes (write — admin only)
     router.post('/api/threats/catalogue', threatCatalogueController.createCatalogueThreat);
