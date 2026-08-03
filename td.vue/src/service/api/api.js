@@ -11,6 +11,7 @@ const getAsync = async (url, query) => {
     return res.data;
 };
 
+
 /**
  * Does a POST request to the given resource
  * Will add the optional body if provided
@@ -44,5 +45,4 @@ export default {
     postAsync,
     putAsync,
     deleteAsync
-
 };

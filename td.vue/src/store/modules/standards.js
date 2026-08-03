@@ -1,26 +1,15 @@
-import {
-    STANDARDS_FETCH,
-    STANDARDS_SET,
-    STANDARDS_CLEAR
-} from '@/store/actions/standards';
-
+import { STANDARDS_FETCH, STANDARDS_SET, STANDARDS_CLEAR } from '@/store/actions/standards';
 import standardsApi from '@/service/api/standardsApi.js';
 
 const state = {
-    all: [],
-    status: null
+    all: []
 };
 
 const actions = {
     [STANDARDS_FETCH]: async ({ commit }) => {
         try {
             const response = await standardsApi.fetchAllAsync();
-
-            if (response.data.status) {
-                commit(STANDARDS_SET, []);
-            } else {
-                commit(STANDARDS_SET, response.data.standards || []);
-            }
+            commit(STANDARDS_SET, response.data.standards || []);
         } catch (error) {
             console.error('Failed to fetch standards:', error);
             commit(STANDARDS_SET, []);
@@ -38,7 +27,6 @@ const mutations = {
     },
     [STANDARDS_CLEAR]: (state) => {
         state.all = [];
-        state.status = null;
     }
 };
 
