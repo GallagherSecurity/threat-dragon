@@ -105,6 +105,7 @@
                                         <div v-if="allStandards.length === 0" class="td-dropdown-item text-muted" style="pointer-events:none;">
                                             {{ $t('threatmodel.requiredStandardsPlaceholder') }}
                                         </div>
+                                        <div class="td-dropdown-scroll">
                                         <label
                                             v-for="standard in allStandards"
                                             :key="standard.id"
@@ -119,6 +120,7 @@
                                             />
                                             {{ standard.name }}
                                         </label>
+                                        </div>
                                     </template>
                                 </td-dropdown>
                             </b-form-group>
