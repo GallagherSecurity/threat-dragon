@@ -572,6 +572,14 @@ const messages = {
         newThreatByType: 'New Threat by Type',
         newThreatByContext: 'New Threat by Context',
         newThreatFromCatalogue: 'New Threat from Catalogue',
+        mitigations: {
+            title: 'Mitigations',
+            new: 'New Mitigation',
+            newFromCatalogue: 'New Mitigation from Catalogue',
+            empty: 'No mitigations yet',
+            mandatory: 'Required',
+            noDescription: 'No description'
+        },
         properties: {
             description: 'Description',
             mitigation: 'Mitigations',
