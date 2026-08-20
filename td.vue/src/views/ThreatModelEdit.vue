@@ -114,7 +114,7 @@
                                         >
                                             <input
                                                 type="checkbox"
-                                                :value="standard.id"
+                                                :value="standard.name"
                                                 v-model="requiredStandards"
                                                 class="mr-2"
                                             />
@@ -243,6 +243,7 @@ import TdFormButton from '@/components/FormButton.vue';
 import TdFormTags from '@/components/FormTags.vue';
 import tmActions from '@/store/actions/threatmodel.js';
 import standardsActions from '@/store/actions/standards.js';
+import { recomputeAllMandatory } from '@/service/mitigations/compliance.js';
 
 export default {
     name: 'ThreatModelEdit',
@@ -273,10 +274,7 @@ export default {
         },
         requiredStandardsLabel() {
             if (!this.requiredStandards.length) return this.$t('threatmodel.requiredStandardsSelect');
-            return this.allStandards
-                .filter((s) => this.requiredStandards.includes(s.id))
-                .map((s) => s.name)
-                .join(', ');
+            return this.requiredStandards.join(', ');
         },
         requiredStandards: {
             get() {
@@ -286,6 +284,12 @@ export default {
                 this.model.summary.requiredStandards = selected;
                 this.$store.dispatch(tmActions.modified);
             }
+        }
+    },
+    watch: {
+        requiredStandards() {
+            recomputeAllMandatory(this.model);
+            this.$store.dispatch(tmActions.modified);
         }
     },
     async mounted() {
