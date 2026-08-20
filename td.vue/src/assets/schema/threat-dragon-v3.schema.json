@@ -354,8 +354,16 @@
                                   "type": "string",
                                   "minLength": 2
                                 },
+                                "number": {
+                                  "description": "Globally unique incrementing number stamped at creation time",
+                                  "type": "integer"
+                                },
+                                "title": {
+                                  "description": "Short title for the mitigation",
+                                  "type": "string"
+                                },
                                 "description": {
-                                  "description": "The mitigation description",
+                                  "description": "Detailed description of the mitigation",
                                   "type": "string"
                                 },
                                 "status": {
@@ -387,7 +395,7 @@
                                   "type": "boolean"
                                 }
                               },
-                              "required": [ "mitigationId", "description", "status", "clauses", "mandatory" ]
+                              "required": [ "mitigationId", "title", "status", "clauses", "mandatory" ]
                             }
                           },
                           "modelType": {

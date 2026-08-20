@@ -574,11 +574,18 @@ const messages = {
         newThreatFromCatalogue: 'New Threat from Catalogue',
         mitigations: {
             title: 'Mitigations',
+            edit: 'Edit Mitigation',
             new: 'New Mitigation',
             newFromCatalogue: 'New Mitigation from Catalogue',
             empty: 'No mitigations yet',
             mandatory: 'Required',
-            noDescription: 'No description'
+            noTitle: 'No title',
+            noDescription: 'No description',
+            clauses: 'Compliance Clauses',
+            addClause: 'Add Clause',
+            noClauses: 'No clauses linked',
+            standardPlaceholder: 'Select standard...',
+            clausePlaceholder: 'Clause (e.g. A.12.1)'
         },
         properties: {
             description: 'Description',

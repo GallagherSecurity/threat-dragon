@@ -1,5 +1,10 @@
 <template>
     <div>
+        <td-mitigation-edit-dialog
+            ref="mitigationEditDialog"
+            @mitigationUpdated="onMitigationUpdated"
+            @mitigationDeleted="onMitigationDeleted"
+        />
         <b-modal
             v-if="!!threat"
             id="threat-edit"
@@ -341,6 +346,7 @@ import { v4 as uuidv4 } from 'uuid';
 import TdFormRadioGroup from '@/components/FormRadioGroup.vue';
 import TdFormSelect from '@/components/FormSelect.vue';
 import TdMitigationCard from '@/components/MitigationCard.vue';
+import TdMitigationEditDialog from '@/components/MitigationEditDialog.vue';
 import TdThreatStatusSelector from '@/components/ThreatStatusSelector.vue';
 import { getGame, getAllGames } from '../service/threats/models/eop';
 import { getSeverityOptions } from '@/service/threats/index.js';
@@ -351,12 +357,14 @@ export default {
         TdFormRadioGroup,
         TdFormSelect,
         TdMitigationCard,
+        TdMitigationEditDialog,
         TdThreatStatusSelector
     },
     computed: {
         ...mapState({
             cellRef: (state) => state.cell.ref,
             threatTop: (state) => state.threatmodel.data.detail.threatTop,
+            mitigationTop: (state) => state.threatmodel.data.detail.mitigationTop,
         }),
         threatTypes() {
             if (!this.cellRef || !this.threat || !this.threat.modelType) {
@@ -584,8 +592,11 @@ export default {
             this.hideModal();
         },
         newMitigation() {
+            const number = (this.mitigationTop || 0) + 1;
             const mitigation = {
                 mitigationId: uuidv4(),
+                number,
+                title: '',
                 description: '',
                 status: 'Recommended',
                 clauses: [],
@@ -593,13 +604,27 @@ export default {
             };
             this.threat.mitigations = this.threat.mitigations || [];
             this.threat.mitigations.push(mitigation);
+            this.$store.dispatch(tmActions.update, { mitigationTop: number });
             this.mitigationSelected(mitigation.mitigationId);
         },
         newMitigationFromCatalogue() {
             // catalogue picker — future implementation
         },
         mitigationSelected(mitigationId) {
-            console.debug('mitigation selected: ' + mitigationId);
+            const mitigation = (this.threat.mitigations || []).find(m => m.mitigationId === mitigationId);
+            if (mitigation) {
+                this.$refs.mitigationEditDialog.editMitigation(mitigation);
+            }
+        },
+        onMitigationUpdated(updated) {
+            const mitigations = this.threat.mitigations || [];
+            const idx = mitigations.findIndex(m => m.mitigationId === updated.mitigationId);
+            if (idx !== -1) {
+                this.$set(this.threat.mitigations, idx, updated);
+            }
+        },
+        onMitigationDeleted(mitigationId) {
+            this.threat.mitigations = (this.threat.mitigations || []).filter(m => m.mitigationId !== mitigationId);
         },
     },
 };

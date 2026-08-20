@@ -1,15 +1,16 @@
 <template>
     <b-card class="mitigation-card">
         <b-card-text>
-            <b-row>
+            <b-row class="mb-2">
                 <b-col>
                     <a href="#" @click.prevent="mitigationSelected()">
-                        {{ mitigation.description || $t('threats.mitigations.noDescription') }}
+                        #{{ number }} {{ mitigation.title || $t('threats.mitigations.noTitle') }}
                     </a>
                 </b-col>
             </b-row>
 
-            <b-row>
+
+            <b-row class="mb-2">
                 <b-col>
                     <font-awesome-icon
                         v-if="mitigation.status === 'Implemented'"
@@ -31,29 +32,24 @@
                     />
                     <font-awesome-icon
                         v-else
-                        icon="clock"
+                        icon="exclamation-triangle"
                         class="mitigation-icon orange-icon"
                         :title="mitigation.status"
                     />
-                    <b-badge
-                        v-if="mitigation.mandatory"
-                        variant="warning"
-                        class="ml-1"
-                    >{{ $t('threats.mitigations.mandatory') }}</b-badge>
-                </b-col>
-                <b-col align-h="end">
-                    <b-badge>{{ mitigation.status }}</b-badge>
-                </b-col>
-            </b-row>
 
-            <b-row v-if="mitigation.clauses && mitigation.clauses.length">
-                <b-col>
-                    <small class="text-muted">
-                        <span
-                            v-for="(clause, idx) in mitigation.clauses"
-                            :key="idx"
-                        >{{ clause.standard }} {{ clause.clause }}<span v-if="idx < mitigation.clauses.length - 1">, </span></span>
-                    </small>
+                    <font-awesome-icon
+                        v-if="mitigation.mandatory"
+                        icon="shield-alt"
+                        class="mitigation-icon red-icon"
+                        :title="$t('threats.mitigations.mandatory')"
+                    />
+                </b-col>
+
+                <b-col align-h="end">
+                    <b-badge v-if="mitigation.mandatory" variant="danger" class="mr-1">
+                        {{ $t('threats.mitigations.mandatory') }}
+                    </b-badge>
+                    <b-badge>{{ mitigation.status }}</b-badge>
                 </b-col>
             </b-row>
         </b-card-text>
@@ -95,6 +91,10 @@ export default {
             type: Object,
             required: true
         }
+    },
+
+    computed: {
+        number() { return this.mitigation.number || '?'; }
     },
 
     methods: {
