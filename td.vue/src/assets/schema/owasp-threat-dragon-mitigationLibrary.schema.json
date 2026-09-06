@@ -1,0 +1,38 @@
+{
+  "$id": "https://github.com/OWASP/threat-dragon/tree/main/td.vue/src/assets/schema/owasp-threat-dragon-mitigationLibrary.schema.json",
+  "title": "Threat Dragon mitigation library schema",
+  "description": "The mitigation library format used for import and export of catalogue mitigations in OWASP Threat Dragon",
+  "type": "object",
+  "properties": {
+    "mitigationLibrary": {
+      "description": "Array of mitigation library entries",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "description": "The mitigation title",
+            "type": "string"
+          },
+          "description": {
+            "description": "The full mitigation description",
+            "type": "string"
+          },
+          "clauses": {
+            "description": "Compliance clauses this mitigation satisfies",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "standard": { "type": "string" },
+                "clause": { "type": "string" }
+              }
+            }
+          }
+        },
+        "required": ["title", "description"]
+      }
+    }
+  },
+  "required": ["mitigationLibrary"]
+}
