@@ -63,4 +63,11 @@ export const gitRoutes = [
         meta: { requiresAdmin: true }
     },
 
+    {
+        path: '/admin/mitigations',
+        name: 'ManageMitigationCatalogue',
+        component: () => import(/* webpackChunkName: "manage-mitigation-catalogue" */ '../views/ManageMitigationCatalogue.vue'),
+        meta: { requiresAdmin: true }
+    },
+
 ];

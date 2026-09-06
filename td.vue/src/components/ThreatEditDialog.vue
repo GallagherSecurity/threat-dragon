@@ -5,6 +5,10 @@
             @mitigationUpdated="onMitigationUpdated"
             @mitigationDeleted="onMitigationDeleted"
         />
+        <td-mitigation-catalogue-selector
+            ref="mitigationCatalogueSelector"
+            @mitigationSelected="onMitigationFromCatalogue"
+        />
         <b-modal
             v-if="!!threat"
             id="threat-edit"
@@ -347,6 +351,7 @@ import TdFormRadioGroup from '@/components/FormRadioGroup.vue';
 import TdFormSelect from '@/components/FormSelect.vue';
 import TdMitigationCard from '@/components/MitigationCard.vue';
 import TdMitigationEditDialog from '@/components/MitigationEditDialog.vue';
+import TdMitigationCatalogueSelector from '@/components/MitigationCatalogueSelector.vue';
 import TdThreatStatusSelector from '@/components/ThreatStatusSelector.vue';
 import { getGame, getAllGames } from '../service/threats/models/eop';
 import { getSeverityOptions } from '@/service/threats/index.js';
@@ -358,6 +363,7 @@ export default {
         TdFormSelect,
         TdMitigationCard,
         TdMitigationEditDialog,
+        TdMitigationCatalogueSelector,
         TdThreatStatusSelector
     },
     computed: {
@@ -608,7 +614,23 @@ export default {
             this.mitigationSelected(mitigation.mitigationId);
         },
         newMitigationFromCatalogue() {
-            // catalogue picker — future implementation
+            this.$refs.mitigationCatalogueSelector.open();
+        },
+        onMitigationFromCatalogue(catalogueMitigation) {
+            const number = (this.mitigationTop || 0) + 1;
+            const mitigation = {
+                mitigationId: uuidv4(),
+                number,
+                title: catalogueMitigation.title,
+                description: catalogueMitigation.description,
+                status: catalogueMitigation.status,
+                clauses: catalogueMitigation.clauses,
+                mandatory: false
+            };
+            this.threat.mitigations = this.threat.mitigations || [];
+            this.threat.mitigations.push(mitigation);
+            this.$store.dispatch(tmActions.update, { mitigationTop: number });
+            this.mitigationSelected(mitigation.mitigationId);
         },
         mitigationSelected(mitigationId) {
             const mitigation = (this.threat.mitigations || []).find(m => m.mitigationId === mitigationId);

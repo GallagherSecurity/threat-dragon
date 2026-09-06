@@ -437,7 +437,7 @@ const messages = {
     },
     threats: {
         catalogue: {
-            manage: 'Manage Threat Catalogue',
+            manage: 'Manage Threats',
             manageDescription: 'Create and manage reusable threats for your organisation.',
             addNew: 'Add Threat',
             import: 'Import Threats',
@@ -585,7 +585,35 @@ const messages = {
             addClause: 'Add Clause',
             noClauses: 'No clauses linked',
             standardPlaceholder: 'Select standard...',
-            clausePlaceholder: 'Clause (e.g. A.12.1)'
+            clausePlaceholder: 'Clause (e.g. A.12.1)',
+            catalogue: {
+                manage: 'Manage Mitigations',
+                manageDescription: 'Create and manage reusable mitigations for your threat models.',
+                addNew: 'New Mitigation',
+                import: 'Import Mitigations',
+                search: 'Search mitigations...',
+                newMitigation: 'New Catalogue Mitigation',
+                editMitigation: 'Edit Catalogue Mitigation',
+                notInitialized: 'Mitigation catalogue not initialized',
+                bootstrapDescription: 'Initialize the mitigation catalogue in your content repository to get started.',
+                noMitigations: 'No mitigations in catalogue yet.',
+                deleteTitle: 'Delete Mitigation',
+                deleteBulkTitle: 'Delete Selected Mitigations',
+                prompts: {
+                    createSuccess: 'Mitigation created successfully',
+                    updateSuccess: 'Mitigation updated successfully',
+                    deleteSuccess: 'Mitigation deleted successfully',
+                    initialiseSuccess: 'Mitigation catalogue initialized successfully'
+                },
+                errors: {
+                    createFailed: 'Failed to create mitigation',
+                    updateFailed: 'Failed to update mitigation',
+                    deleteFailed: 'Failed to delete mitigation',
+                    initialiseFailed: 'Failed to initialize mitigation catalogue',
+                    invalidLibrary: 'Invalid mitigation library file',
+                    importFailed: 'Failed to import mitigation library'
+                }
+            }
         },
         properties: {
             description: 'Description',

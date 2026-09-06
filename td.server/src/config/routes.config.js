@@ -10,6 +10,7 @@ import homeController from '../controllers/homecontroller.js';
 import metadataController from '../controllers/metadataController.js';
 import templateController from '../controllers/templateController.js';
 import threatCatalogueController from '../controllers/threatCatalogueController.js';
+import mitigationCatalogueController from '../controllers/mitigationCatalogueController.js';
 import threatmodelController from '../controllers/threatmodelcontroller.js';
 import standardsController from '../controllers/standardsController.js';
 
@@ -58,6 +59,11 @@ const routes = (router) => {
     router.get('/api/threats/catalogue', threatCatalogueController.listCatalogueThreats);
     router.get('/api/threats/catalogue/:id/content', threatCatalogueController.getCatalogueThreatContent);
     router.post('/api/threats/catalogue/content/bulk', threatCatalogueController.bulkGetCatalogueContent);
+
+    // Mitigation catalogue routes (read — all authenticated users)
+    router.get('/api/mitigations/catalogue', mitigationCatalogueController.listCatalogueMitigations);
+    router.get('/api/mitigations/catalogue/:id/content', mitigationCatalogueController.getCatalogueMitigationContent);
+    router.post('/api/mitigations/catalogue/content/bulk', mitigationCatalogueController.bulkGetCatalogueMitigationContent);
 
     router.get('/api/threatmodel/repos', threatmodelController.repos);
     router.get('/api/threatmodel/:organisation/:repo/branches', threatmodelController.branches);
@@ -109,6 +115,14 @@ const adminRoutes = (router) => {
     router.delete('/api/threats/catalogue/:id', threatCatalogueController.deleteCatalogueThreat);
     router.post('/api/threats/catalogue/bootstrap', threatCatalogueController.bootstrapCatalogueRepository);
     router.post('/api/threats/catalogue/import', threatCatalogueController.importThreatLibrary);
+
+    // Mitigation catalogue routes (write — admin only)
+    router.post('/api/mitigations/catalogue', mitigationCatalogueController.createCatalogueMitigation);
+    router.put('/api/mitigations/catalogue/:id', mitigationCatalogueController.updateCatalogueMitigation);
+    router.delete('/api/mitigations/catalogue/bulk', mitigationCatalogueController.bulkDeleteCatalogueMitigations);
+    router.delete('/api/mitigations/catalogue/:id', mitigationCatalogueController.deleteCatalogueMitigation);
+    router.post('/api/mitigations/catalogue/bootstrap', mitigationCatalogueController.bootstrapMitigationCatalogueRepository);
+    router.post('/api/mitigations/catalogue/import', mitigationCatalogueController.importMitigationLibrary);
 };
 
 
