@@ -194,6 +194,7 @@
 <script>
 import { mapGetters, mapState } from 'vuex';
 import { computeMandatory } from '@/service/mitigations/compliance.js';
+import standardsActions from '@/store/actions/standards.js';
 import TdFormSelect from '@/components/FormSelect.vue';
 
 export default {
@@ -230,7 +231,8 @@ export default {
     },
 
     methods: {
-        editMitigation(mitigation) {
+        async editMitigation(mitigation) {
+            await this.$store.dispatch(standardsActions.fetch);
             this.mitigation = { ...mitigation, clauses: mitigation.clauses ? mitigation.clauses.map(c => ({ ...c })) : [] };
             this.$nextTick(() => this.$refs.editModal.show());
         },

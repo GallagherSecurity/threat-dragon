@@ -180,6 +180,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { mapGetters } from 'vuex';
 import mcActions from '@/store/actions/mitigationCatalogue.js';
+import standardsActions from '@/store/actions/standards.js';
 import TdFormSelect from '@/components/FormSelect.vue';
 
 export default {
@@ -201,7 +202,7 @@ export default {
         }
     },
     methods: {
-        showModal(existingMitigation) {
+        async showModal(existingMitigation) {
             if (existingMitigation) {
                 this.isEditing = true;
                 this.mitigation = {
@@ -219,6 +220,7 @@ export default {
                     clauses: []
                 };
             }
+            await this.$store.dispatch(standardsActions.fetch);
             this.$nextTick(() => this.$refs.formModal.show());
         },
         hideModal() {

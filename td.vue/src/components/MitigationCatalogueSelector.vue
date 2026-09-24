@@ -88,6 +88,7 @@ export default {
                 const response = await this.$store.dispatch(mcActions.fetchById, catalogueEntry.id);
                 const full = response.content;
                 this.$emit('mitigationSelected', {
+                    id: catalogueEntry.id,
                     title: full.title || '',
                     description: full.description || '',
                     clauses: (full.clauses || []).map(c => ({ ...c }))

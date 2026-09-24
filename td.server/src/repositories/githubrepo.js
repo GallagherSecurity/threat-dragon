@@ -212,9 +212,9 @@ const getBulkThreatsAsync = async (accessToken, ids) => {
 
 const saveThreatAsync = async (accessToken, threat) => {
     const { threats, sha } = await getCatalogueFileAsync(accessToken);
-    const { id, briefDescription, hash, description, mitigation, ...metadata } = threat;
-    const { threatRef } = await createThreatContentFileAsync(accessToken, { ...metadata, description, mitigation });
-    threats.push({ id, threatRef, ...metadata, briefDescription, hash });
+    const { id, briefDescription, hash, description, mitigationRefs, ...metadata } = threat;
+    const { threatRef } = await createThreatContentFileAsync(accessToken, { ...metadata, description, mitigationRefs });
+    threats.push({ id, threatRef, ...metadata, briefDescription, hash, mitigationRefs });
     await updateThreatCatalogueMetadataAsync(accessToken, threats, sha);
 };
 
@@ -222,9 +222,9 @@ const bulkSaveThreatsAsync = async (accessToken, newThreats) => {
     const { threats, sha } = await getCatalogueFileAsync(accessToken);
     const newEntries = await newThreats.reduce(async (prevPromise, threat) => {
         const acc = await prevPromise;
-        const { id, briefDescription, hash, description, mitigation, ...metadata } = threat;
-        const { threatRef } = await createThreatContentFileAsync(accessToken, { ...metadata, description, mitigation });
-        return [...acc, { id, threatRef, ...metadata, briefDescription, hash }];
+        const { id, briefDescription, hash, description, mitigationRefs, ...metadata } = threat;
+        const { threatRef } = await createThreatContentFileAsync(accessToken, { ...metadata, description, mitigationRefs });
+        return [...acc, { id, threatRef, ...metadata, briefDescription, hash, mitigationRefs }];
     }, Promise.resolve([]));
     threats.push(...newEntries);
     await updateThreatCatalogueMetadataAsync(accessToken, threats, sha);
@@ -238,11 +238,11 @@ const updateThreatEntryAsync = async (accessToken, id, data) => {
         err.statusCode = 404;
         throw err;
     }
-    const { description, mitigation, briefDescription, hash, ...metadata } = data;
+    const { description, mitigationRefs, briefDescription, hash, ...metadata } = data;
     const threatRef = threats[index].threatRef;
-    threats[index] = { ...threats[index], ...metadata, id, threatRef, briefDescription, hash };
+    threats[index] = { ...threats[index], ...metadata, id, threatRef, briefDescription, hash, mitigationRefs };
     await updateThreatCatalogueMetadataAsync(accessToken, threats, sha);
-    await updateThreatContentFileAsync(accessToken, threatRef, { ...metadata, description, mitigation });
+    await updateThreatContentFileAsync(accessToken, threatRef, { ...metadata, description, mitigationRefs });
 };
 
 const bulkDeleteThreatsAsync = async (accessToken, ids) => {

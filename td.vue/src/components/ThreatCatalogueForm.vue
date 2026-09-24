@@ -1,5 +1,9 @@
 <template>
     <div>
+        <td-mitigation-catalogue-selector
+            ref="mitigationCatalogueSelector"
+            @mitigationSelected="onMitigationRefAdded"
+        />
         <b-modal
             v-if="!!threat"
             id="threat-catalogue-form"
@@ -115,17 +119,48 @@
 
                 <b-form-row>
                     <b-col>
-                        <b-form-group
-                            id="mitigation-group"
-                            :label="$t('threats.properties.mitigation')"
-                            label-for="mitigation"
-                        >
-                            <b-form-textarea
-                                id="mitigation"
-                                v-model="threat.mitigation"
-                                rows="5"
-                            ></b-form-textarea>
-                        </b-form-group>
+                        <b-card header-tag="header">
+                            <template #header>
+                                <div class="clauses-header">
+                                    <span>{{ $t('threats.properties.mitigation') }}</span>
+                                    <button
+                                        type="button"
+                                        class="clauses-header-action"
+                                        @click="openMitigationSelector()"
+                                    >
+                                        <font-awesome-icon icon="plus" class="clauses-header-icon"></font-awesome-icon>
+                                        {{ $t('threats.mitigations.newFromCatalogue') }}
+                                    </button>
+                                </div>
+                            </template>
+
+                            <b-card-text v-if="mitigations.length">
+                                <div
+                                    v-for="m in mitigations"
+                                    :key="m.id"
+                                    class="mitigation-ref-row d-flex justify-content-between align-items-start"
+                                >
+                                    <div v-if="!m.missing">
+                                        <strong>{{ m.title }}</strong>
+                                        <div class="text-muted small">{{ m.description }}</div>
+                                    </div>
+                                    <div v-else class="text-danger">
+                                        {{ $t('threats.mitigations.catalogue.missingReference') }}
+                                    </div>
+                                    <b-button
+                                        variant="link"
+                                        class="remove-clause-btn"
+                                        @click="removeMitigationRef(m.id)"
+                                    >
+                                        <font-awesome-icon icon="times"></font-awesome-icon>
+                                    </b-button>
+                                </div>
+                            </b-card-text>
+
+                            <b-card-text v-else class="text-muted">
+                                {{ $t('threats.mitigations.empty') }}
+                            </b-card-text>
+                        </b-card>
                     </b-col>
                 </b-form-row>
 
@@ -179,11 +214,62 @@
     </div>
 </template>
 
+<style lang="scss" scoped>
+.clauses-header {
+    align-items: center;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    line-height: 1.5;
+}
+
+.clauses-header-action {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    color: $orange;
+    display: inline-flex;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: inherit;
+    line-height: 1;
+    margin: 0;
+    padding: 0;
+    white-space: nowrap;
+}
+
+.clauses-header-icon {
+    margin-right: 0.25rem;
+}
+
+.clauses-header-action:hover,
+.clauses-header-action:focus {
+    color: darken($orange, 10%);
+    text-decoration: underline;
+}
+
+.mitigation-ref-row {
+    margin-bottom: 0.5rem;
+}
+
+.remove-clause-btn {
+    color: $red;
+    padding: 0;
+}
+
+.remove-clause-btn:hover {
+    color: darken($red, 10%);
+}
+</style>
+
 <script>
 import { v4 as uuidv4 } from 'uuid';
+import { mapGetters } from 'vuex';
 import tcActions from '@/store/actions/threatCatalogue.js';
+import mcActions from '@/store/actions/mitigationCatalogue.js';
 import threatModels from '@/service/threats/models/index.js';
 import TdFormTags from '@/components/FormTags.vue';
+import TdMitigationCatalogueSelector from '@/components/MitigationCatalogueSelector.vue';
 import cia from '@/service/threats/models/cia.js';
 import ciaDie from '@/service/threats/models/ciadie.js';
 import linddun from '@/service/threats/models/linddun.js';
@@ -201,7 +287,7 @@ const MODEL_ALL_TYPES = {
 
 export default {
     name: 'TdThreatCatalogueForm',
-    components: { TdFormTags },
+    components: { TdFormTags, TdMitigationCatalogueSelector },
     data() {
         return {
             threat: {},
@@ -215,6 +301,15 @@ export default {
         };
     },
     computed: {
+        ...mapGetters(['mitigationCatalogue']),
+        mitigations() {
+            return (this.threat.mitigationRefs || []).map(id => {
+                const entry = this.mitigationCatalogue.find(m => m.id === id);
+                return entry
+                    ? { id, title: entry.title, description: entry.briefDescription, missing: false }
+                    : { id, missing: true };
+            });
+        },
         threatTypes() {
             const model = MODEL_ALL_TYPES[this.threat.modelType];
             if (!model) return [{ value: '', text: '-- Select type --' }];
@@ -228,7 +323,7 @@ export default {
         }
     },
     methods: {
-        showModal(existingThreat) {
+        async showModal(existingThreat) {
             if (existingThreat) {
                 this.isEditing = true;
                 this.threat = {
@@ -237,7 +332,7 @@ export default {
                     modelType: existingThreat.modelType,
                     type: existingThreat.type,
                     description: existingThreat.description || '',
-                    mitigation: existingThreat.mitigation || '',
+                    mitigationRefs: [...(existingThreat.mitigationRefs || [])],
                     score: existingThreat.score || '',
                     severity: existingThreat.severity || 'TBD',
                     tags: [...(existingThreat.tags || [])]
@@ -250,13 +345,25 @@ export default {
                     modelType: '',
                     type: '',
                     description: '',
-                    mitigation: '',
+                    mitigationRefs: [],
                     score: '',
                     severity: 'TBD',
                     tags: []
                 };
             }
+            await this.$store.dispatch(mcActions.fetchAll);
             this.$refs.formModal.show();
+        },
+        openMitigationSelector() {
+            this.$refs.mitigationCatalogueSelector.open();
+        },
+        onMitigationRefAdded(catalogueMitigation) {
+            if (!this.threat.mitigationRefs.includes(catalogueMitigation.id)) {
+                this.threat.mitigationRefs.push(catalogueMitigation.id);
+            }
+        },
+        removeMitigationRef(id) {
+            this.threat.mitigationRefs = this.threat.mitigationRefs.filter(refId => refId !== id);
         },
         hideModal() {
             this.$refs.formModal.hide();

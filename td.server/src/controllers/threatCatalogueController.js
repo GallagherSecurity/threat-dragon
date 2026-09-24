@@ -59,11 +59,11 @@ const createCatalogueThreat = async (req, res) => {
             return badRequest(`A catalogue threat with the title "${threat.title}" already exists for framework "${threat.modelType}"`, res, logger);
         }
 
-        const { id, description, mitigation, ...metadata } = threat;
+        const { id, description, mitigationRefs, ...metadata } = threat;
         const briefDescription = computeBriefDescription(description);
         const hash = computeThreatHash(threat);
 
-        await repository.saveThreatAsync(accessToken, { id, hash, briefDescription, ...metadata, description, mitigation });
+        await repository.saveThreatAsync(accessToken, { id, hash, briefDescription, ...metadata, description, mitigationRefs });
 
         return res.status(201).json({ status: 201, message: "Catalogue threat created successfully" });
     } catch (error) {
@@ -85,10 +85,10 @@ const updateCatalogueThreat = async (req, res) => {
             return badRequest(`A catalogue threat with the title "${updates.title}" already exists for framework "${updates.modelType}"`, res, logger);
         }
 
-        const { description, mitigation, ...metadata } = updates;
+        const { description, mitigationRefs, ...metadata } = updates;
         const briefDescription = computeBriefDescription(description);
 
-        await repository.updateThreatEntryAsync(accessToken, id, { ...metadata, description, mitigation, briefDescription, hash });
+        await repository.updateThreatEntryAsync(accessToken, id, { ...metadata, description, mitigationRefs, briefDescription, hash });
 
         return res.status(200).json({ status: 200, message: "Catalogue threat updated successfully" });
     } catch (err) {
@@ -207,8 +207,8 @@ const importThreatLibrary = async (req, res) => {
                 results.skipped++;
             } else {
                 seen.add(hash);
-                const { id, description, mitigation, ...metadata } = threat;
-                toCreate.push({ id, hash, briefDescription: computeBriefDescription(description), ...metadata, description, mitigation });
+                const { id, description, mitigationRefs, ...metadata } = threat;
+                toCreate.push({ id, hash, briefDescription: computeBriefDescription(description), ...metadata, description, mitigationRefs });
                 results.created++;
             }
         }

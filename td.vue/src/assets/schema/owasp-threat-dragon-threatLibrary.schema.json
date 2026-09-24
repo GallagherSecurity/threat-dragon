@@ -26,9 +26,13 @@
             "description": "The full threat description",
             "type": "string"
           },
-          "mitigation": {
-            "description": "The threat mitigation strategy",
-            "type": "string"
+          "mitigationRefs": {
+            "description": "IDs of mitigation catalogue entries this threat references (resolved live against the mitigation catalogue)",
+            "type": "array",
+            "default": [],
+            "items": {
+              "type": "string"
+            }
           },
           "tags": {
             "description": "Optional tags for filtering and categorisation",
@@ -47,7 +51,7 @@
             "enum": ["TBD", "Low", "Medium", "High", "Critical"]
           }
         },
-        "required": [ "title", "modelType", "type", "description", "mitigation" ]
+        "required": [ "title", "modelType", "type", "description" ]
       }
     }
   },

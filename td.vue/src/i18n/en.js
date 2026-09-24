@@ -599,6 +599,7 @@ const messages = {
                 noMitigations: 'No mitigations in catalogue yet.',
                 deleteTitle: 'Delete Mitigation',
                 deleteBulkTitle: 'Delete Selected Mitigations',
+                missingReference: 'This mitigation no longer exists in the catalogue',
                 prompts: {
                     createSuccess: 'Mitigation created successfully',
                     updateSuccess: 'Mitigation updated successfully',
