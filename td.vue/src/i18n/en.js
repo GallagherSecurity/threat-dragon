@@ -435,6 +435,20 @@ const messages = {
             number: 'Number'
         },
     },
+    standards: {
+        manage: 'Manage Standards',
+        manageDescription: 'Add the compliance standards that mitigations and threat models can reference.',
+        add: 'Add Standard',
+        namePlaceholder: 'Standard name (e.g. ISO 27001)',
+        empty: 'No standards yet.',
+        duplicate: 'A standard with this name already exists',
+        prompts: {
+            createSuccess: 'Standard added'
+        },
+        errors: {
+            createFailed: 'Failed to add standard'
+        }
+    },
     threats: {
         catalogue: {
             manage: 'Manage Threats',

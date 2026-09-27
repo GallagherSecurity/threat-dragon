@@ -70,4 +70,11 @@ export const gitRoutes = [
         meta: { requiresAdmin: true }
     },
 
+    {
+        path: '/admin/standards',
+        name: 'ManageStandards',
+        component: () => import(/* webpackChunkName: "manage-standards" */ '../views/ManageStandards.vue'),
+        meta: { requiresAdmin: true }
+    },
+
 ];

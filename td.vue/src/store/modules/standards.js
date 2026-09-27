@@ -1,4 +1,9 @@
-import { STANDARDS_FETCH, STANDARDS_SET, STANDARDS_CLEAR } from '@/store/actions/standards';
+import {
+    STANDARDS_FETCH,
+    STANDARDS_SET,
+    STANDARDS_CLEAR,
+    STANDARDS_CREATE
+} from '@/store/actions/standards';
 import standardsApi from '@/service/api/standardsApi.js';
 
 const state = {
@@ -14,6 +19,11 @@ const actions = {
             console.error('Failed to fetch standards:', error);
             commit(STANDARDS_SET, []);
         }
+    },
+
+    [STANDARDS_CREATE]: async ({ dispatch }, name) => {
+        await standardsApi.createStandardAsync({ name });
+        await dispatch(STANDARDS_FETCH);
     },
 
     [STANDARDS_CLEAR]: ({ commit }) => {

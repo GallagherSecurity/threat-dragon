@@ -51,6 +51,9 @@
             <button type="button" class="td-dropdown-item" @click="onManageMitigations(); close()">
               {{ $t('threats.mitigations.catalogue.manage') }}
             </button>
+            <button type="button" class="td-dropdown-item" @click="onManageStandards(); close()">
+              {{ $t('standards.manage') }}
+            </button>
           </template>
           </td-dropdown>
         </li>
@@ -210,6 +213,13 @@ export default {
         },
         onManageMitigations() {
             this.$router.push('/admin/mitigations').catch(error => {
+                if (error.name != 'NavigationDuplicated') {
+                    throw error;
+                }
+            });
+        },
+        onManageStandards() {
+            this.$router.push('/admin/standards').catch(error => {
                 if (error.name != 'NavigationDuplicated') {
                     throw error;
                 }
