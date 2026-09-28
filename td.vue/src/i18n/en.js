@@ -592,7 +592,7 @@ const messages = {
             new: 'New Mitigation',
             newFromCatalogue: 'New Mitigation from Catalogue',
             empty: 'No mitigations yet',
-            mandatory: 'Required',
+            mandatory: 'Mandatory',
             noTitle: 'No title',
             noDescription: 'No description',
             clauses: 'Compliance Clauses',

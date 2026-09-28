@@ -13,13 +13,7 @@
             <b-row class="mb-2">
                 <b-col>
                     <font-awesome-icon
-                        v-if="mitigation.mandatory"
-                        icon="exclamation-triangle"
-                        class="mitigation-icon red-icon"
-                        :title="$t('threats.mitigations.mandatory')"
-                    />
-                    <font-awesome-icon
-                        v-else-if="mitigation.status === 'Implemented'"
+                        v-if="mitigation.status === 'Implemented' || mitigation.status === 'Accepted'"
                         icon="check"
                         class="mitigation-icon green-icon"
                         :title="mitigation.status"
@@ -42,13 +36,19 @@
                         class="mitigation-icon orange-icon"
                         :title="mitigation.status"
                     />
+                    <font-awesome-icon
+                        v-if="mitigation.mandatory"
+                        icon="exclamation-circle"
+                        class="mitigation-icon red-icon"
+                        :title="$t('threats.mitigations.mandatory')"
+                    />
                 </b-col>
 
-                <b-col align-h="end">
-                    <b-badge v-if="mitigation.mandatory" variant="danger">
+                <b-col class="text-right text-nowrap">
+                    <b-badge>{{ mitigation.status }}</b-badge>
+                    <b-badge v-if="mitigation.mandatory" variant="danger" class="ml-1">
                         {{ $t('threats.mitigations.mandatory') }}
                     </b-badge>
-                    <b-badge v-else>{{ mitigation.status }}</b-badge>
                 </b-col>
             </b-row>
         </b-card-text>

@@ -222,10 +222,10 @@ export default {
             mitigation: null,
             mitigationStatuses: [
                 'Recommended',
-                'Identified',
+                'Accepted',
                 'Implemented',
-                'Not Applicable',
-                'Rejected'
+                'Rejected',
+                'Not Applicable'
             ]
         };
     },

@@ -24,9 +24,16 @@
             "items": {
               "type": "object",
               "properties": {
-                "standard": { "type": "string" },
-                "clause": { "type": "string" }
-              }
+                "standard": {
+                  "description": "Name of the compliance standard",
+                  "type": "string"
+                },
+                "clause": {
+                  "description": "Specific clause or control reference within the standard",
+                  "type": "string"
+                }
+              },
+              "required": ["standard", "clause"]
             }
           }
         },

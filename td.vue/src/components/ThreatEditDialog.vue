@@ -230,7 +230,7 @@
                             <b-card-text v-if="threat.mitigations && threat.mitigations.length">
                                 <b-row>
                                     <b-col
-                                        md="4"
+                                        md="6"
                                         v-for="mitigation in threat.mitigations"
                                         :key="mitigation.mitigationId"
                                     >

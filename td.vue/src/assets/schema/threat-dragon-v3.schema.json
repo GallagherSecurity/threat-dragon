@@ -369,7 +369,7 @@
                                 "status": {
                                   "description": "Implementation status of the mitigation",
                                   "type": "string",
-                                  "enum": [ "Implemented", "Not Applicable", "Planned", "Recommended", "Rejected" ]
+                                  "enum": [ "Recommended", "Accepted", "Implemented", "Rejected", "Not Applicable" ]
                                 },
                                 "clauses": {
                                   "description": "Standards and clauses this mitigation satisfies — a mitigation may satisfy multiple",
@@ -379,7 +379,7 @@
                                     "type": "object",
                                     "properties": {
                                       "standard": {
-                                        "description": "Standard ID referencing the org standards list",
+                                        "description": "Name of the compliance standard, matching a name in the org standards list",
                                         "type": "string"
                                       },
                                       "clause": {

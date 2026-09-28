@@ -26,12 +26,41 @@
             "description": "The full threat description",
             "type": "string"
           },
-          "mitigationRefs": {
-            "description": "IDs of mitigation catalogue entries this threat references (resolved live against the mitigation catalogue)",
+          "mitigations": {
+            "description": "Mitigations for this threat, embedded in full so the library file is portable between deployments",
             "type": "array",
             "default": [],
             "items": {
-              "type": "string"
+              "type": "object",
+              "properties": {
+                "title": {
+                  "description": "The mitigation title",
+                  "type": "string"
+                },
+                "description": {
+                  "description": "The full mitigation description",
+                  "type": "string"
+                },
+                "clauses": {
+                  "description": "Compliance clauses this mitigation satisfies",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "standard": {
+                        "description": "Name of the compliance standard",
+                        "type": "string"
+                      },
+                      "clause": {
+                        "description": "Specific clause or control reference within the standard",
+                        "type": "string"
+                      }
+                    },
+                    "required": ["standard", "clause"]
+                  }
+                }
+              },
+              "required": ["title", "description"]
             }
           },
           "tags": {
