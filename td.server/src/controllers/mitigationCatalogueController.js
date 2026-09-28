@@ -4,6 +4,7 @@ import { createHash } from "crypto";
 import loggerHelper from "../helpers/logger.helper.js";
 import repositories from "../repositories";
 import responseWrapper from "./responseWrapper.js";
+import { resolveStandardsAsync } from "./standardsController.js";
 
 const logger = loggerHelper.get("controllers/mitigationCatalogueController.js");
 
@@ -16,7 +17,7 @@ const computeBriefDescription = (description) => {
         : description;
 };
 
-const computeMitigationHash = (mitigation) => {
+export const computeMitigationHash = (mitigation) => {
     const normalized = [
         (mitigation.title || '').trim().toLowerCase(),
         (mitigation.description || '').trim().toLowerCase()
@@ -194,7 +195,7 @@ const importMitigationLibrary = async (req, res) => {
     try {
         const { mitigations: existing } = await repository.listMitigationsAsync(accessToken);
         const seen = new Set(existing.map((m) => m.hash));
-        const results = { created: 0, skipped: 0 };
+        const results = { created: 0, skipped: 0, standardsCreated: 0 };
 
         const toCreate = [];
         for (const mitigation of mitigationLibrary) {
@@ -210,12 +211,15 @@ const importMitigationLibrary = async (req, res) => {
         }
 
         if (toCreate.length > 0) {
-            await repository.bulkSaveMitigationsAsync(accessToken, toCreate);
+            const { mitigations: resolvedMitigations, standardsCreated } =
+                await resolveStandardsAsync(repository, accessToken, toCreate);
+            await repository.bulkSaveMitigationsAsync(accessToken, resolvedMitigations);
+            results.standardsCreated = standardsCreated;
         }
 
         return res.status(200).json({
             status: 200,
-            message: `Import complete: ${results.created} created, ${results.skipped} skipped`,
+            message: `Import complete: ${results.created} created, ${results.skipped} skipped, ${results.standardsCreated} new standard(s)`,
             results
         });
     } catch (error) {

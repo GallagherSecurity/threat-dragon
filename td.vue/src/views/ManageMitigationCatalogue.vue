@@ -219,7 +219,6 @@ export default {
         async onExportClick() {
             try {
                 await this.$store.dispatch(mcActions.export, [...this.selectedIds]);
-                this.$toast.success(this.$t('threats.catalogue.prompts.exportSuccess'));
             } catch (e) {
                 console.error('Export failed:', e);
                 this.$toast.error(this.$t('threats.catalogue.errors.exportFailed'));

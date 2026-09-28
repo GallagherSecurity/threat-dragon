@@ -1,6 +1,8 @@
 import { badRequest, notFound, serverError } from "./errors.js";
-import { createHash } from "crypto";
+import { createHash, randomUUID } from "crypto";
 
+import { computeMitigationHash } from "./mitigationCatalogueController.js";
+import { resolveStandardsAsync } from "./standardsController.js";
 
 import loggerHelper from "../helpers/logger.helper.js";
 import repositories from "../repositories";
@@ -129,6 +131,7 @@ const getCatalogueThreatContent = async (req, res) => {
 
 const bulkGetCatalogueContent = async (req, res) => {
     const repository = repositories.get();
+    const accessToken = req.provider.access_token;
     const { ids } = req.body;
 
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -136,7 +139,21 @@ const bulkGetCatalogueContent = async (req, res) => {
     }
 
     try {
-        const contents = await repository.getBulkThreatsAsync(req.provider.access_token, ids);
+        const threats = await repository.getBulkThreatsAsync(accessToken, ids);
+
+        const refIds = [...new Set(threats.flatMap((t) => t.mitigationRefs || []))];
+        const mitigationsById = new Map(await Promise.all(
+            refIds.map(async (id) => [id, await repository.getMitigationAsync(accessToken, id)])
+        ));
+
+        const contents = threats.map(({ mitigationRefs = [], ...threat }) => ({
+            ...threat,
+            mitigations: mitigationRefs
+                .map((id) => mitigationsById.get(id))
+                .filter(Boolean)
+                .map(({ title, description, clauses = [] }) => ({ title, description, clauses }))
+        }));
+
         return res.status(200).json({ status: 200, data: { contents } });
     } catch (err) {
         logger.error(err);
@@ -198,7 +215,28 @@ const importThreatLibrary = async (req, res) => {
     try {
         const { threats: existing } = await repository.listThreatsAsync(accessToken);
         const seen = new Set(existing.map((t) => t.hash));
-        const results = { created: 0, skipped: 0 };
+        const results = { created: 0, skipped: 0, mitigationsCreated: 0, standardsCreated: 0 };
+
+        const mitigationCatalogue = await repository.listMitigationsAsync(accessToken);
+        const mitigationIdsByHash = new Map(mitigationCatalogue.mitigations.map((m) => [m.hash, m.id]));
+        const mitigationsToCreate = [];
+
+        const resolveMitigationRef = (mitigation) => {
+            const hash = computeMitigationHash(mitigation);
+            if (!mitigationIdsByHash.has(hash)) {
+                const id = randomUUID();
+                mitigationIdsByHash.set(hash, id);
+                mitigationsToCreate.push({
+                    id,
+                    hash,
+                    briefDescription: computeBriefDescription(mitigation.description),
+                    title: mitigation.title,
+                    description: mitigation.description,
+                    clauses: mitigation.clauses || []
+                });
+            }
+            return mitigationIdsByHash.get(hash);
+        };
 
         const toCreate = [];
         for (const threat of threatLibrary) {
@@ -207,10 +245,22 @@ const importThreatLibrary = async (req, res) => {
                 results.skipped++;
             } else {
                 seen.add(hash);
-                const { id, description, mitigationRefs, ...metadata } = threat;
+                const { id, description, mitigations = [], ...metadata } = threat;
+                const mitigationRefs = [...new Set(mitigations.map(resolveMitigationRef))];
                 toCreate.push({ id, hash, briefDescription: computeBriefDescription(description), ...metadata, description, mitigationRefs });
                 results.created++;
             }
+        }
+
+        if (mitigationsToCreate.length > 0) {
+            if (mitigationCatalogue.status === 'NOT_INITIALIZED') {
+                await repository.initializeMitigationCatalogueAsync(accessToken);
+            }
+            const { mitigations: resolvedMitigations, standardsCreated } =
+                await resolveStandardsAsync(repository, accessToken, mitigationsToCreate);
+            await repository.bulkSaveMitigationsAsync(accessToken, resolvedMitigations);
+            results.mitigationsCreated = resolvedMitigations.length;
+            results.standardsCreated = standardsCreated;
         }
 
         if (toCreate.length > 0) {
@@ -219,7 +269,7 @@ const importThreatLibrary = async (req, res) => {
 
         return res.status(200).json({
             status: 200,
-            message: `Import complete: ${results.created} created, ${results.skipped} skipped`,
+            message: `Import complete: ${results.created} created, ${results.skipped} skipped, ${results.mitigationsCreated} new mitigation(s), ${results.standardsCreated} new standard(s)`,
             results
         });
     } catch (error) {

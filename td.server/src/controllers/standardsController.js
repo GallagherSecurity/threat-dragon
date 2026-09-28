@@ -6,6 +6,38 @@ import responseWrapper from './responseWrapper.js';
 
 const logger = loggerHelper.get('controllers/standardsController.js');
 
+export const resolveStandardsAsync = async (repository, accessToken, mitigations) => {
+    const incomingStandards = [...new Set(
+        mitigations.flatMap((m) => (m.clauses || []).map((c) => (c.standard || '').trim())).filter(Boolean)
+    )];
+    if (incomingStandards.length === 0) {
+        return { mitigations, standardsCreated: 0 };
+    }
+
+    const { standards } = await repository.listStandardsAsync(accessToken);
+    const existingStandards = new Map(standards.map((s) => [s.name.toLowerCase(), s.name]));
+
+    let standardsCreated = 0;
+    for (const standard of incomingStandards) {
+        if (!existingStandards.has(standard.toLowerCase())) {
+            await repository.saveStandardAsync(accessToken, standard);
+            existingStandards.set(standard.toLowerCase(), standard);
+            standardsCreated++;
+        }
+    }
+
+    return {
+        mitigations: mitigations.map((m) => ({
+            ...m,
+            clauses: (m.clauses || []).map((c) => ({
+                ...c,
+                standard: existingStandards.get((c.standard || '').trim().toLowerCase()) || c.standard
+            }))
+        })),
+        standardsCreated
+    };
+};
+
 const listStandards = (req, res) => responseWrapper.sendResponseAsync(async () => {
     const repository = repositories.get();
     const result = await repository.listStandardsAsync(req.provider.access_token);
