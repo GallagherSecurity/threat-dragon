@@ -41,6 +41,11 @@
                   "description": "The full mitigation description",
                   "type": "string"
                 },
+                "status": {
+                  "description": "The mitigation status carried with the catalogue entry",
+                  "type": "string",
+                  "enum": ["Recommended", "Accepted", "Implemented", "Rejected", "Not Applicable"]
+                },
                 "clauses": {
                   "description": "Compliance clauses this mitigation satisfies",
                   "type": "array",
@@ -60,7 +65,7 @@
                   }
                 }
               },
-              "required": ["title", "description"]
+              "required": ["title", "description", "status"]
             }
           },
           "tags": {

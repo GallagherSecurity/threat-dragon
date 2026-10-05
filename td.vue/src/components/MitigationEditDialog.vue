@@ -194,6 +194,7 @@
 <script>
 import { mapGetters, mapState } from 'vuex';
 import { computeMandatory } from '@/service/mitigations/compliance.js';
+import { mitigationStatuses } from '@/service/mitigations/status.js';
 import standardsActions from '@/store/actions/standards.js';
 import TdFormSelect from '@/components/FormSelect.vue';
 
@@ -220,13 +221,7 @@ export default {
     data() {
         return {
             mitigation: null,
-            mitigationStatuses: [
-                'Recommended',
-                'Accepted',
-                'Implemented',
-                'Rejected',
-                'Not Applicable'
-            ]
+            mitigationStatuses
         };
     },
 

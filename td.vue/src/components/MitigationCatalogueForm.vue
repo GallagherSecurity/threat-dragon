@@ -44,6 +44,21 @@
 
                 <b-form-row>
                     <b-col>
+                        <b-form-group
+                            :label="$t('threats.properties.status')"
+                            label-for="cat-mitigation-status"
+                        >
+                            <td-form-select
+                                id="cat-mitigation-status"
+                                v-model="mitigation.status"
+                                :options="mitigationStatuses"
+                            ></td-form-select>
+                        </b-form-group>
+                    </b-col>
+                </b-form-row>
+
+                <b-form-row>
+                    <b-col>
                         <b-card header-tag="header">
                             <template #header>
                                 <div class="clauses-header">
@@ -181,6 +196,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { mapGetters } from 'vuex';
 import mcActions from '@/store/actions/mitigationCatalogue.js';
 import standardsActions from '@/store/actions/standards.js';
+import { defaultMitigationStatus, mitigationStatuses } from '@/service/mitigations/status.js';
 import TdFormSelect from '@/components/FormSelect.vue';
 
 export default {
@@ -189,7 +205,8 @@ export default {
     data() {
         return {
             mitigation: null,
-            isEditing: false
+            isEditing: false,
+            mitigationStatuses
         };
     },
     computed: {
@@ -209,6 +226,7 @@ export default {
                     id: existingMitigation.id,
                     title: existingMitigation.title || '',
                     description: existingMitigation.description || '',
+                    status: existingMitigation.status,
                     clauses: (existingMitigation.clauses || []).map(c => ({ ...c }))
                 };
             } else {
@@ -217,6 +235,7 @@ export default {
                     id: uuidv4(),
                     title: '',
                     description: '',
+                    status: defaultMitigationStatus,
                     clauses: []
                 };
             }

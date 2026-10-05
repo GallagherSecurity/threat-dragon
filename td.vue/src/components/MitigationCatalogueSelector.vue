@@ -91,6 +91,7 @@ export default {
                     id: catalogueEntry.id,
                     title: full.title || '',
                     description: full.description || '',
+                    status: full.status,
                     clauses: (full.clauses || []).map(c => ({ ...c }))
                 });
                 this.$refs.selectorModal.hide();

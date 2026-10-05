@@ -148,7 +148,7 @@ export const createThreatFromCatalogue = function (catalogueThreat, number, miti
             number: mitigationTop + index + 1,
             title: catalogueMitigation.title,
             description: catalogueMitigation.description,
-            status: 'Recommended',
+            status: catalogueMitigation.status,
             clauses: catalogueMitigation.clauses.map((clause) => ({ ...clause }))
         };
         return { ...mitigation, mandatory: computeMandatory(mitigation, requiredStandards) };

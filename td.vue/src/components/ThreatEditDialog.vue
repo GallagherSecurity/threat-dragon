@@ -352,6 +352,7 @@ import TdFormSelect from '@/components/FormSelect.vue';
 import TdMitigationCard from '@/components/MitigationCard.vue';
 import TdMitigationEditDialog from '@/components/MitigationEditDialog.vue';
 import TdMitigationCatalogueSelector from '@/components/MitigationCatalogueSelector.vue';
+import { defaultMitigationStatus } from '@/service/mitigations/status.js';
 import TdThreatStatusSelector from '@/components/ThreatStatusSelector.vue';
 import { getGame, getAllGames } from '../service/threats/models/eop';
 import { getSeverityOptions } from '@/service/threats/index.js';
@@ -604,7 +605,7 @@ export default {
                 number,
                 title: '',
                 description: '',
-                status: 'Recommended',
+                status: defaultMitigationStatus,
                 clauses: [],
                 mandatory: false
             };

@@ -151,7 +151,7 @@ const bulkGetCatalogueContent = async (req, res) => {
             mitigations: mitigationRefs
                 .map((id) => mitigationsById.get(id))
                 .filter(Boolean)
-                .map(({ title, description, clauses = [] }) => ({ title, description, clauses }))
+                .map(({ title, description, status, clauses = [] }) => ({ title, description, status, clauses }))
         }));
 
         return res.status(200).json({ status: 200, data: { contents } });
@@ -232,6 +232,7 @@ const importThreatLibrary = async (req, res) => {
                     briefDescription: computeBriefDescription(mitigation.description),
                     title: mitigation.title,
                     description: mitigation.description,
+                    status: mitigation.status,
                     clauses: mitigation.clauses || []
                 });
             }
