@@ -10,6 +10,7 @@ export const getSeverityOptions = (t) => [
     { value: 'Critical', text: t('threats.severity.critical') }
 ];
 import { isOpen, isResolved } from './status.js';
+import { computeMandatory } from '@/service/mitigations/compliance.js';
 import { tc } from '../../i18n/index.js';
 import store from '@/store/index.js';
 
@@ -140,14 +141,26 @@ export const createNewTypedThreat = function (modelType, cellType, number) {
     };
 };
 
-export const createThreatFromCatalogue = function (catalogueThreat, number) {
+export const createThreatFromCatalogue = function (catalogueThreat, number, mitigationTop, requiredStandards) {
+    const mitigations = catalogueThreat.mitigations.map((catalogueMitigation, index) => {
+        const mitigation = {
+            mitigationId: uuidv4(),
+            number: mitigationTop + index + 1,
+            title: catalogueMitigation.title,
+            description: catalogueMitigation.description,
+            status: 'Recommended',
+            clauses: catalogueMitigation.clauses.map((clause) => ({ ...clause }))
+        };
+        return { ...mitigation, mandatory: computeMandatory(mitigation, requiredStandards) };
+    });
+
     return {
         id: uuidv4(),
         title: catalogueThreat.title,
         type: catalogueThreat.type,
         modelType: catalogueThreat.modelType,
         description: catalogueThreat.description,
-        mitigations: catalogueThreat.mitigations || [],
+        mitigations,
         score: catalogueThreat.score || '',
         status: 'Open',
         severity: catalogueThreat.severity || 'TBD',
