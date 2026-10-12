@@ -171,6 +171,8 @@
 !td.vue/src/service/entity/
 !td.vue/src/service/entity/*.js
 !td.vue/src/service/migration/
+!td.vue/src/service/mitigations/
+!td.vue/src/service/mitigations/*.js
 !td.vue/src/service/migration/otm/
 !td.vue/src/service/migration/otm/*.js
 !td.vue/src/service/migration/otm/cells/
