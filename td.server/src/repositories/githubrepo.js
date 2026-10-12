@@ -20,11 +20,19 @@ const getClient = (accessToken) => {
     return github.client(accessToken);
 };
 
-const reposAsync = (page, accessToken) => getClient(accessToken).me().
-    reposAsync(page);
+const reposAsync = (page, accessToken, searchQuerys = []) => searchAsync(page, accessToken, searchQuerys);
 
-const searchAsync = (page, accessToken, searchQuerys = []) => getClient(accessToken).search().
-    reposAsync({ page: page, q: searchQuerys });
+const searchAsync = async (page, accessToken, searchQuerys = []) => {
+    const query = searchQuerys.filter(Boolean).join(' ');
+    if (!query) {
+        return getClient(accessToken).me().
+            reposAsync(page);
+    }
+    const [body, headers] = await getClient(accessToken).search().
+        reposAsync({ page: page, q: query });
+    const items = Array.isArray(body) ? body : body.items;
+    return [items, headers];
+};
 
 const userAsync = async (accessToken) => {
 
@@ -529,9 +537,9 @@ const deleteMitigationContentFileAsync = async (accessToken, mitigationRef) => {
 const STANDARDS_PATH = 'standards/standards.json';
 
 const getStandardsFileAsync = async (accessToken) => {
-    const result = await getClient(accessToken)
-        .repo(env.get().config.GITHUB_CONTENT_REPO)
-        .contentsAsync(STANDARDS_PATH);
+    const result = await getClient(accessToken).
+        repo(env.get().config.GITHUB_CONTENT_REPO).
+        contentsAsync(STANDARDS_PATH);
     const file = result[0];
     const decoded = Buffer.from(file.content, 'base64').toString('utf8');
     const standards = JSON.parse(decoded);
@@ -561,14 +569,14 @@ const saveStandardAsync = async (accessToken, name) => {
     try {
         const { standards, sha } = await getStandardsFileAsync(accessToken);
         standards.push({ id, name });
-        await getClient(accessToken)
-            .repo(env.get().config.GITHUB_CONTENT_REPO)
-            .updateContentsAsync(STANDARDS_PATH, `feat: add standard ${name}`, JSON.stringify(standards, null, 2), sha, 'main');
+        await getClient(accessToken).
+            repo(env.get().config.GITHUB_CONTENT_REPO).
+            updateContentsAsync(STANDARDS_PATH, `feat: add standard ${name}`, JSON.stringify(standards, null, 2), sha, 'main');
     } catch (e) {
         if (e.statusCode === 404) {
-            await getClient(accessToken)
-                .repo(env.get().config.GITHUB_CONTENT_REPO)
-                .createContentsAsync(STANDARDS_PATH, `feat: add standard ${name}`, JSON.stringify([{ id, name }], null, 2), 'main');
+            await getClient(accessToken).
+                repo(env.get().config.GITHUB_CONTENT_REPO).
+                createContentsAsync(STANDARDS_PATH, `feat: add standard ${name}`, JSON.stringify([{ id, name }], null, 2), 'main');
         } else {
             throw e;
         }
@@ -579,9 +587,9 @@ const saveStandardAsync = async (accessToken, name) => {
 const deleteStandardAsync = async (accessToken, id) => {
     const { standards, sha } = await getStandardsFileAsync(accessToken);
     const updated = standards.filter((s) => s.id !== id);
-    await getClient(accessToken)
-        .repo(env.get().config.GITHUB_CONTENT_REPO)
-        .updateContentsAsync(STANDARDS_PATH, `feat: remove standard ${id}`, JSON.stringify(updated, null, 2), sha, 'main');
+    await getClient(accessToken).
+        repo(env.get().config.GITHUB_CONTENT_REPO).
+        updateContentsAsync(STANDARDS_PATH, `feat: remove standard ${id}`, JSON.stringify(updated, null, 2), sha, 'main');
 };
 
 const createBranchAsync = async (repoInfo, accessToken) => {

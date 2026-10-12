@@ -7,9 +7,11 @@ import responseWrapper from './responseWrapper.js';
 const logger = loggerHelper.get('controllers/standardsController.js');
 
 export const resolveStandardsAsync = async (repository, accessToken, mitigations) => {
-    const incomingStandards = [...new Set(
-        mitigations.flatMap((m) => (m.clauses || []).map((c) => (c.standard || '').trim())).filter(Boolean)
-    )];
+    const incomingStandards = [
+        ...new Set(
+            mitigations.flatMap((m) => (m.clauses || []).map((c) => (c.standard || '').trim())).filter(Boolean)
+        )
+    ];
     if (incomingStandards.length === 0) {
         return { mitigations, standardsCreated: 0 };
     }
