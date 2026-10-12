@@ -124,7 +124,7 @@ const actions = {
         commit(TEMPLATE_CLEAR);
     },
 
-    [TEMPLATE_DOWNLOAD]: async (modelData, templateMetadata) => {
+    [TEMPLATE_DOWNLOAD]: async (_, { model: modelData, templateMetadata }) => {
 	    const model = JSON.parse(JSON.stringify(modelData));
 	    // fix up template values
 	    model.summary.id = '';
