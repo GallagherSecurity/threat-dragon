@@ -20,19 +20,11 @@ const getClient = (accessToken) => {
     return github.client(accessToken);
 };
 
-const reposAsync = (page, accessToken, searchQuerys = []) => searchAsync(page, accessToken, searchQuerys);
+const reposAsync = (page, accessToken) => getClient(accessToken).me().
+    reposAsync(page);
 
-const searchAsync = async (page, accessToken, searchQuerys = []) => {
-    const query = searchQuerys.filter(Boolean).join(' ');
-    if (!query) {
-        return getClient(accessToken).me().
-            reposAsync(page);
-    }
-    const [body, headers] = await getClient(accessToken).search().
-        reposAsync({ page: page, q: query });
-    const items = Array.isArray(body) ? body : body.items;
-    return [items, headers];
-};
+const searchAsync = (page, accessToken, searchQuery = []) => getClient(accessToken).search().
+    reposAsync({ page: page, q: searchQuery });
 
 const userAsync = async (accessToken) => {
 

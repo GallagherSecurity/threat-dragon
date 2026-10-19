@@ -33,13 +33,6 @@ describe('repositories/githubrepo.js', () => {
     reposAsync: () => {
     },
     repo: () => {
-    },
-    search: () => {
-    }
-  };
-
-  const mockSearch = {
-    reposAsync: () => {
     }
   };
 
@@ -164,47 +157,6 @@ describe('repositories/githubrepo.js', () => {
     });
 
     it('calls reposAsync', () => {
-      expect(mockClient.reposAsync).to.have.been.calledWith(info.page);
-    });
-  });
-
-  describe('reposAsync with a search query', () => {
-    const searchQuerys = ['foo', '', 'bar'];
-    const searchItems = [{ full_name: 'foo/bar' }];
-    const searchHeaders = { link: 'headers' };
-    let result;
-
-    beforeEach(async () => {
-      sinon.stub(mockClient, 'search').returns(mockSearch);
-      sinon.stub(mockSearch, 'reposAsync').resolves([{ items: searchItems, total_count: 1 }, searchHeaders]);
-      result = await threatModelRepository.reposAsync(info.page, accessToken, searchQuerys);
-    });
-
-    it('creates the github client', () => {
-      expect(github.client).to.have.been.calledWith(accessToken);
-    });
-
-    it('calls search', () => {
-      expect(mockClient.search).to.have.been.calledOnce;
-    });
-
-    it('calls search reposAsync with the joined, filtered query', () => {
-      expect(mockSearch.reposAsync).to.have.been.calledWith({ page: info.page, q: 'foo bar' });
-    });
-
-    it('unwraps the items from the search response', () => {
-      expect(result).to.deep.equal([searchItems, searchHeaders]);
-    });
-  });
-
-  describe('reposAsync with an empty search query', () => {
-    beforeEach(async () => {
-      sinon.stub(mockClient, 'me').returns(mockClient);
-      sinon.spy(mockClient, 'reposAsync');
-      await threatModelRepository.reposAsync(info.page, accessToken, ['']);
-    });
-
-    it('falls back to listing repos instead of searching', () => {
       expect(mockClient.reposAsync).to.have.been.calledWith(info.page);
     });
   });

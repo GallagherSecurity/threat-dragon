@@ -12,18 +12,19 @@ const repos = (req, res) => responseWrapper.sendResponseAsync(async () => {
     const repository = repositories.get();
 
     const page = req.query.page || 1;
-    const searchQuerys = req.query.searchQuery || [];
+    const searchQuery = req.query.searchQuery || '';
     let reposResp;
     let repos;
     // backwardly compatible with previous use of env vars GITHUB_USE_SEARCH and GITHUB_SEARCH_QUERY
     if (env.get().config.REPO_USE_SEARCH === 'true' || env.get().config.GITHUB_USE_SEARCH === 'true') {
         logger.debug('Using searchAsync');
-        const searchQuery = env.get().config.REPO_SEARCH_QUERY ?? env.get().config.GITHUB_SEARCH_QUERY;
-        reposResp = await repository.searchAsync(page, req.provider.access_token, [searchQuery, ...searchQuerys]);
+        const envQuery = env.get().config.REPO_SEARCH_QUERY ?? env.get().config.GITHUB_SEARCH_QUERY;
+        const combinedQuery = [envQuery, searchQuery].filter(Boolean).join(' ');
+        reposResp = await repository.searchAsync(page, req.provider.access_token, [combinedQuery]);
         repos = reposResp[0].items ?? reposResp[0];
     } else {
         logger.debug('Using reposAsync');
-        reposResp = await repository.reposAsync(page, req.provider.access_token, [searchQuerys]);
+        reposResp = await repository.reposAsync(page, req.provider.access_token, [searchQuery]);
         repos = reposResp[0];
     }
     const headers = reposResp[1];
