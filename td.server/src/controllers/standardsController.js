@@ -19,14 +19,19 @@ export const resolveStandardsAsync = async (repository, accessToken, mitigations
     const { standards } = await repository.listStandardsAsync(accessToken);
     const existingStandards = new Map(standards.map((s) => [s.name.toLowerCase(), s.name]));
 
-    let standardsCreated = 0;
+    const missingStandards = [];
     for (const standard of incomingStandards) {
         if (!existingStandards.has(standard.toLowerCase())) {
-            await repository.saveStandardAsync(accessToken, standard);
             existingStandards.set(standard.toLowerCase(), standard);
-            standardsCreated++;
+            missingStandards.push(standard);
         }
     }
+
+    await missingStandards.reduce(async (prevPromise, standard) => {
+        await prevPromise;
+        return repository.saveStandardAsync(accessToken, standard);
+    }, Promise.resolve());
+    const standardsCreated = missingStandards.length;
 
     return {
         mitigations: mitigations.map((m) => ({

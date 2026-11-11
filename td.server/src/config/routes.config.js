@@ -8,11 +8,11 @@ import googleProviderThreatmodelController from '../controllers/googleProviderTh
 import healthcheck from '../controllers/healthz.js';
 import homeController from '../controllers/homecontroller.js';
 import metadataController from '../controllers/metadataController.js';
+import mitigationCatalogueController from '../controllers/mitigationCatalogueController.js';
+import standardsController from '../controllers/standardsController.js';
 import templateController from '../controllers/templateController.js';
 import threatCatalogueController from '../controllers/threatCatalogueController.js';
-import mitigationCatalogueController from '../controllers/mitigationCatalogueController.js';
 import threatmodelController from '../controllers/threatmodelcontroller.js';
-import standardsController from '../controllers/standardsController.js';
 
 
 

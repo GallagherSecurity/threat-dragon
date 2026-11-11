@@ -4,7 +4,7 @@ import sinon from 'sinon';
 
 import env from '../../src/env/Env.js';
 import githubProvider from '../../src/providers/github.js';
-import repo from '../../src/repositories/githubrepo.js';
+import repo from '../../src/repositories/github/index.js';
 
 describe('providers/github.js', () => {
     describe('isConfigured', () => {

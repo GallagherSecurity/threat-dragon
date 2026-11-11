@@ -1,10 +1,11 @@
 import { badRequest, notFound, serverError } from './errors.js';
 import { createHash } from 'crypto';
 
+import { resolveStandardsAsync } from './standardsController.js';
+
 import loggerHelper from '../helpers/logger.helper.js';
 import repositories from '../repositories';
 import responseWrapper from './responseWrapper.js';
-import { resolveStandardsAsync } from './standardsController.js';
 
 const logger = loggerHelper.get('controllers/mitigationCatalogueController.js');
 

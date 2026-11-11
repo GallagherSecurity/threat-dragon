@@ -93,6 +93,8 @@
 !td.server/src/constants/
 !td.server/src/constants/*.js
 !td.server/src/repositories/*.js
+!td.server/src/repositories/github/
+!td.server/src/repositories/github/*.js
 !td.server/test/
 !td.server/test/.eslintrc.js
 !td.server/test/*.spec.js

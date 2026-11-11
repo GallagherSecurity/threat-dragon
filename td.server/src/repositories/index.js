@@ -1,5 +1,5 @@
 import bitbucketrepo from './bitbucketrepo';
-import githubrepo from './githubrepo';
+import githubrepo from './github';
 import gitlabrepo from './gitlabrepo';
 import googledrive from './googledrive';
 

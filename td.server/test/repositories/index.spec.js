@@ -1,6 +1,6 @@
 import bitbucketrepo from "../../src/repositories/bitbucketrepo";
 import { expect } from 'chai';
-import githubrepo from "../../src/repositories/githubrepo";
+import githubrepo from "../../src/repositories/github";
 import repositories from "../../src/repositories";
 
 describe('repositories/index.js', () => {
