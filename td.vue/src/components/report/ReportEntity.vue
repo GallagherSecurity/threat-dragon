@@ -93,7 +93,7 @@ export default {
                     [this.$t('threats.properties.status')]: this.translateStatus(threat.status),
                     [this.$t('threats.properties.score')]: threat.score,
                     [this.$t('threats.properties.description')]: threat.description,
-                    [this.$t('threats.properties.mitigation')]: threat.mitigation
+                    [this.$t('threats.properties.mitigation')]: threatService.formatMitigations(threat, this.$t.bind(this))
 
                 };
             });

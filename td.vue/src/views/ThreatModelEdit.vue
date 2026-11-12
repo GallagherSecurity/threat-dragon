@@ -101,7 +101,7 @@
                                     :text="requiredStandardsLabel"
                                     class="required-standards-dropdown"
                                 >
-                                    <template #default="{ close }">
+                                    <template #default>
                                         <div v-if="allStandards.length === 0" class="td-dropdown-item text-muted" style="pointer-events:none;">
                                             {{ $t('threatmodel.requiredStandardsPlaceholder') }}
                                         </div>

@@ -14,6 +14,7 @@ class GithubEnv extends Env {
         return [
             { key: 'CLIENT_ID', required: false },
             { key: 'CLIENT_SECRET', required: false },
+            { key: 'REDIRECT_URI', required: false },
             { key: 'SCOPE', required: false, defaultValue: 'public_repo' },
             { key: 'ENTERPRISE_HOSTNAME', required: false },
             { key: 'ENTERPRISE_PORT', required: false, defaultValue: 443 },

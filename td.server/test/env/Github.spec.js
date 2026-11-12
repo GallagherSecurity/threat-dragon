@@ -36,6 +36,13 @@ describe('env/Github.js', () => {
         expect(isRequired).to.be.false;
     });
 
+    it('has the optional property REDIRECT_URI', () => {
+        const isRequired = githubEnv.properties
+            .find(x => x.key === 'REDIRECT_URI')
+            .required;
+        expect(isRequired).to.be.false;
+    });
+
     it('has the optional property SCOPE', () => {
         const isRequired = githubEnv.properties
             .find(x => x.key === 'SCOPE')
