@@ -3,6 +3,7 @@ on:
   pull_request:
     branches:
       - main
+      - gallagher-release
   workflow_dispatch:
 
 permissions:
