@@ -4,7 +4,7 @@ import Vuex from 'vuex';
 
 import ExportTemplate from '@/views/ExportTemplate.vue';
 import TdFormButton from '@/components/FormButton.vue';
-import tmActions from '@/store/actions/threatmodel.js';
+import templateActions from '@/store/actions/template.js';
 
 describe('ExportTemplate.vue', () => {
     let wrapper, localVue, mockRouter, mockStore, toast;
@@ -63,11 +63,19 @@ describe('ExportTemplate.vue', () => {
 
         it('dispatches templateDownload with the template metadata', () => {
             expect(mockStore.dispatch).toHaveBeenCalledWith(
-                tmActions.templateDownload,
+                templateActions.templateDownload,
                 {
-                    name: 'Test Model',
-                    description: 'Test description',
-                    tags: [],
+                    model: {
+                        summary: {
+                            title: 'Test Model',
+                            description: 'Test description',
+                        },
+                    },
+                    templateMetadata: {
+                        name: 'Test Model',
+                        description: 'Test description',
+                        tags: [],
+                    },
                 }
             );
         });
