@@ -206,14 +206,25 @@ export default {
     },
 
     computed: {
-        ...mapGetters(['allStandards']),
+        ...mapGetters(['allStandards', 'standardsLoaded']),
         ...mapState({
             requiredStandards: (state) => state.threatmodel.data.summary.requiredStandards || []
         }),
+        // clauses can still name a deleted standard; disabled options still display when selected
         standardOptions() {
+            const names = this.allStandards.map(s => s.name);
+            const clauses = (this.mitigation && this.mitigation.clauses) || [];
+            const missing = [...new Set(clauses.map(c => c.standard))]
+                .filter(name => name && !names.includes(name))
+                .map(name => ({
+                    value: name,
+                    text: this.standardsLoaded ? this.$t('threatmodel.deletedStandard', { name }) : name,
+                    disabled: true
+                }));
             return [
                 { value: '', text: this.$t('threats.mitigations.standardPlaceholder'), disabled: true },
-                ...this.allStandards.map(s => ({ value: s.name, text: s.name }))
+                ...names.map(name => ({ value: name, text: name })),
+                ...missing
             ];
         }
     },

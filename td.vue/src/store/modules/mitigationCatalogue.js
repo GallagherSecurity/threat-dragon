@@ -64,13 +64,15 @@ const actions = {
     },
 
     [MITIGATION_CATALOGUE_DELETE]: async ({ dispatch }, id) => {
-        await mitigationCatalogueApi.deleteMitigationAsync(id);
+        const response = await mitigationCatalogueApi.deleteMitigationAsync(id);
         await dispatch(MITIGATION_CATALOGUE_FETCH_ALL);
+        return response.threatsUpdated;
     },
 
     [MITIGATION_CATALOGUE_BULK_DELETE]: async ({ dispatch }, ids) => {
-        await mitigationCatalogueApi.bulkDeleteMitigationsAsync(ids);
+        const response = await mitigationCatalogueApi.bulkDeleteMitigationsAsync(ids);
         await dispatch(MITIGATION_CATALOGUE_FETCH_ALL);
+        return response.threatsUpdated;
     },
 
     [MITIGATION_CATALOGUE_FETCH_BY_ID]: async (_, id) => {

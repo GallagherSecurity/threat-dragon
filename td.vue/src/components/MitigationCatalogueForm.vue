@@ -115,14 +115,6 @@
             <template #modal-footer>
                 <div class="w-100">
                     <b-button
-                        v-if="isEditing"
-                        variant="danger"
-                        class="float-left"
-                        @click="confirmDelete()"
-                    >
-                        {{ $t('forms.delete') }}
-                    </b-button>
-                    <b-button
                         variant="primary"
                         class="float-right"
                         :disabled="!mitigation.title"
@@ -266,27 +258,6 @@ export default {
                 this.$toast.error(this.$t(this.isEditing
                     ? 'threats.mitigations.catalogue.errors.updateFailed'
                     : 'threats.mitigations.catalogue.errors.createFailed'));
-            }
-        },
-        async confirmDelete() {
-            const confirmed = await this.$bvModal.msgBoxConfirm(
-                `Delete "${this.mitigation.title}"? This cannot be undone.`,
-                {
-                    title: this.$t('threats.mitigations.catalogue.deleteTitle'),
-                    okTitle: this.$t('forms.delete'),
-                    cancelTitle: this.$t('forms.cancel'),
-                    okVariant: 'danger'
-                }
-            );
-            if (confirmed) {
-                try {
-                    await this.$store.dispatch(mcActions.delete, this.mitigation.id);
-                    this.$toast.success(this.$t('threats.mitigations.catalogue.prompts.deleteSuccess'));
-                    this.hideModal();
-                } catch (error) {
-                    console.error('Failed to delete catalogue mitigation:', error);
-                    this.$toast.error(this.$t('threats.mitigations.catalogue.errors.deleteFailed'));
-                }
             }
         }
     }

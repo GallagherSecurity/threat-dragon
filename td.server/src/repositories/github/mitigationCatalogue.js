@@ -5,6 +5,8 @@ import { randomUUID } from 'crypto';
 
 const MITIGATION_CATALOGUE_METADATA_PATH = 'mitigations/mitigation_catalogue.json';
 
+const standardNames = (clauses) => [...new Set((clauses || []).map((c) => c.standard).filter(Boolean))];
+
 const listMitigationCatalogueAsync = (accessToken) => getClient(accessToken).
     repo(env.get().config.GITHUB_CONTENT_REPO).
     contentsAsync(MITIGATION_CATALOGUE_METADATA_PATH);
@@ -64,7 +66,7 @@ const saveMitigationAsync = async (accessToken, mitigation) => {
     const { mitigations, sha } = await getMitigationCatalogueFileAsync(accessToken);
     const { id, briefDescription, hash, description, clauses, ...metadata } = mitigation;
     const { mitigationRef } = await createMitigationContentFileAsync(accessToken, { ...metadata, description, clauses });
-    mitigations.push({ id, mitigationRef, ...metadata, briefDescription, hash });
+    mitigations.push({ id, mitigationRef, ...metadata, briefDescription, hash, standards: standardNames(clauses) });
     await updateMitigationCatalogueMetadataAsync(accessToken, mitigations, sha);
 };
 
@@ -74,7 +76,7 @@ const bulkSaveMitigationsAsync = async (accessToken, newMitigations) => {
         const acc = await prevPromise;
         const { id, briefDescription, hash, description, clauses, ...metadata } = mitigation;
         const { mitigationRef } = await createMitigationContentFileAsync(accessToken, { ...metadata, description, clauses });
-        return [...acc, { id, mitigationRef, ...metadata, briefDescription, hash }];
+        return [...acc, { id, mitigationRef, ...metadata, briefDescription, hash, standards: standardNames(clauses) }];
     }, Promise.resolve([]));
     mitigations.push(...newEntries);
     await updateMitigationCatalogueMetadataAsync(accessToken, mitigations, sha);
@@ -90,7 +92,9 @@ const updateMitigationEntryAsync = async (accessToken, id, data) => {
     }
     const { description, clauses, briefDescription, hash, ...metadata } = data;
     const mitigationRef = mitigations[index].mitigationRef;
-    mitigations[index] = { ...mitigations[index], ...metadata, id, mitigationRef, briefDescription, hash };
+    mitigations[index] = {
+        ...mitigations[index], ...metadata, id, mitigationRef, briefDescription, hash, standards: standardNames(clauses)
+    };
     await updateMitigationCatalogueMetadataAsync(accessToken, mitigations, sha);
     await updateMitigationContentFileAsync(accessToken, mitigationRef, { ...metadata, description, clauses });
 };
@@ -116,6 +120,26 @@ const deleteMitigationEntryAsync = async (accessToken, id) => {
     }
     await updateMitigationCatalogueMetadataAsync(accessToken, mitigations.filter((m) => m.id !== id), sha);
     await deleteMitigationContentFileAsync(accessToken, mitigation.mitigationRef);
+};
+
+const removeStandardFromMitigationsAsync = async (accessToken, name) => {
+    const { mitigations, sha } = await listMitigationsAsync(accessToken);
+    const mitigationsUsingStandard = mitigations.filter((m) => (m.standards || []).includes(name));
+    if (mitigationsUsingStandard.length === 0) {return 0;}
+
+    await mitigationsUsingStandard.reduce(async (prevPromise, entry) => {
+        await prevPromise;
+        const file = await getMitigationContentFileAsync(accessToken, entry.mitigationRef);
+        const content = JSON.parse(Buffer.from(file[0].content, 'base64').toString('utf8'));
+        const clauses = (content.clauses || []).filter((c) => c.standard !== name);
+        await updateMitigationContentFileAsync(accessToken, entry.mitigationRef, { ...content, clauses });
+    }, Promise.resolve());
+
+    const updatedMitigations = mitigations.map((m) => (mitigationsUsingStandard.includes(m)
+        ? { ...m, standards: m.standards.filter((s) => s !== name) }
+        : m));
+    await updateMitigationCatalogueMetadataAsync(accessToken, updatedMitigations, sha);
+    return mitigationsUsingStandard.length;
 };
 
 const initializeMitigationCatalogueAsync = async (accessToken) => {
@@ -198,5 +222,6 @@ export default {
     updateMitigationEntryAsync,
     deleteMitigationEntryAsync,
     bulkDeleteMitigationsAsync,
+    removeStandardFromMitigationsAsync,
     initializeMitigationCatalogueAsync
 };

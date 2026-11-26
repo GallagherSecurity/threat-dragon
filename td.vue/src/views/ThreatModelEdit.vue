@@ -102,23 +102,23 @@
                                     class="required-standards-dropdown"
                                 >
                                     <template #default>
-                                        <div v-if="allStandards.length === 0" class="td-dropdown-item text-muted" style="pointer-events:none;">
+                                        <div v-if="standardOptions.length === 0" class="td-dropdown-item text-muted" style="pointer-events:none;">
                                             {{ $t('threatmodel.requiredStandardsPlaceholder') }}
                                         </div>
                                         <div class="td-dropdown-scroll">
                                         <label
-                                            v-for="standard in allStandards"
-                                            :key="standard.id"
+                                            v-for="option in standardOptions"
+                                            :key="option.name"
                                             class="td-dropdown-item d-flex align-items-center gap-2"
                                             @click.stop
                                         >
                                             <input
                                                 type="checkbox"
-                                                :value="standard.name"
+                                                :value="option.name"
                                                 v-model="requiredStandards"
                                                 class="mr-2"
                                             />
-                                            {{ standard.name }}
+                                            {{ option.label }}
                                         </label>
                                         </div>
                                     </template>
@@ -271,6 +271,17 @@ export default {
         },
         allStandards() {
             return this.$store.getters.allStandards;
+        },
+        // a required standard missing from the list was deleted, unless the list failed to load
+        standardOptions() {
+            const names = this.allStandards.map(s => s.name);
+            const missing = this.requiredStandards
+                .filter(name => !names.includes(name))
+                .map(name => ({
+                    name,
+                    label: this.$store.getters.standardsLoaded ? this.$t('threatmodel.deletedStandard', { name }) : name
+                }));
+            return [...names.map(name => ({ name, label: name })), ...missing];
         },
         requiredStandardsLabel() {
             if (!this.requiredStandards.length) return this.$t('threatmodel.requiredStandardsSelect');

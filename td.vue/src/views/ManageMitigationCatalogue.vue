@@ -2,10 +2,10 @@
     <b-container fluid>
         <b-row>
             <b-col>
-                <b-jumbotron class="text-center">
+                <td-hero class="text-center">
                     <h4>{{ $t('threats.mitigations.catalogue.manage') }}</h4>
                     <p class="lead">{{ $t('threats.mitigations.catalogue.manageDescription') }}</p>
-                </b-jumbotron>
+                </td-hero>
             </b-col>
         </b-row>
 
@@ -49,7 +49,7 @@
                         variant="danger"
                         @click="onBulkDeleteClick"
                     >
-                        Delete Selected ({{ selectedIds.length }})
+                        {{ $t('threats.catalogue.deleteSelected', { count: selectedIds.length }) }}
                     </b-button>
                 </b-col>
             </b-row>
@@ -61,16 +61,16 @@
                             <b-form-input v-model="searchQuery" :placeholder="$t('threats.mitigations.catalogue.search')" />
                         </b-col>
                         <b-col md="2" class="d-flex align-items-center">
-                            <b-button v-show="searchQuery" variant="link" class="p-0 text-muted" @click="searchQuery = ''" title="Clear">
+                            <b-button v-show="searchQuery" variant="link" class="p-0 text-muted" @click="searchQuery = ''" :title="$t('threats.catalogue.clearSearch')" :aria-label="$t('threats.catalogue.clearSearch')">
                                 &#x2715;
                             </b-button>
                         </b-col>
                     </b-form-row>
                     <small v-show="searchQuery" class="text-muted">
-                        Showing {{ filteredMitigations.length }} of {{ mitigationCatalogue.length }} mitigations
+                        {{ $t('threats.mitigations.catalogue.showing', { shown: filteredMitigations.length, total: mitigationCatalogue.length }) }}
                     </small>
                     <small v-show="selectedIds.length" class="text-muted ml-3">
-                        {{ selectedIds.length }} selected
+                        {{ $t('threats.catalogue.selectedCount', { count: selectedIds.length }) }}
                     </small>
                 </b-col>
             </b-row>
@@ -96,16 +96,26 @@
                                 </div>
                                 <div class="text-muted small mt-1">{{ mitigation.briefDescription }}</div>
                             </div>
-                            <b-dropdown right variant="link" class="item-actions">
-                                <template #button-content>&#8942;</template>
-                                <b-dropdown-item @click="onEditClick(mitigation)">
-                                    {{ $t('forms.edit') }}
-                                </b-dropdown-item>
-                                <b-dropdown-divider></b-dropdown-divider>
-                                <b-dropdown-item variant="danger" @click="onDeleteClick(mitigation)">
-                                    {{ $t('forms.delete') }}
-                                </b-dropdown-item>
-                            </b-dropdown>
+                            <td-dropdown right variant="link" no-caret class="item-actions">
+                                <template #button-content>
+                                    <font-awesome-icon icon="ellipsis-v"></font-awesome-icon>
+                                </template>
+                                <template #default="{ close }">
+                                    <button type="button" class="td-dropdown-item" @click="onEditClick(mitigation); close()">
+                                        <font-awesome-icon icon="edit" class="mr-2"></font-awesome-icon>
+                                        {{ $t('forms.edit') }}
+                                    </button>
+                                    <div class="td-dropdown-divider"></div>
+                                    <button
+                                        type="button"
+                                        class="td-dropdown-item td-dropdown-item-danger"
+                                        @click="onDeleteClick(mitigation); close()"
+                                    >
+                                        <font-awesome-icon icon="trash" class="mr-2"></font-awesome-icon>
+                                        {{ $t('forms.delete') }}
+                                    </button>
+                                </template>
+                            </td-dropdown>
                         </b-list-group-item>
                     </b-list-group>
                     <b-alert v-else show variant="info">{{ emptyMessage }}</b-alert>
@@ -128,18 +138,44 @@
         </template>
 
         <td-mitigation-catalogue-form ref="mitigationForm" />
+
+        <!-- Delete confirmation, shared by single and bulk delete -->
+        <b-modal
+            id="delete-mitigation-modal"
+            :title="isSingleDelete ? $t('threats.mitigations.catalogue.deleteTitle') : $t('threats.mitigations.catalogue.deleteBulkTitle')"
+            ok-variant="danger"
+            :ok-title="$t('forms.delete')"
+            :cancel-title="$t('forms.cancel')"
+            centered
+            @ok="onConfirmDelete"
+        >
+            <template v-if="deleteTarget">
+                <p v-if="isSingleDelete">{{ $t('threats.mitigations.catalogue.deleteConfirm', { title: deleteTarget.title }) }}</p>
+                <p v-else>{{ $t('threats.mitigations.catalogue.deleteBulkConfirm', { count: deleteTarget.ids.length }) }}</p>
+                <template v-if="deleteUsedBy.length">
+                    <p class="mb-1">{{ $t('threats.mitigations.catalogue.deleteInUse', { count: deleteUsedBy.length }) }}</p>
+                    <ul class="delete-usage-list">
+                        <li v-for="threat in deleteUsedBy" :key="threat.id">{{ threat.title }}</li>
+                    </ul>
+                </template>
+                <p class="text-muted small mb-0">{{ $t('threats.mitigations.catalogue.deleteKeepsModels') }}</p>
+            </template>
+        </b-modal>
     </b-container>
 </template>
 
 <script>
 import { mapGetters } from 'vuex';
 import mcActions from '@/store/actions/mitigationCatalogue.js';
+import tcActions from '@/store/actions/threatCatalogue.js';
 import schema from '@/service/schema/ajv.js';
+import TdDropdown from '@/components/Dropdown.vue';
+import TdHero from '@/components/Hero.vue';
 import TdMitigationCatalogueForm from '@/components/MitigationCatalogueForm.vue';
 
 export default {
     name: 'ManageMitigationCatalogue',
-    components: { TdMitigationCatalogueForm },
+    components: { TdDropdown, TdHero, TdMitigationCatalogueForm },
     data() {
         return {
             isBootstrapping: false,
@@ -147,11 +183,20 @@ export default {
             selectedIds: [],
             currentPage: 1,
             pageSize: 25,
-            pageSizeOptions: [10, 25, 50, 100]
+            pageSizeOptions: [10, 25, 50, 100],
+            deleteTarget: null
         };
     },
     computed: {
-        ...mapGetters(['mitigationCatalogue', 'mitigationCatalogueStoreStatus']),
+        ...mapGetters(['mitigationCatalogue', 'mitigationCatalogueStoreStatus', 'threatCatalogue']),
+        isSingleDelete() {
+            return !!(this.deleteTarget && this.deleteTarget.title);
+        },
+        deleteUsedBy() {
+            if (!this.deleteTarget) return [];
+            return this.threatCatalogue.filter(t =>
+                (t.mitigationRefs || []).some(ref => this.deleteTarget.ids.includes(ref)));
+        },
         isFiltering() {
             return !!this.searchQuery;
         },
@@ -190,6 +235,7 @@ export default {
     },
     mounted() {
         this.$store.dispatch(mcActions.fetchAll);
+        this.$store.dispatch(tcActions.fetchAll);
     },
     methods: {
         async handleBootstrap() {
@@ -283,48 +329,34 @@ export default {
                 this.selectedIds.splice(idx, 1);
             }
         },
-        async onDeleteClick(mitigation) {
-            const confirmed = await this.$bvModal.msgBoxConfirm(
-                `Delete "${mitigation.title}"? This cannot be undone.`,
-                {
-                    title: this.$t('threats.mitigations.catalogue.deleteTitle'),
-                    okVariant: 'danger',
-                    okTitle: this.$t('forms.delete'),
-                    cancelTitle: this.$t('forms.cancel'),
-                    centered: true
-                }
-            );
-            if (confirmed) {
-                try {
-                    await this.$store.dispatch(mcActions.delete, mitigation.id);
-                    this.$toast.success(this.$t('threats.mitigations.catalogue.prompts.deleteSuccess'));
-                } catch (e) {
-                    console.error('Delete failed:', e);
-                    this.$toast.error(this.$t('threats.mitigations.catalogue.errors.deleteFailed'));
-                }
-            }
+        onDeleteClick(mitigation) {
+            this.deleteTarget = { ids: [mitigation.id], title: mitigation.title };
+            this.$bvModal.show('delete-mitigation-modal');
         },
-        async onBulkDeleteClick() {
-            const count = this.selectedIds.length;
-            const confirmed = await this.$bvModal.msgBoxConfirm(
-                `Delete ${count} selected mitigation${count > 1 ? 's' : ''}? This cannot be undone.`,
-                {
-                    title: this.$t('threats.mitigations.catalogue.deleteBulkTitle'),
-                    okVariant: 'danger',
-                    okTitle: this.$t('forms.delete'),
-                    cancelTitle: this.$t('forms.cancel'),
-                    centered: true
-                }
-            );
-            if (confirmed) {
-                try {
-                    await this.$store.dispatch(mcActions.bulkDelete, [...this.selectedIds]);
-                    this.$toast.success(this.$t('threats.mitigations.catalogue.prompts.deleteSuccess'));
+        onBulkDeleteClick() {
+            this.deleteTarget = { ids: [...this.selectedIds], title: null };
+            this.$bvModal.show('delete-mitigation-modal');
+        },
+        async onConfirmDelete() {
+            const isSingle = this.isSingleDelete;
+            const { ids } = this.deleteTarget;
+            try {
+                let threatsUpdated;
+                if (isSingle) {
+                    threatsUpdated = await this.$store.dispatch(mcActions.delete, ids[0]);
+                } else {
+                    threatsUpdated = await this.$store.dispatch(mcActions.bulkDelete, ids);
                     this.selectedIds = [];
-                } catch (e) {
-                    console.error('Bulk delete failed:', e);
-                    this.$toast.error(this.$t('threats.mitigations.catalogue.errors.deleteFailed'));
                 }
+                this.$toast.success(threatsUpdated
+                    ? this.$t('threats.mitigations.catalogue.prompts.deleteSuccessInUse', { count: threatsUpdated })
+                    : this.$t('threats.mitigations.catalogue.prompts.deleteSuccess'));
+                if (threatsUpdated) {
+                    this.$store.dispatch(tcActions.fetchAll);
+                }
+            } catch (e) {
+                console.error('Failed to delete mitigation:', e);
+                this.$toast.error(this.$t('threats.mitigations.catalogue.errors.deleteFailed'));
             }
         }
     }
@@ -332,8 +364,8 @@ export default {
 </script>
 
 <style scoped>
-.item-actions >>> .btn::after,
-.item-actions >>> .dropdown-toggle::after {
-    display: none !important;
+.delete-usage-list {
+    max-height: 12rem;
+    overflow-y: auto;
 }
 </style>

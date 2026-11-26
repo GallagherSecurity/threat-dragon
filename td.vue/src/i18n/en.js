@@ -231,6 +231,7 @@ const messages = {
         requiredStandards: 'Required Compliance Standards',
         requiredStandardsSelect: 'Select standards...',
         requiredStandardsPlaceholder: 'No standards configured, contact your administrator to add some',
+        deletedStandard: '{name} (deleted)',
         description: 'High level system description',
         dragAndDrop: 'Drag and drop or ',
         editing: 'Editing',
@@ -436,17 +437,38 @@ const messages = {
         },
     },
     standards: {
+        // Management
         manage: 'Manage Standards',
         manageDescription: 'Add the compliance standards that mitigations and threat models can reference.',
         add: 'Add Standard',
         namePlaceholder: 'Standard name (e.g. ISO 27001)',
         empty: 'No standards yet.',
         duplicate: 'A standard with this name already exists',
+        notInitialized: 'Standards not initialized',
+        bootstrapDescription: 'Initialize the standards list in your content repository to get started.',
+        deleteTitle: 'Delete Standard',
+        deleteConfirm: 'Delete "{name}"? This cannot be undone.',
+        deleteInUse: 'It will also be removed from these catalogue mitigations ({count}):',
+        deleteKeepsModels: 'Existing threat models keep it until it is unticked.',
+
+        // Status messages
+        status: {
+            error: {
+                title: 'Standards Could Not Be Loaded',
+                web: 'Something went wrong loading the standards. Try again later.'
+            }
+        },
+
         prompts: {
-            createSuccess: 'Standard added'
+            createSuccess: 'Standard added',
+            initialiseSuccess: 'Standards initialized successfully',
+            deleteSuccess: 'Standard deleted',
+            deleteSuccessInUse: 'Standard deleted and removed from catalogue mitigations ({count})'
         },
         errors: {
-            createFailed: 'Failed to add standard'
+            createFailed: 'Failed to add standard',
+            initialiseFailed: 'Failed to initialize standards',
+            deleteFailed: 'Failed to delete standard'
         }
     },
     threats: {
@@ -474,6 +496,11 @@ const messages = {
             tagsPlaceholder: 'Add tags...',
             selectAll: 'Select All',
             deselectAll: 'Deselect All',
+            selectedCount: '{count} selected',
+            deleteSelected: 'Delete Selected ({count})',
+            clearSearch: 'Clear search',
+            clearFilters: 'Clear filters',
+            showing: 'Showing {shown} of {total} threats',
             previous: 'Previous',
             next: 'Next',
             perPage: 'Per page:',
@@ -484,6 +511,7 @@ const messages = {
             deleteConfirm: 'Delete "{title}"? This cannot be undone.',
             deleteTitle: 'Delete Threat',
             deleteBulkTitle: 'Delete Threats',
+            deleteBulkConfirm: 'Delete the selected threats ({count})? This cannot be undone.',
             actions: {
                 initialise: 'Initialise Catalogue',
                 initialising: 'Initialising...',
@@ -611,13 +639,19 @@ const messages = {
                 notInitialized: 'Mitigation catalogue not initialized',
                 bootstrapDescription: 'Initialize the mitigation catalogue in your content repository to get started.',
                 noMitigations: 'No mitigations in catalogue yet.',
+                showing: 'Showing {shown} of {total} mitigations',
                 deleteTitle: 'Delete Mitigation',
+                deleteConfirm: 'Delete "{title}"? This cannot be undone.',
                 deleteBulkTitle: 'Delete Selected Mitigations',
+                deleteBulkConfirm: 'Delete the selected mitigations ({count})? This cannot be undone.',
+                deleteInUse: 'It will also be removed from these catalogue threats ({count}):',
+                deleteKeepsModels: 'Existing threat models are not changed.',
                 missingReference: 'This mitigation no longer exists in the catalogue',
                 prompts: {
                     createSuccess: 'Mitigation created successfully',
                     updateSuccess: 'Mitigation updated successfully',
                     deleteSuccess: 'Mitigation deleted successfully',
+                    deleteSuccessInUse: 'Mitigation deleted and removed from catalogue threats ({count})',
                     initialiseSuccess: 'Mitigation catalogue initialized successfully'
                 },
                 errors: {

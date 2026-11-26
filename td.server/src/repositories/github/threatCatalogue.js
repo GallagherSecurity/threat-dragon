@@ -118,6 +118,22 @@ const deleteThreatEntryAsync = async (accessToken, id) => {
     await deleteThreatContentFileAsync(accessToken, threat.threatRef);
 };
 
+const updateThreatMitigationRefsAsync = async (accessToken, refsByThreatId) => {
+    const ids = Object.keys(refsByThreatId);
+    if (ids.length === 0) {return;}
+
+    const { threats, sha } = await getCatalogueFileAsync(accessToken);
+    await threats.filter((t) => ids.includes(t.id)).reduce(async (prevPromise, entry) => {
+        await prevPromise;
+        const file = await getThreatContentFileAsync(accessToken, entry.threatRef);
+        const content = JSON.parse(Buffer.from(file[0].content, 'base64').toString('utf8'));
+        await updateThreatContentFileAsync(accessToken, entry.threatRef, { ...content, mitigationRefs: refsByThreatId[entry.id] });
+    }, Promise.resolve());
+
+    const updatedThreats = threats.map((t) => (ids.includes(t.id) ? { ...t, mitigationRefs: refsByThreatId[t.id] } : t));
+    await updateThreatCatalogueMetadataAsync(accessToken, updatedThreats, sha);
+};
+
 const initializeThreatCatalogueAsync = async (accessToken) => {
     await createThreatCatalogueMetadataAsync(accessToken);
 };
@@ -206,5 +222,6 @@ export default {
     updateThreatEntryAsync,
     deleteThreatEntryAsync,
     bulkDeleteThreatsAsync,
+    updateThreatMitigationRefsAsync,
     initializeThreatCatalogueAsync
 };

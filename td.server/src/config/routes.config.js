@@ -107,6 +107,7 @@ const adminRoutes = (router) => {
     // Standards routes (write — admin only)
     router.post('/api/standards', standardsController.createStandard);
     router.delete('/api/standards/:id', standardsController.deleteStandard);
+    router.post('/api/standards/bootstrap', standardsController.bootstrapStandards);
 
     // Threat catalogue routes (write — admin only)
     router.post('/api/threats/catalogue', threatCatalogueController.createCatalogueThreat);

@@ -16,7 +16,7 @@ export const resolveStandardsAsync = async (repository, accessToken, mitigations
         return { mitigations, standardsCreated: 0 };
     }
 
-    const { standards } = await repository.listStandardsAsync(accessToken);
+    const { standards, status } = await repository.listStandardsAsync(accessToken);
     const existingStandards = new Map(standards.map((s) => [s.name.toLowerCase(), s.name]));
 
     const missingStandards = [];
@@ -27,6 +27,9 @@ export const resolveStandardsAsync = async (repository, accessToken, mitigations
         }
     }
 
+    if (missingStandards.length > 0 && status === 'NOT_INITIALIZED') {
+        await repository.initializeStandardsAsync(accessToken);
+    }
     await missingStandards.reduce(async (prevPromise, standard) => {
         await prevPromise;
         return repository.saveStandardAsync(accessToken, standard);
@@ -50,10 +53,11 @@ const listStandards = (req, res) => responseWrapper.sendResponseAsync(async () =
     const result = await repository.listStandardsAsync(req.provider.access_token);
 
     if (result.status) {
-        return { standards: [], status: result.status };
+        const canWrite = result.status === 'NOT_INITIALIZED' ? (req.user?.isAdmin || false) : false;
+        return { standards: [], status: result.status, canWrite };
     }
 
-    return { standards: result.standards };
+    return { standards: result.standards, canWrite: true };
 }, req, res, logger);
 
 const createStandard = async (req, res) => {
@@ -88,22 +92,50 @@ const deleteStandard = async (req, res) => {
 
     try {
         const { standards } = await repository.listStandardsAsync(accessToken);
+        const standard = standards.find((s) => s.id === id);
 
-        if (!standards.some((s) => s.id === id)) {
+        if (!standard) {
             return notFound(`Standard with id "${id}" not found`, res, logger);
         }
 
+        // clauses go first so a failure part way leaves the standard in place and the delete can be retried
+        const mitigationsUpdated = await repository.removeStandardFromMitigationsAsync(accessToken, standard.name);
         await repository.deleteStandardAsync(accessToken, id);
 
-        return res.status(200).json({ status: 200, message: 'Standard deleted successfully' });
+        return res.status(200).json({ status: 200, message: 'Standard deleted successfully', mitigationsUpdated });
     } catch (err) {
         logger.error(err);
         return serverError(err.message || 'Failed to delete standard', res, logger);
     }
 };
 
+const bootstrapStandards = async (req, res) => {
+    const repository = repositories.get();
+
+    try {
+        const result = await repository.listStandardsAsync(req.provider.access_token);
+
+        if (result.status === 'NOT_CONFIGURED') {
+            return badRequest('Standards not configured. Set GITHUB_CONTENT_REPO environment variable.', res, logger);
+        }
+        if (result.status === 'NOT_FOUND') {
+            return notFound('Standards repository not found', res, logger);
+        }
+        if (!result.status) {
+            return badRequest('Standards already initialized', res, logger);
+        }
+
+        await repository.initializeStandardsAsync(req.provider.access_token);
+        return res.status(201).json({ status: 201, message: 'Standards initialized successfully' });
+    } catch (err) {
+        logger.error(err);
+        return serverError(err.message || 'Failed to initialize standards', res, logger);
+    }
+};
+
 export default {
     listStandards,
     createStandard,
-    deleteStandard
+    deleteStandard,
+    bootstrapStandards
 };

@@ -27,6 +27,15 @@ export const computeMitigationHash = (mitigation) => {
         digest('hex');
 };
 
+const unlinkMitigationsFromThreatsAsync = async (repository, accessToken, mitigationIds) => {
+    const { threats } = await repository.listThreatsAsync(accessToken);
+    const refsByThreatId = Object.fromEntries(threats.
+        filter((t) => (t.mitigationRefs || []).some((ref) => mitigationIds.includes(ref))).
+        map((t) => [t.id, t.mitigationRefs.filter((ref) => !mitigationIds.includes(ref))]));
+    await repository.updateThreatMitigationRefsAsync(accessToken, refsByThreatId);
+    return Object.keys(refsByThreatId).length;
+};
+
 const isDuplicate = (mitigations, incoming) => {
     const hash = computeMitigationHash(incoming);
     return mitigations.some((m) => m.hash === hash);
@@ -103,8 +112,10 @@ const deleteCatalogueMitigation = async (req, res) => {
     const { id } = req.params;
 
     try {
+        // links go first so a failure part way leaves the mitigation in place and the delete can be retried
+        const threatsUpdated = await unlinkMitigationsFromThreatsAsync(repository, accessToken, [id]);
         await repository.deleteMitigationEntryAsync(accessToken, id);
-        return res.status(200).json({ status: 200, message: 'Catalogue mitigation deleted successfully' });
+        return res.status(200).json({ status: 200, message: 'Catalogue mitigation deleted successfully', threatsUpdated });
     } catch (err) {
         if (err.statusCode === 404) {return notFound(`Catalogue mitigation with ID "${id}" not found`, res, logger);}
         logger.error(err);
@@ -153,8 +164,9 @@ const bulkDeleteCatalogueMitigations = async (req, res) => {
     }
 
     try {
+        const threatsUpdated = await unlinkMitigationsFromThreatsAsync(repository, accessToken, ids);
         await repository.bulkDeleteMitigationsAsync(accessToken, ids);
-        return res.status(200).json({ status: 200, message: `${ids.length} mitigation(s) deleted successfully` });
+        return res.status(200).json({ status: 200, message: `${ids.length} mitigation(s) deleted successfully`, threatsUpdated });
     } catch (err) {
         logger.error(err);
         return serverError(err.message || 'Failed to bulk delete catalogue mitigations', res, logger);

@@ -14,8 +14,13 @@ const deleteStandardAsync = (id) => {
     return api.deleteAsync(`${resource}/${encodeURIComponent(id)}`);
 };
 
+const bootstrapAsync = () => {
+    return api.postAsync(`${resource}/bootstrap`);
+};
+
 export default {
     fetchAllAsync,
     createStandardAsync,
-    deleteStandardAsync
+    deleteStandardAsync,
+    bootstrapAsync
 };

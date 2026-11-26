@@ -186,14 +186,6 @@
             <template #modal-footer>
                 <div class="w-100">
                     <b-button
-                        v-if="isEditing"
-                        variant="danger"
-                        class="float-left"
-                        @click="confirmDelete()"
-                    >
-                        {{ $t('forms.delete') }}
-                    </b-button>
-                    <b-button
                         variant="primary"
                         class="float-right"
                         :disabled="!threat.title || !threat.modelType || !threat.type"
@@ -381,27 +373,6 @@ export default {
             } catch (error) {
                 console.error('Failed to save catalogue threat:', error);
                 this.$toast.error(this.$t(this.isEditing ? 'threats.catalogue.errors.updateFailed' : 'threats.catalogue.errors.createFailed'));
-            }
-        },
-        async confirmDelete() {
-            const confirmed = await this.$bvModal.msgBoxConfirm(
-                `Delete "${this.threat.title}"? This cannot be undone.`,
-                {
-                    title: this.$t('threats.catalogue.deleteTitle'),
-                    okTitle: this.$t('forms.delete'),
-                    cancelTitle: this.$t('forms.cancel'),
-                    okVariant: 'danger',
-                }
-            );
-            if (confirmed) {
-                try {
-                    await this.$store.dispatch(tcActions.delete, this.threat.id);
-                    this.$toast.success(this.$t('threats.catalogue.prompts.deleteSuccess'));
-                    this.hideModal();
-                } catch (error) {
-                    console.error('Failed to delete catalogue threat:', error);
-                    this.$toast.error(this.$t('threats.catalogue.errors.deleteFailed'));
-                }
             }
         }
     }
