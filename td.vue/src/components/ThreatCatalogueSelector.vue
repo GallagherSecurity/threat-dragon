@@ -113,7 +113,9 @@ export default {
         ...mapState({
             cellRef: (state) => state.cell.ref,
             diagram: (state) => state.threatmodel.selectedDiagram,
-            threatTop: (state) => state.threatmodel.data.detail.threatTop
+            threatTop: (state) => state.threatmodel.data.detail.threatTop,
+            mitigationTop: (state) => state.threatmodel.data.detail.mitigationTop,
+            requiredStandards: (state) => state.threatmodel.data.summary.requiredStandards || []
         }),
         ...mapGetters(['threatCatalogue', 'threatCatalogueStoreStatus', 'canWriteThreatCatalogue']),
         cellType() {
@@ -180,15 +182,17 @@ export default {
         async applySelected() {
             try {
                 let threatTop = this.threatTop;
-                for (const catalogueThreat of this.selected) {
+                let mitigationTop = this.mitigationTop || 0;
+                const ids = this.selected.map((catalogueThreat) => catalogueThreat.id);
+                const response = await threatCatalogueApi.fetchBulkThreatContentAsync(ids);
+                for (const fullThreat of response.data.contents) {
                     threatTop++;
-                    const response = await threatCatalogueApi.fetchThreatContentAsync(catalogueThreat.id);
-                    const fullThreat = response.data.content;
-                    const threat = createThreatFromCatalogue(fullThreat, threatTop);
+                    const threat = createThreatFromCatalogue(fullThreat, threatTop, mitigationTop, this.requiredStandards);
+                    mitigationTop += threat.mitigations.length;
                     this.cellRef.data.threats.push(threat);
                 }
                 this.cellRef.data.hasOpenThreats = true;
-                this.$store.dispatch(tmActions.update, { threatTop });
+                this.$store.dispatch(tmActions.update, { threatTop, mitigationTop });
                 this.$store.dispatch(tmActions.modified);
                 this.$store.dispatch(CELL_DATA_UPDATED, this.cellRef.data);
                 dataChanged.updateStyleAttrs(this.cellRef);

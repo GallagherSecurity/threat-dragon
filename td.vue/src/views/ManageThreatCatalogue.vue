@@ -2,10 +2,10 @@
     <b-container fluid>
         <b-row>
             <b-col>
-                <b-jumbotron class="text-center">
+                <td-hero class="text-center">
                     <h4>{{ $t('threats.catalogue.manage') }}</h4>
                     <p class="lead">{{ $t('threats.catalogue.manageDescription') }}</p>
-                </b-jumbotron>
+                </td-hero>
             </b-col>
         </b-row>
 
@@ -49,7 +49,7 @@
                         variant="danger"
                         @click="onBulkDeleteClick"
                     >
-                        Delete Selected ({{ selectedIds.length }})
+                        {{ $t('threats.catalogue.deleteSelected', { count: selectedIds.length }) }}
                     </b-button>
                 </b-col>
             </b-row>
@@ -71,16 +71,16 @@
                             </select>
                         </b-col>
                         <b-col md="1" class="d-flex align-items-center">
-                            <b-button v-show="isFiltering" variant="link" class="p-0 text-muted" @click="clearFilters" title="Clear filters">
+                            <b-button v-show="isFiltering" variant="link" class="p-0 text-muted" @click="clearFilters" :title="$t('threats.catalogue.clearFilters')" :aria-label="$t('threats.catalogue.clearFilters')">
                                 &#x2715;
                             </b-button>
                         </b-col>
                     </b-form-row>
                     <small v-show="isFiltering" class="text-muted">
-                        Showing {{ filteredThreats.length }} of {{ threatCatalogue.length }} threats
+                        {{ $t('threats.catalogue.showing', { shown: filteredThreats.length, total: threatCatalogue.length }) }}
                     </small>
                     <small v-show="selectedIds.length" class="text-muted ml-3">
-                        {{ selectedIds.length }} selected
+                        {{ $t('threats.catalogue.selectedCount', { count: selectedIds.length }) }}
                     </small>
                 </b-col>
             </b-row>
@@ -110,16 +110,26 @@
                                     </b-badge>
                                 </div>
                             </div>
-                            <b-dropdown right variant="link" class="template-actions">
-                                <template #button-content>&#8942;</template>
-                                <b-dropdown-item @click="onEditClick(threat)">
-                                    {{ $t('forms.edit') }}
-                                </b-dropdown-item>
-                                <b-dropdown-divider></b-dropdown-divider>
-                                <b-dropdown-item variant="danger" @click="onDeleteClick(threat)">
-                                    {{ $t('forms.delete') }}
-                                </b-dropdown-item>
-                            </b-dropdown>
+                            <td-dropdown right variant="link" no-caret class="template-actions">
+                                <template #button-content>
+                                    <font-awesome-icon icon="ellipsis-v"></font-awesome-icon>
+                                </template>
+                                <template #default="{ close }">
+                                    <button type="button" class="td-dropdown-item" @click="onEditClick(threat); close()">
+                                        <font-awesome-icon icon="edit" class="mr-2"></font-awesome-icon>
+                                        {{ $t('forms.edit') }}
+                                    </button>
+                                    <div class="td-dropdown-divider"></div>
+                                    <button
+                                        type="button"
+                                        class="td-dropdown-item td-dropdown-item-danger"
+                                        @click="onDeleteClick(threat); close()"
+                                    >
+                                        <font-awesome-icon icon="trash" class="mr-2"></font-awesome-icon>
+                                        {{ $t('forms.delete') }}
+                                    </button>
+                                </template>
+                            </td-dropdown>
                         </b-list-group-item>
                     </b-list-group>
                     <b-alert v-else show variant="info">{{ emptyMessage }}</b-alert>
@@ -149,11 +159,13 @@
 import { mapGetters } from 'vuex';
 import tcActions from '@/store/actions/threatCatalogue.js';
 import schema from '@/service/schema/ajv.js';
+import TdDropdown from '@/components/Dropdown.vue';
+import TdHero from '@/components/Hero.vue';
 import TdThreatCatalogueForm from '@/components/ThreatCatalogueForm.vue';
 
 export default {
     name: 'ManageThreatCatalogue',
-    components: { TdThreatCatalogueForm },
+    components: { TdDropdown, TdHero, TdThreatCatalogueForm },
     data() {
         return {
             isBootstrapping: false,
@@ -260,7 +272,6 @@ export default {
         async onExportClick() {
             try {
                 await this.$store.dispatch(tcActions.export, [...this.selectedIds]);
-                this.$toast.success(this.$t('threats.catalogue.prompts.exportSuccess'));
             } catch (e) {
                 console.error('Export failed:', e);
                 this.$toast.error(this.$t('threats.catalogue.errors.exportFailed'));
@@ -329,7 +340,7 @@ export default {
         },
         async onDeleteClick(threat) {
             const confirmed = await this.$bvModal.msgBoxConfirm(
-                `Delete "${threat.title}"? This cannot be undone.`,
+                this.$t('threats.catalogue.deleteConfirm', { title: threat.title }),
                 { title: this.$t('threats.catalogue.deleteTitle'), okVariant: 'danger', okTitle: this.$t('forms.delete'), cancelTitle: this.$t('forms.cancel'), centered: true }
             );
             if (confirmed) {
@@ -343,9 +354,8 @@ export default {
             }
         },
         async onBulkDeleteClick() {
-            const count = this.selectedIds.length;
             const confirmed = await this.$bvModal.msgBoxConfirm(
-                `Delete ${count} selected threat${count > 1 ? 's' : ''}? This cannot be undone.`,
+                this.$t('threats.catalogue.deleteBulkConfirm', { count: this.selectedIds.length }),
                 { title: this.$t('threats.catalogue.deleteBulkTitle'), okVariant: 'danger', okTitle: this.$t('forms.delete'), cancelTitle: this.$t('forms.cancel'), centered: true }
             );
             if (confirmed) {
@@ -362,10 +372,3 @@ export default {
     }
 };
 </script>
-
-<style scoped>
-.template-actions>>>.btn::after,
-.template-actions>>>.dropdown-toggle::after {
-    display: none !important;
-}
-</style>

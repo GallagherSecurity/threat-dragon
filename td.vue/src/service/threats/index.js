@@ -10,6 +10,7 @@ export const getSeverityOptions = (t) => [
     { value: 'Critical', text: t('threats.severity.critical') }
 ];
 import { isOpen, isResolved } from './status.js';
+import { computeMandatory } from '@/service/mitigations/compliance.js';
 import { tc } from '../../i18n/index.js';
 import store from '@/store/index.js';
 
@@ -132,7 +133,7 @@ export const createNewTypedThreat = function (modelType, cellType, number) {
         severity: 'TBD',
         type,
         description: tc('threats.description'),
-        mitigation: tc('threats.mitigation'),
+        mitigations: [],
         modelType,
         new: true,
         number: number,
@@ -140,14 +141,26 @@ export const createNewTypedThreat = function (modelType, cellType, number) {
     };
 };
 
-export const createThreatFromCatalogue = function (catalogueThreat, number) {
+export const createThreatFromCatalogue = function (catalogueThreat, number, mitigationTop, requiredStandards) {
+    const mitigations = catalogueThreat.mitigations.map((catalogueMitigation, index) => {
+        const mitigation = {
+            mitigationId: uuidv4(),
+            number: mitigationTop + index + 1,
+            title: catalogueMitigation.title,
+            description: catalogueMitigation.description,
+            status: catalogueMitigation.status,
+            clauses: catalogueMitigation.clauses.map((clause) => ({ ...clause }))
+        };
+        return { ...mitigation, mandatory: computeMandatory(mitigation, requiredStandards) };
+    });
+
     return {
         id: uuidv4(),
         title: catalogueThreat.title,
         type: catalogueThreat.type,
         modelType: catalogueThreat.modelType,
         description: catalogueThreat.description,
-        mitigation: catalogueThreat.mitigation,
+        mitigations,
         score: catalogueThreat.score || '',
         status: 'Open',
         severity: catalogueThreat.severity || 'TBD',
@@ -180,10 +193,27 @@ const filterForDiagram = (data, filters) => {
     return data.threats.filter(x => filters.showMitigated || !isResolved(x.status));
 };
 
+const formatMitigation = (mitigation, t) => {
+    const title = mitigation.title || t('threats.mitigations.noTitle');
+    const details = mitigation.mandatory
+        ? `${mitigation.status}, ${t('threats.mitigations.mandatory')}`
+        : mitigation.status;
+    return `#${mitigation.number} ${title} (${details})`;
+};
+
+// models saved before mitigations became a list only carry the single mitigation text
+const formatMitigations = (threat, t) => {
+    if (!threat.mitigations || !threat.mitigations.length) {
+        return threat.mitigation || '';
+    }
+    return threat.mitigations.map((mitigation) => formatMitigation(mitigation, t)).join('\n');
+};
+
 export default {
     convertToTranslationString,
     filter,
     filterForDiagram,
+    formatMitigations,
     getModelByTranslation: models.getByTranslationValue,
     hasOpenThreats
 };

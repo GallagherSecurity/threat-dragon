@@ -43,10 +43,16 @@
 
           <template #default="{ close }">
             <button type="button" class="td-dropdown-item" @click="onManageTemplates(); close()">
-              Manage Templates
+              {{ $t('template.manage') }}
             </button>
             <button type="button" class="td-dropdown-item" @click="onManageThreats(); close()">
-              Manage Threats
+              {{ $t('threats.catalogue.manage') }}
+            </button>
+            <button type="button" class="td-dropdown-item" @click="onManageMitigations(); close()">
+              {{ $t('threats.mitigations.catalogue.manage') }}
+            </button>
+            <button type="button" class="td-dropdown-item" @click="onManageStandards(); close()">
+              {{ $t('standards.manage') }}
             </button>
           </template>
           </td-dropdown>
@@ -200,6 +206,20 @@ export default {
         },
         onManageThreats() {
             this.$router.push('/admin/threats').catch(error => {
+                if (error.name != 'NavigationDuplicated') {
+                    throw error;
+                }
+            });
+        },
+        onManageMitigations() {
+            this.$router.push('/admin/mitigations').catch(error => {
+                if (error.name != 'NavigationDuplicated') {
+                    throw error;
+                }
+            });
+        },
+        onManageStandards() {
+            this.$router.push('/admin/standards').catch(error => {
                 if (error.name != 'NavigationDuplicated') {
                     throw error;
                 }

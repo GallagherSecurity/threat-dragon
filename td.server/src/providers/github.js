@@ -39,7 +39,9 @@ const getGithubUrl = () => {
  */
 const getOauthRedirectUrl = () => {
     const scope = env.get().config.GITHUB_SCOPE || 'public_repo';
-    return `${getGithubUrl()}/login/oauth/authorize?scope=${scope}&client_id=${env.get().config.GITHUB_CLIENT_ID}`;
+    const url = `${getGithubUrl()}/login/oauth/authorize?scope=${scope}&client_id=${env.get().config.GITHUB_CLIENT_ID}`;
+    const redirectUri = env.get().config.GITHUB_REDIRECT_URI;
+    return redirectUri ? `${url}&redirect_uri=${encodeURIComponent(redirectUri)}` : url;
 };
 
 /**
@@ -56,10 +58,12 @@ const getOauthReturnUrl = (code) => oauthHelper.getOauthReturnUrl(code);
  */
 const completeLoginAsync = async (code) => {
     const url = `${getGithubUrl()}/login/oauth/access_token`;
+    const redirectUri = env.get().config.GITHUB_REDIRECT_URI;
     const body = {
         client_id: env.get().config.GITHUB_CLIENT_ID,
         client_secret: env.get().config.GITHUB_CLIENT_SECRET,
-        code
+        code,
+        ...(redirectUri && { redirect_uri: redirectUri })
     };
     const options = {
         headers: {

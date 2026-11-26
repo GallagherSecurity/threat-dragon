@@ -33,8 +33,8 @@ describe('service/threats/index.js', () => {
             expect(threat.description.length).toBeGreaterThan(10);
         });
 
-        it('has a reasonable mitigation', () => {
-            expect(threat.mitigation.length).toBeGreaterThan(10);
+        it('starts with an empty mitigations list', () => {
+            expect(threat.mitigations).toEqual([]);
         });
 
         it('has a defined modelType', () => {
@@ -427,6 +427,47 @@ describe('service/threats/index.js', () => {
             const diagrams = [{ cells: [{ data: { threats: [{ status: 'mitigated' }]} }] }];
             const res = threats.filter(diagrams, {});
             expect(res).toHaveLength(1);
+        });
+    });
+
+    describe('formatMitigations', () => {
+        const t = (key) => key;
+        const mitigation = (overrides) => ({
+            number: 1, title: 'Encrypt data', status: 'Implemented', mandatory: false, ...overrides
+        });
+
+        it('lists the number, title and status of a mitigation', () => {
+            const threat = { mitigations: [mitigation()] };
+            expect(threats.formatMitigations(threat, t)).toEqual('#1 Encrypt data (Implemented)');
+        });
+
+        it('marks mandatory mitigations', () => {
+            const threat = { mitigations: [mitigation({ mandatory: true })] };
+            expect(threats.formatMitigations(threat, t))
+                .toEqual('#1 Encrypt data (Implemented, threats.mitigations.mandatory)');
+        });
+
+        it('uses the no title text for an untitled mitigation', () => {
+            const threat = { mitigations: [mitigation({ title: '' })] };
+            expect(threats.formatMitigations(threat, t)).toEqual('#1 threats.mitigations.noTitle (Implemented)');
+        });
+
+        it('puts each mitigation on its own line', () => {
+            const threat = { mitigations: [mitigation(), mitigation({ number: 2, title: 'Log access', status: 'Recommended' })] };
+            expect(threats.formatMitigations(threat, t))
+                .toEqual('#1 Encrypt data (Implemented)\n#2 Log access (Recommended)');
+        });
+
+        it('falls back to the old mitigation text when there is no mitigations list', () => {
+            expect(threats.formatMitigations({ mitigation: 'Old text' }, t)).toEqual('Old text');
+        });
+
+        it('falls back to the old mitigation text when the mitigations list is empty', () => {
+            expect(threats.formatMitigations({ mitigation: 'Old text', mitigations: [] }, t)).toEqual('Old text');
+        });
+
+        it('returns an empty string when there are no mitigations at all', () => {
+            expect(threats.formatMitigations({}, t)).toEqual('');
         });
     });
 });

@@ -26,9 +26,47 @@
             "description": "The full threat description",
             "type": "string"
           },
-          "mitigation": {
-            "description": "The threat mitigation strategy",
-            "type": "string"
+          "mitigations": {
+            "description": "Mitigations for this threat, embedded in full so the library file is portable between deployments",
+            "type": "array",
+            "default": [],
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "description": "The mitigation title",
+                  "type": "string"
+                },
+                "description": {
+                  "description": "The full mitigation description",
+                  "type": "string"
+                },
+                "status": {
+                  "description": "The mitigation status carried with the catalogue entry",
+                  "type": "string",
+                  "enum": ["Recommended", "Accepted", "Implemented", "Rejected", "Not Applicable"]
+                },
+                "clauses": {
+                  "description": "Compliance clauses this mitigation satisfies",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "standard": {
+                        "description": "Name of the compliance standard",
+                        "type": "string"
+                      },
+                      "clause": {
+                        "description": "Specific clause or control reference within the standard",
+                        "type": "string"
+                      }
+                    },
+                    "required": ["standard", "clause"]
+                  }
+                }
+              },
+              "required": ["title", "description", "status"]
+            }
           },
           "tags": {
             "description": "Optional tags for filtering and categorisation",
@@ -47,7 +85,7 @@
             "enum": ["TBD", "Low", "Medium", "High", "Critical"]
           }
         },
-        "required": [ "title", "modelType", "type", "description", "mitigation" ]
+        "required": [ "title", "modelType", "type", "description" ]
       }
     }
   },

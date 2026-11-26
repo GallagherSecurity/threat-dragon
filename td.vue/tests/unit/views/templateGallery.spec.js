@@ -5,7 +5,6 @@ import Vuex from 'vuex';
 import TemplateGallery from '@/views/TemplateGallery.vue';
 import TdHero from '@/components/Hero.vue';
 import templateActions from '@/store/actions/template.js';
-import tmActions from '@/store/actions/threatmodel.js';
 
 describe('TemplateGallery.vue', () => {
     let wrapper, localVue, mockRouter, mockStore, toast;
@@ -224,7 +223,7 @@ describe('TemplateGallery.vue', () => {
 
         it('dispatches templateLoad with the template content', () => {
             expect(mockStore.dispatch).toHaveBeenCalledWith(
-                tmActions.templateLoad,
+                templateActions.templateLoad,
                 { templateData: {} }
             );
         });

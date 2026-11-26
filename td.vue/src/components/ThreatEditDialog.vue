@@ -1,5 +1,14 @@
 <template>
     <div>
+        <td-mitigation-edit-dialog
+            ref="mitigationEditDialog"
+            @mitigationUpdated="onMitigationUpdated"
+            @mitigationDeleted="onMitigationDeleted"
+        />
+        <td-mitigation-catalogue-selector
+            ref="mitigationCatalogueSelector"
+            @mitigationSelected="onMitigationFromCatalogue"
+        />
         <b-modal
             v-if="!!threat"
             id="threat-edit"
@@ -203,18 +212,49 @@
 
                 <b-form-row>
                     <b-col>
-                        <b-form-group
-                            id="mitigation-group"
-                            :label="$t('threats.properties.mitigation')"
-                            label-for="mitigation"
-                        >
-                            <b-form-textarea
-                                id="mitigation"
-                                v-model="threat.mitigation"
-                                rows="5"
-                            >
-                            </b-form-textarea>
-                        </b-form-group>
+                        <b-card header-tag="header">
+                            <template #header>
+                                <div class="mitigations-header">
+                                    <span>{{ $t('threats.mitigations.title') }}</span>
+                                    <button
+                                        type="button"
+                                        class="mitigations-header-action"
+                                        @click="newMitigation()"
+                                    >
+                                        <font-awesome-icon icon="plus" class="mitigations-header-icon"></font-awesome-icon>
+                                        {{ $t('threats.mitigations.new') }}
+                                    </button>
+                                </div>
+                            </template>
+
+                            <b-card-text v-if="threat.mitigations && threat.mitigations.length">
+                                <b-row>
+                                    <b-col
+                                        md="6"
+                                        v-for="mitigation in threat.mitigations"
+                                        :key="mitigation.mitigationId"
+                                    >
+                                        <td-mitigation-card
+                                            :mitigation="mitigation"
+                                            @mitigationSelected="mitigationSelected"
+                                        />
+                                    </b-col>
+                                </b-row>
+                            </b-card-text>
+
+                            <b-card-text v-else class="text-muted">
+                                {{ $t('threats.mitigations.empty') }}
+                            </b-card-text>
+                        </b-card>
+
+                        <a href="#" @click.prevent="newMitigation()" class="new-mitigation-link m-2">
+                            <font-awesome-icon icon="plus"></font-awesome-icon>
+                            {{ $t('threats.mitigations.new') }}
+                        </a>
+                        <a href="#" @click.prevent="newMitigationFromCatalogue()" class="new-mitigation-link m-2">
+                            <font-awesome-icon icon="plus"></font-awesome-icon>
+                            {{ $t('threats.mitigations.newFromCatalogue') }}
+                        </a>
                     </b-col>
                 </b-form-row>
             </b-form>
@@ -258,6 +298,47 @@
     </div>
 </template>
 
+<style lang="scss" scoped>
+.new-mitigation-link {
+    color: $orange;
+    font-size: 14px;
+    padding: 8px;
+}
+
+.mitigations-header {
+    align-items: center;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    line-height: 1.5;
+}
+
+.mitigations-header-action {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    color: $orange;
+    display: inline-flex;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: inherit;
+    line-height: 1;
+    margin: 0;
+    padding: 0;
+    white-space: nowrap;
+}
+
+.mitigations-header-icon {
+    margin-right: 0.25rem;
+}
+
+.mitigations-header-action:hover,
+.mitigations-header-action:focus {
+    color: darken($orange, 10%);
+    text-decoration: underline;
+}
+</style>
+
 <script>
 import { mapState } from 'vuex';
 
@@ -265,8 +346,13 @@ import { CELL_DATA_UPDATED } from '@/store/actions/cell.js';
 import tmActions from '@/store/actions/threatmodel.js';
 import dataChanged from '@/service/x6/graph/data-changed.js';
 import threatModels from '@/service/threats/models/index.js';
+import { v4 as uuidv4 } from 'uuid';
 import TdFormRadioGroup from '@/components/FormRadioGroup.vue';
 import TdFormSelect from '@/components/FormSelect.vue';
+import TdMitigationCard from '@/components/MitigationCard.vue';
+import TdMitigationEditDialog from '@/components/MitigationEditDialog.vue';
+import TdMitigationCatalogueSelector from '@/components/MitigationCatalogueSelector.vue';
+import { defaultMitigationStatus } from '@/service/mitigations/status.js';
 import TdThreatStatusSelector from '@/components/ThreatStatusSelector.vue';
 import { getGame, getAllGames } from '../service/threats/models/eop';
 import { getSeverityOptions } from '@/service/threats/index.js';
@@ -276,12 +362,16 @@ export default {
     components: {
         TdFormRadioGroup,
         TdFormSelect,
+        TdMitigationCard,
+        TdMitigationEditDialog,
+        TdMitigationCatalogueSelector,
         TdThreatStatusSelector
     },
     computed: {
         ...mapState({
             cellRef: (state) => state.cell.ref,
             threatTop: (state) => state.threatmodel.data.detail.threatTop,
+            mitigationTop: (state) => state.threatmodel.data.detail.mitigationTop,
         }),
         threatTypes() {
             if (!this.cellRef || !this.threat || !this.threat.modelType) {
@@ -444,7 +534,7 @@ export default {
                 threatRef.severity = this.threat.severity;
                 threatRef.title = this.threat.title;
                 threatRef.description = this.threat.description;
-                threatRef.mitigation = this.threat.mitigation;
+                threatRef.mitigations = this.threat.mitigations || [];
                 threatRef.modelType = this.threat.modelType;
                 threatRef.new = false;
                 threatRef.number = this.number;
@@ -507,6 +597,57 @@ export default {
         async immediateDelete() {
             this.deleteThreat();
             this.hideModal();
+        },
+        newMitigation() {
+            const number = (this.mitigationTop || 0) + 1;
+            const mitigation = {
+                mitigationId: uuidv4(),
+                number,
+                title: '',
+                description: '',
+                status: defaultMitigationStatus,
+                clauses: [],
+                mandatory: false
+            };
+            this.threat.mitigations = this.threat.mitigations || [];
+            this.threat.mitigations.push(mitigation);
+            this.$store.dispatch(tmActions.update, { mitigationTop: number });
+            this.mitigationSelected(mitigation.mitigationId);
+        },
+        newMitigationFromCatalogue() {
+            this.$refs.mitigationCatalogueSelector.open();
+        },
+        onMitigationFromCatalogue(catalogueMitigation) {
+            const number = (this.mitigationTop || 0) + 1;
+            const mitigation = {
+                mitigationId: uuidv4(),
+                number,
+                title: catalogueMitigation.title,
+                description: catalogueMitigation.description,
+                status: catalogueMitigation.status,
+                clauses: catalogueMitigation.clauses,
+                mandatory: false
+            };
+            this.threat.mitigations = this.threat.mitigations || [];
+            this.threat.mitigations.push(mitigation);
+            this.$store.dispatch(tmActions.update, { mitigationTop: number });
+            this.mitigationSelected(mitigation.mitigationId);
+        },
+        mitigationSelected(mitigationId) {
+            const mitigation = (this.threat.mitigations || []).find(m => m.mitigationId === mitigationId);
+            if (mitigation) {
+                this.$refs.mitigationEditDialog.editMitigation(mitigation);
+            }
+        },
+        onMitigationUpdated(updated) {
+            const mitigations = this.threat.mitigations || [];
+            const idx = mitigations.findIndex(m => m.mitigationId === updated.mitigationId);
+            if (idx !== -1) {
+                this.$set(this.threat.mitigations, idx, updated);
+            }
+        },
+        onMitigationDeleted(mitigationId) {
+            this.threat.mitigations = (this.threat.mitigations || []).filter(m => m.mitigationId !== mitigationId);
         },
     },
 };

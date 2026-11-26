@@ -121,12 +121,8 @@ describe('components/ThreatEditDialog.vue', () => {
             expect(input.exists()).toEqual(true);
         });
 
-        it('has a mitigations input', () => {
-            const input = wrapper.findAllComponents(BFormTextarea)
-                .filter(x => x.attributes('id') === 'mitigation')
-                .at(0);
-
-            expect(input.exists()).toEqual(true);
+        it('has links to add a new or catalogue mitigation', () => {
+            expect(wrapper.findAll('a.new-mitigation-link')).toHaveLength(2);
         });
     });
 
@@ -188,7 +184,7 @@ describe('components/ThreatEditDialog.vue', () => {
         });
 
         it('updates the data', () => {
-            expect(mockStore.dispatch).toHaveBeenNthCalledWith(1, 'CELL_DATA_UPDATED', {threatFrequency:{availability: 0, confidentiality: 0, integrity: 0}, threats: [ getThreatData() ] });
+            expect(mockStore.dispatch).toHaveBeenNthCalledWith(1, 'CELL_DATA_UPDATED', {threatFrequency:{availability: 0, confidentiality: 0, integrity: 0}, threats: [ { ...getThreatData(), mitigations: [] } ] });
             expect(mockStore.dispatch).toHaveBeenNthCalledWith(2, 'THREATMODEL_MODIFIED');
         });
 
@@ -239,7 +235,7 @@ describe('components/ThreatEditDialog.vue', () => {
             wrapper = shallowMount(TdThreatEditDialog, {localVue, mocks:{$t:key => key}, store});
             wrapper.vm.$refs.editModal={show:jest.fn(), hide:jest.fn()};
             wrapper.vm.editThreat(threatId);
-            const link=wrapper.find('a');
+            const link=wrapper.find('a[href*="cornucopia"]');
             expect(link.exists()).toBe(false);
         });
 

@@ -4,7 +4,7 @@ import sinon from 'sinon';
 
 import env from '../../src/env/Env.js';
 import githubProvider from '../../src/providers/github.js';
-import repo from '../../src/repositories/githubrepo.js';
+import repo from '../../src/repositories/github/index.js';
 
 describe('providers/github.js', () => {
     describe('isConfigured', () => {
@@ -45,6 +45,21 @@ describe('providers/github.js', () => {
             sinon.stub(env, 'get').returns({ config: scopedCfg });
             expect(githubProvider.getOauthRedirectUrl()).to
                 .contain('scope=repo');
+        });
+
+        it('leaves out the redirect_uri when it is not configured', () => {
+            sinon.stub(env, 'get').returns({ config });
+            expect(githubProvider.getOauthRedirectUrl()).not.to
+                .contain('redirect_uri');
+        });
+
+        it('adds the encoded redirect_uri when it is configured', () => {
+            const redirectCfg = Object.assign({}, config, {
+                GITHUB_REDIRECT_URI: 'https://pr-12.dev.example.com/api/oauth/return'
+            });
+            sinon.stub(env, 'get').returns({ config: redirectCfg });
+            expect(githubProvider.getOauthRedirectUrl()).to
+                .contain('&redirect_uri=https%3A%2F%2Fpr-12.dev.example.com%2Fapi%2Foauth%2Freturn');
         });
     });
 
@@ -120,6 +135,22 @@ describe('providers/github.js', () => {
 
         it('gets the user info from the repo', () => {
             expect(repo.userAsync).to.have.been.calledOnce;
+        });
+    });
+
+    describe('completeLoginAsync with a redirect uri', () => {
+        const redirectUri = 'https://pr-12.dev.example.com/api/oauth/return';
+
+        beforeEach(async () => {
+            sinon.stub(axios, 'post').resolves({ data: { access_token: '' }});
+            sinon.stub(env, 'get').returns({ config: { GITHUB_REDIRECT_URI: redirectUri } });
+            sinon.stub(repo, 'userAsync').resolves({});
+
+            await githubProvider.completeLoginAsync('mycode');
+        });
+
+        it('sends the same redirect_uri to the token exchange', () => {
+            expect(axios.post.firstCall.args[1].redirect_uri).to.equal(redirectUri);
         });
     });
 });

@@ -1,4 +1,4 @@
-import { badRequest, notFound, serverError } from "./errors.js";
+import { badRequest, notFound, serverError } from './errors.js';
 
 import env from '../env/Env.js';
 import loggerHelper from '../helpers/logger.helper.js';
@@ -34,42 +34,42 @@ const listTemplates = (req, res) => responseWrapper.sendResponseAsync(async () =
     const repository = repositories.get();
     const contentRepo = env.get().config.GITHUB_CONTENT_REPO;
   
-  if (!contentRepo) {
-    return {
-      templates: [],
-      status: "NOT_CONFIGURED",
-      canWrite: false,
-      message: "Template repository not configured. Set GITHUB_CONTENT_REPO environment variable."
-    };
-  }
-  try {
-    const { templates } = await fetchTemplateMetadata(repository, req.provider.access_token);
-    return { templates };
-  } catch (e) {
-    if (e.statusCode === 404) {
-      try {
-        await repository.repoExistsAsync(req.provider.access_token);
-        
+    if (!contentRepo) {
         return {
-          templates: [],
-          status: "NOT_INITIALIZED",
-          canWrite: req.user?.isAdmin || false,
-          message: req.user?.isAdmin 
-            ? "Template repository not initialized."
-            : "Template repository not initialized. Contact administrator."
+            templates: [],
+            status: 'NOT_CONFIGURED',
+            canWrite: false,
+            message: 'Template repository not configured. Set GITHUB_CONTENT_REPO environment variable.'
         };
-      } catch (repoError) {
-        return notFound(`Template repository '${contentRepo}' not found`, res, logger);
-      }
     }
-    throw e;
-  }
+    try {
+        const { templates } = await fetchTemplateMetadata(repository, req.provider.access_token);
+        return { templates };
+    } catch (e) {
+        if (e.statusCode === 404) {
+            try {
+                await repository.repoExistsAsync(req.provider.access_token);
+        
+                return {
+                    templates: [],
+                    status: 'NOT_INITIALIZED',
+                    canWrite: req.user?.isAdmin || false,
+                    message: req.user?.isAdmin 
+                        ? 'Template repository not initialized.'
+                        : 'Template repository not initialized. Contact administrator.'
+                };
+            } catch (repoError) {
+                return notFound(`Template repository '${contentRepo}' not found`, res, logger);
+            }
+        }
+        throw e;
+    }
 }, req, res, logger);
 
 const importTemplate = async (req, res) => {
-  const repository = repositories.get();
-  const accessToken = req.provider.access_token;
-  const { templateMetadata, model } = req.body;
+    const repository = repositories.get();
+    const accessToken = req.provider.access_token;
+    const { templateMetadata, model } = req.body;
 
     try {
         const { templates, sha } = await fetchTemplateMetadata(repository, accessToken);
@@ -98,9 +98,9 @@ const importTemplate = async (req, res) => {
 };
 
 const deleteTemplate = async (req, res) => {
-  const repository = repositories.get();
-  const accessToken = req.provider.access_token;
-  const { id } = req.params;
+    const repository = repositories.get();
+    const accessToken = req.provider.access_token;
+    const { id } = req.params;
 
     try {
         const { templates, sha } = await fetchTemplateMetadata(repository, accessToken);
@@ -127,10 +127,10 @@ const deleteTemplate = async (req, res) => {
 };
 
 const updateTemplate = async (req, res) => {
-  const repository = repositories.get();
-  const accessToken = req.provider.access_token;
-  const { id } = req.params;
-  const { name, description, tags } = req.body;
+    const repository = repositories.get();
+    const accessToken = req.provider.access_token;
+    const { id } = req.params;
+    const { name, description, tags } = req.body;
 
     try {
         logger.debug(`API updateTemplate request: ${logger.transformToString(req)}`);
@@ -205,9 +205,9 @@ const getTemplateContent = (req, res) => {
 
 
 const bootstrapTemplateRepository = async (req, res) => {
-  const repository = repositories.get();
-  const accessToken = req.provider.access_token;
-  const contentRepo = env.get().config.GITHUB_CONTENT_REPO;
+    const repository = repositories.get();
+    const accessToken = req.provider.access_token;
+    const contentRepo = env.get().config.GITHUB_CONTENT_REPO;
 
     if (!contentRepo) {
         return badRequest('Template repository not configured. Set GITHUB_CONTENT_REPO environment variable.', res, logger);

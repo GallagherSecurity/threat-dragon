@@ -7,7 +7,7 @@ import logger from './logger.js';
 const fs = require('fs');
 
 // provided by electron server bootstrap
-var mainWindow;
+let mainWindow;
 
 // access the i18n message strings
 import ara from '@/i18n/ar.js';
@@ -27,7 +27,7 @@ import zho from '@/i18n/zh.js';
 
 const messages = { ara, deu, ell, eng, fin, fra, hin, ind, jpn, msa, por, spa, zho };
 const defaultLanguage = 'eng';
-var language = defaultLanguage;
+let language = defaultLanguage;
 
 // Constants
 const CONFIG_FILE = 'templates-path.txt';

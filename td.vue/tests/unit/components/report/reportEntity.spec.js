@@ -88,6 +88,24 @@ describe('components/report/ReportEntity.vue', () => {
             expect(wrapper.findComponent(BTable).exists())
                 .toEqual(true);
         });
+
+        it('shows the old mitigation text for a threat without a mitigations list', () => {
+            expect(wrapper.vm.tableData[0]['threats.properties.mitigation']).toEqual('We have yet to do things');
+        });
+    });
+
+    describe('with a mitigations list', () => {
+        beforeEach(() => {
+            propsData = getData();
+            propsData.entity.data.threats[0].mitigations = [
+                { number: 7, title: 'Encrypt data', status: 'Implemented', mandatory: false }
+            ];
+            setup(propsData);
+        });
+
+        it('shows the mitigations in the mitigation column', () => {
+            expect(wrapper.vm.tableData[0]['threats.properties.mitigation']).toEqual('#7 Encrypt data (Implemented)');
+        });
     });
 
     describe('out of scope', () => {

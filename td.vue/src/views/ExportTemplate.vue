@@ -122,7 +122,7 @@ export default {
                 tags: this.templateTags
             };
             
-            await this.$store.dispatch(templateActions.templateDownload, this.model, templateMetadata);
+            await this.$store.dispatch(templateActions.templateDownload, { model: this.model, templateMetadata });
             
             this.$router.go(-1);
         },

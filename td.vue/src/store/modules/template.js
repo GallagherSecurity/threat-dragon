@@ -19,9 +19,9 @@ import save from '@/service/save';
 import { v4 } from 'uuid';
 
 const state = {
-    templates: [],// list of templates
+    templates: [], // list of templates
     contentStore: {
-        status: null,   // null (READY) | 'NOT_CONFIGURED' | 'NOT_FOUND' | 'NOT_INITIALIZED'
+        status: null, // null (READY) | 'NOT_CONFIGURED' | 'NOT_FOUND' | 'NOT_INITIALIZED'
         canWrite: false // user has write permissions (web: repo push access, desktop: folder write access)
     }
 };
@@ -124,7 +124,7 @@ const actions = {
         commit(TEMPLATE_CLEAR);
     },
 
-    [TEMPLATE_DOWNLOAD]: async (modelData, templateMetadata) => {
+    [TEMPLATE_DOWNLOAD]: async (_, { model: modelData, templateMetadata }) => {
 	    const model = JSON.parse(JSON.stringify(modelData));
 	    // fix up template values
 	    model.summary.id = '';

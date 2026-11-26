@@ -179,7 +179,8 @@ export default {
         // make sure we are compatible with version 1.x and early 2.x
         const threatTop = this.model.detail.threatTop === undefined ? 100 : this.model.detail.threatTop;
         const diagramTop = this.model.detail.diagramTop === undefined ? 10 : this.model.detail.diagramTop;
-        const update = { diagramTop: diagramTop, version: this.version, threatTop: threatTop };
+        const mitigationTop = this.model.detail.mitigationTop === undefined ? 0 : this.model.detail.mitigationTop;
+        const update = { diagramTop, version: this.version, threatTop, mitigationTop };
         this.$store.dispatch(tmActions.update, update);
         // if a diagram has just been closed, the history insists on marking the model as modified
         this.$store.dispatch(tmActions.notModified);

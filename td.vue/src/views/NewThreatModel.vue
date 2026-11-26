@@ -38,6 +38,7 @@ export default {
                     contributors: [],
                     diagrams: [],
                     diagramTop: 0,
+                    mitigationTop: 0,
                     reviewer: '',
                     threatTop: 0
                 }

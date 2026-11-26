@@ -42,6 +42,18 @@ describe('components/printed-report/ReportEntity.vue', () => {
                         type: 'type3',
                         description: 'Threat 3',
                         mitigation: 'No need to do things'
+                    },
+                    {
+                        number: '4',
+                        title: 't4',
+                        severity: 'High',
+                        score: 'score8',
+                        status: 'Open',
+                        type: 'type4',
+                        description: 'Threat 4',
+                        mitigations: [
+                            { number: 7, title: 'Encrypt data', status: 'Implemented', mandatory: false }
+                        ]
                     }
                 ]
             }
@@ -165,6 +177,10 @@ describe('components/printed-report/ReportEntity.vue', () => {
 
     it('shows the threat mitigation for t3', () => {
         expect(tableHasCellWithText('No need to do things')).toEqual(true);
+    });
+
+    it('shows the mitigations list for t4', () => {
+        expect(tableHasCellWithText('#7 Encrypt data (Implemented)')).toEqual(true);
     });
 
     it('translates the accepted status', () => {

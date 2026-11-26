@@ -82,6 +82,7 @@
 <style lang="scss" scoped>
 .new-threat-by-type {
     color: $orange;
+    display: inline-block;
     font-size: 16px;
     padding: 15px;
 }

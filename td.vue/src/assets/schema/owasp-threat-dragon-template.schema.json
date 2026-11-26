@@ -40,7 +40,7 @@
       "required": ["id", "name", "description", "tags"]
     },
     "model": {
-      "description": "The threat model content following the standard Threat Dragon V2 schema",
+      "description": "The threat model content following the standard Threat Dragon V3 schema",
       "type": "object",
       "properties": {
         "version": {
@@ -374,9 +374,61 @@
                                 "description": "The threat description",
                                 "type": "string"
                               },
-                              "mitigation": {
-                                "description": "The threat mitigation",
-                                "type": "string"
+                              "mitigations": {
+                                "description": "Structured mitigations addressing this threat",
+                                "type": "array",
+                                "default": [],
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "mitigationId": {
+                                      "description": "Unique identifier for this mitigation (UUID)",
+                                      "type": "string",
+                                      "minLength": 2
+                                    },
+                                    "number": {
+                                      "description": "Globally unique incrementing number stamped at creation time",
+                                      "type": "integer"
+                                    },
+                                    "title": {
+                                      "description": "Short title for the mitigation",
+                                      "type": "string"
+                                    },
+                                    "description": {
+                                      "description": "Detailed description of the mitigation",
+                                      "type": "string"
+                                    },
+                                    "status": {
+                                      "description": "Implementation status of the mitigation",
+                                      "type": "string",
+                                      "enum": [ "Recommended", "Accepted", "Implemented", "Rejected", "Not Applicable" ]
+                                    },
+                                    "clauses": {
+                                      "description": "Standards and clauses this mitigation satisfies — a mitigation may satisfy multiple",
+                                      "type": "array",
+                                      "default": [],
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "standard": {
+                                            "description": "Name of the compliance standard, matching a name in the org standards list",
+                                            "type": "string"
+                                          },
+                                          "clause": {
+                                            "description": "Specific clause or control reference within the standard",
+                                            "type": "string"
+                                          }
+                                        },
+                                        "required": [ "standard", "clause" ]
+                                      }
+                                    },
+                                    "mandatory": {
+                                      "description": "True when any clause standard is in the model requiredStandards and status is not Implemented or Not Applicable",
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [ "mitigationId", "title", "status", "clauses", "mandatory" ]
+                                }
                               },
                               "modelType": {
                                 "description": "The threat methodology type",
@@ -413,7 +465,7 @@
                                 "type": "string"
                               }
                             },
-                            "required": ["description", "mitigation", "severity", "status", "title", "type"]
+                            "required": ["description", "severity", "status", "title", "type"]
                           }
                         },
                         "shape": {

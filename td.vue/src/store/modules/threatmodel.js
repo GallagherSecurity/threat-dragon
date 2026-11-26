@@ -203,6 +203,9 @@ const mutations = {
         if (update.threatTop) {
             state.data.detail.threatTop = update.threatTop;
         }
+        if (update.mitigationTop !== undefined) {
+            state.data.detail.mitigationTop = update.mitigationTop;
+        }
         if (update.fileName) {
             state.fileName = update.fileName;
         }

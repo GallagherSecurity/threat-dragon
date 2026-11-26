@@ -20,7 +20,7 @@ import save from '@/service/save.js';
 const state = {
     threatCatalogue: [],
     contentStore: {
-        status: null,   // null (READY) | 'NOT_CONFIGURED' | 'NOT_FOUND' | 'NOT_INITIALIZED'
+        status: null, // null (READY) | 'NOT_CONFIGURED' | 'NOT_FOUND' | 'NOT_INITIALIZED'
         canWrite: false,
         sha: null
     }

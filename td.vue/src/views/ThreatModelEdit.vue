@@ -91,6 +91,44 @@
 
                     <b-form-row>
                         <b-col>
+                            <b-form-group
+                                id="required-standards-group"
+                                :label="$t('threatmodel.requiredStandards')"
+                                label-for="required-standards">
+                                <td-dropdown
+                                    id="required-standards"
+                                    variant="secondary"
+                                    :text="requiredStandardsLabel"
+                                    class="required-standards-dropdown"
+                                >
+                                    <template #default>
+                                        <div v-if="standardOptions.length === 0" class="td-dropdown-item text-muted" style="pointer-events:none;">
+                                            {{ $t('threatmodel.requiredStandardsPlaceholder') }}
+                                        </div>
+                                        <div class="td-dropdown-scroll">
+                                        <label
+                                            v-for="option in standardOptions"
+                                            :key="option.name"
+                                            class="td-dropdown-item d-flex align-items-center gap-2"
+                                            @click.stop
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                :value="option.name"
+                                                v-model="requiredStandards"
+                                                class="mr-2"
+                                            />
+                                            {{ option.label }}
+                                        </label>
+                                        </div>
+                                    </template>
+                                </td-dropdown>
+                            </b-form-group>
+                        </b-col>
+                    </b-form-row>
+
+                    <b-form-row>
+                        <b-col>
                             <h5>{{ $t('threatmodel.diagram.diagrams') }}</h5>
                         </b-col>
                     </b-form-row>
@@ -204,6 +242,8 @@ import TdDropdown from '@/components/Dropdown.vue';
 import TdFormButton from '@/components/FormButton.vue';
 import TdFormTags from '@/components/FormTags.vue';
 import tmActions from '@/store/actions/threatmodel.js';
+import standardsActions from '@/store/actions/standards.js';
+import { recomputeAllMandatory } from '@/service/mitigations/compliance.js';
 
 export default {
     name: 'ThreatModelEdit',
@@ -228,10 +268,44 @@ export default {
             set(contributors) {
                 this.$store.dispatch(tmActions.contributorsUpdated, contributors);
             }
+        },
+        allStandards() {
+            return this.$store.getters.allStandards;
+        },
+        // a required standard missing from the list was deleted, unless the list failed to load
+        standardOptions() {
+            const names = this.allStandards.map(s => s.name);
+            const missing = this.requiredStandards
+                .filter(name => !names.includes(name))
+                .map(name => ({
+                    name,
+                    label: this.$store.getters.standardsLoaded ? this.$t('threatmodel.deletedStandard', { name }) : name
+                }));
+            return [...names.map(name => ({ name, label: name })), ...missing];
+        },
+        requiredStandardsLabel() {
+            if (!this.requiredStandards.length) return this.$t('threatmodel.requiredStandardsSelect');
+            return this.requiredStandards.join(', ');
+        },
+        requiredStandards: {
+            get() {
+                return this.model && this.model.summary ? (this.model.summary.requiredStandards || []) : [];
+            },
+            set(selected) {
+                this.model.summary.requiredStandards = selected;
+                this.$store.dispatch(tmActions.modified);
+            }
+        }
+    },
+    watch: {
+        requiredStandards() {
+            recomputeAllMandatory(this.model);
+            this.$store.dispatch(tmActions.modified);
         }
     },
     async mounted() {
         this.init();
+        this.$store.dispatch(standardsActions.fetch);
     },
     methods: {
         init() {

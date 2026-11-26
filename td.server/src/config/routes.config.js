@@ -8,6 +8,8 @@ import googleProviderThreatmodelController from '../controllers/googleProviderTh
 import healthcheck from '../controllers/healthz.js';
 import homeController from '../controllers/homecontroller.js';
 import metadataController from '../controllers/metadataController.js';
+import mitigationCatalogueController from '../controllers/mitigationCatalogueController.js';
+import standardsController from '../controllers/standardsController.js';
 import templateController from '../controllers/templateController.js';
 import threatCatalogueController from '../controllers/threatCatalogueController.js';
 import threatmodelController from '../controllers/threatmodelcontroller.js';
@@ -50,10 +52,18 @@ const routes = (router) => {
     router.get('/api/templates/', templateController.listTemplates);
     router.get('/api/templates/:id/content', templateController.getTemplateContent);
 
+    // Standards routes (read — all authenticated users)
+    router.get('/api/standards', standardsController.listStandards);
+
     // Threat catalogue routes (read — all authenticated users)
     router.get('/api/threats/catalogue', threatCatalogueController.listCatalogueThreats);
     router.get('/api/threats/catalogue/:id/content', threatCatalogueController.getCatalogueThreatContent);
     router.post('/api/threats/catalogue/content/bulk', threatCatalogueController.bulkGetCatalogueContent);
+
+    // Mitigation catalogue routes (read — all authenticated users)
+    router.get('/api/mitigations/catalogue', mitigationCatalogueController.listCatalogueMitigations);
+    router.get('/api/mitigations/catalogue/:id/content', mitigationCatalogueController.getCatalogueMitigationContent);
+    router.post('/api/mitigations/catalogue/content/bulk', mitigationCatalogueController.bulkGetCatalogueMitigationContent);
 
     router.get('/api/threatmodel/repos', threatmodelController.repos);
     router.get('/api/threatmodel/:organisation/:repo/branches', threatmodelController.branches);
@@ -94,6 +104,11 @@ const adminRoutes = (router) => {
     router.post('/api/templates/bootstrap', templateController.bootstrapTemplateRepository);
     
 
+    // Standards routes (write — admin only)
+    router.post('/api/standards', standardsController.createStandard);
+    router.delete('/api/standards/:id', standardsController.deleteStandard);
+    router.post('/api/standards/bootstrap', standardsController.bootstrapStandards);
+
     // Threat catalogue routes (write — admin only)
     router.post('/api/threats/catalogue', threatCatalogueController.createCatalogueThreat);
     router.put('/api/threats/catalogue/:id', threatCatalogueController.updateCatalogueThreat);
@@ -101,6 +116,14 @@ const adminRoutes = (router) => {
     router.delete('/api/threats/catalogue/:id', threatCatalogueController.deleteCatalogueThreat);
     router.post('/api/threats/catalogue/bootstrap', threatCatalogueController.bootstrapCatalogueRepository);
     router.post('/api/threats/catalogue/import', threatCatalogueController.importThreatLibrary);
+
+    // Mitigation catalogue routes (write — admin only)
+    router.post('/api/mitigations/catalogue', mitigationCatalogueController.createCatalogueMitigation);
+    router.put('/api/mitigations/catalogue/:id', mitigationCatalogueController.updateCatalogueMitigation);
+    router.delete('/api/mitigations/catalogue/bulk', mitigationCatalogueController.bulkDeleteCatalogueMitigations);
+    router.delete('/api/mitigations/catalogue/:id', mitigationCatalogueController.deleteCatalogueMitigation);
+    router.post('/api/mitigations/catalogue/bootstrap', mitigationCatalogueController.bootstrapMitigationCatalogueRepository);
+    router.post('/api/mitigations/catalogue/import', mitigationCatalogueController.importMitigationLibrary);
 };
 
 

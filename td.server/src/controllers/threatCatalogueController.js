@@ -1,31 +1,20 @@
-import { badRequest, notFound, serverError } from "./errors.js";
-import { createHash } from "crypto";
+import { badRequest, notFound, serverError } from './errors.js';
+import {
+    computeBriefDescription,
+    computeThreatHash,
+    importThreatLibraryAsync,
+    toCatalogueEntry
+} from './threatLibraryImport.js';
 
+import loggerHelper from '../helpers/logger.helper.js';
+import repositories from '../repositories';
+import responseWrapper from './responseWrapper.js';
 
-import loggerHelper from "../helpers/logger.helper.js";
-import repositories from "../repositories";
-import responseWrapper from "./responseWrapper.js";
+const logger = loggerHelper.get('controllers/threatCatalogueController.js');
 
-const logger = loggerHelper.get("controllers/threatCatalogueController.js");
-
-const BRIEF_DESCRIPTION_LENGTH = 150;
-
-const computeBriefDescription = (description) => {
-    if (!description) {return '';}
-    return description.length > BRIEF_DESCRIPTION_LENGTH
-        ? description.slice(0, BRIEF_DESCRIPTION_LENGTH) + '...'
-        : description;
-};
-
-const computeThreatHash = (threat) => {
-    const normalized = [
-        (threat.modelType || '').trim().toLowerCase(),
-        (threat.type || '').trim().toLowerCase(),
-        (threat.title || '').trim().toLowerCase(),
-        (threat.description || '').trim().toLowerCase()
-    ].join('::');
-    return createHash('sha256').update(normalized).
-digest('hex');
+const handleServerError = (err, res, fallbackMessage) => {
+    logger.error(err);
+    return serverError(err.message || fallbackMessage, res, logger);
 };
 
 const isDuplicate = (threats, incoming) => {
@@ -59,16 +48,12 @@ const createCatalogueThreat = async (req, res) => {
             return badRequest(`A catalogue threat with the title "${threat.title}" already exists for framework "${threat.modelType}"`, res, logger);
         }
 
-        const { id, description, mitigation, ...metadata } = threat;
-        const briefDescription = computeBriefDescription(description);
-        const hash = computeThreatHash(threat);
+        const { mitigationRefs, ...fields } = threat;
+        await repository.saveThreatAsync(accessToken, toCatalogueEntry(fields, mitigationRefs));
 
-        await repository.saveThreatAsync(accessToken, { id, hash, briefDescription, ...metadata, description, mitigation });
-
-        return res.status(201).json({ status: 201, message: "Catalogue threat created successfully" });
+        return res.status(201).json({ status: 201, message: 'Catalogue threat created successfully' });
     } catch (error) {
-        logger.error("Create catalogue threat error:", error);
-        return serverError(error.message || "Failed to create catalogue threat", res, logger);
+        return handleServerError(error, res, 'Failed to create catalogue threat');
     }
 };
 
@@ -85,16 +70,15 @@ const updateCatalogueThreat = async (req, res) => {
             return badRequest(`A catalogue threat with the title "${updates.title}" already exists for framework "${updates.modelType}"`, res, logger);
         }
 
-        const { description, mitigation, ...metadata } = updates;
+        const { description, mitigationRefs, ...metadata } = updates;
         const briefDescription = computeBriefDescription(description);
 
-        await repository.updateThreatEntryAsync(accessToken, id, { ...metadata, description, mitigation, briefDescription, hash });
+        await repository.updateThreatEntryAsync(accessToken, id, { ...metadata, description, mitigationRefs, briefDescription, hash });
 
-        return res.status(200).json({ status: 200, message: "Catalogue threat updated successfully" });
+        return res.status(200).json({ status: 200, message: 'Catalogue threat updated successfully' });
     } catch (err) {
         if (err.statusCode === 404) {return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);}
-        logger.error(err);
-        return serverError(err.message || "Failed to update catalogue threat", res, logger);
+        return handleServerError(err, res, 'Failed to update catalogue threat');
     }
 };
 
@@ -105,11 +89,10 @@ const deleteCatalogueThreat = async (req, res) => {
 
     try {
         await repository.deleteThreatEntryAsync(accessToken, id);
-        return res.status(200).json({ status: 200, message: "Catalogue threat deleted successfully" });
+        return res.status(200).json({ status: 200, message: 'Catalogue threat deleted successfully' });
     } catch (err) {
         if (err.statusCode === 404) {return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);}
-        logger.error(err);
-        return serverError(err.message || "Failed to delete catalogue threat", res, logger);
+        return handleServerError(err, res, 'Failed to delete catalogue threat');
     }
 };
 
@@ -122,25 +105,38 @@ const getCatalogueThreatContent = async (req, res) => {
         if (!content) {return notFound(`Catalogue threat with ID "${id}" not found`, res, logger);}
         return res.status(200).json({ status: 200, data: { content } });
     } catch (err) {
-        logger.error(err);
-        return serverError(err.message || "Failed to fetch catalogue threat", res, logger);
+        return handleServerError(err, res, 'Failed to fetch catalogue threat');
     }
 };
 
 const bulkGetCatalogueContent = async (req, res) => {
     const repository = repositories.get();
+    const accessToken = req.provider.access_token;
     const { ids } = req.body;
 
     if (!Array.isArray(ids) || ids.length === 0) {
-        return badRequest("Expected non-empty { ids: [] }", res, logger);
+        return badRequest('Expected non-empty { ids: [] }', res, logger);
     }
 
     try {
-        const contents = await repository.getBulkThreatsAsync(req.provider.access_token, ids);
+        const threats = await repository.getBulkThreatsAsync(accessToken, ids);
+
+        const refIds = [...new Set(threats.flatMap((t) => t.mitigationRefs || []))];
+        const mitigationsById = new Map(await Promise.all(
+            refIds.map(async (id) => [id, await repository.getMitigationAsync(accessToken, id)])
+        ));
+
+        const contents = threats.map(({ mitigationRefs = [], ...threat }) => ({
+            ...threat,
+            mitigations: mitigationRefs.
+                map((id) => mitigationsById.get(id)).
+                filter(Boolean).
+                map(({ title, description, status, clauses = [] }) => ({ title, description, status, clauses }))
+        }));
+
         return res.status(200).json({ status: 200, data: { contents } });
     } catch (err) {
-        logger.error(err);
-        return serverError(err.message || "Failed to fetch catalogue threats", res, logger);
+        return handleServerError(err, res, 'Failed to fetch catalogue threats');
     }
 };
 
@@ -150,15 +146,14 @@ const bulkDeleteCatalogueThreats = async (req, res) => {
     const { ids } = req.body;
 
     if (!Array.isArray(ids) || ids.length === 0) {
-        return badRequest("Expected non-empty { ids: [] }", res, logger);
+        return badRequest('Expected non-empty { ids: [] }', res, logger);
     }
 
     try {
         await repository.bulkDeleteThreatsAsync(accessToken, ids);
         return res.status(200).json({ status: 200, message: `${ids.length} threat(s) deleted successfully` });
     } catch (err) {
-        logger.error(err);
-        return serverError(err.message || "Failed to bulk delete catalogue threats", res, logger);
+        return handleServerError(err, res, 'Failed to bulk delete catalogue threats');
     }
 };
 
@@ -169,20 +164,19 @@ const bootstrapCatalogueRepository = async (req, res) => {
         const result = await repository.listThreatsAsync(req.provider.access_token);
 
         if (result.status === 'NOT_CONFIGURED') {
-            return badRequest("Threat catalogue not configured. Set GITHUB_CONTENT_REPO environment variable.", res, logger);
+            return badRequest('Threat catalogue not configured. Set GITHUB_CONTENT_REPO environment variable.', res, logger);
         }
         if (result.status === 'NOT_FOUND') {
-            return notFound("Threat catalogue repository not found", res, logger);
+            return notFound('Threat catalogue repository not found', res, logger);
         }
         if (!result.status) {
-            return badRequest("Threat catalogue already initialized", res, logger);
+            return badRequest('Threat catalogue already initialized', res, logger);
         }
 
         await repository.initializeThreatCatalogueAsync(req.provider.access_token);
-        return res.status(201).json({ status: 201, message: "Threat catalogue initialized successfully" });
+        return res.status(201).json({ status: 201, message: 'Threat catalogue initialized successfully' });
     } catch (err) {
-        logger.error(err);
-        return serverError(err.message || "Failed to initialize threat catalogue", res, logger);
+        return handleServerError(err, res, 'Failed to initialize threat catalogue');
     }
 };
 
@@ -192,39 +186,18 @@ const importThreatLibrary = async (req, res) => {
     const { threatLibrary } = req.body;
 
     if (!Array.isArray(threatLibrary) || threatLibrary.length === 0) {
-        return badRequest("Invalid threat library: expected non-empty { threatLibrary: [] }", res, logger);
+        return badRequest('Invalid threat library: expected non-empty { threatLibrary: [] }', res, logger);
     }
 
     try {
-        const { threats: existing } = await repository.listThreatsAsync(accessToken);
-        const seen = new Set(existing.map((t) => t.hash));
-        const results = { created: 0, skipped: 0 };
-
-        const toCreate = [];
-        for (const threat of threatLibrary) {
-            const hash = computeThreatHash(threat);
-            if (seen.has(hash)) {
-                results.skipped++;
-            } else {
-                seen.add(hash);
-                const { id, description, mitigation, ...metadata } = threat;
-                toCreate.push({ id, hash, briefDescription: computeBriefDescription(description), ...metadata, description, mitigation });
-                results.created++;
-            }
-        }
-
-        if (toCreate.length > 0) {
-            await repository.bulkSaveThreatsAsync(accessToken, toCreate);
-        }
-
+        const results = await importThreatLibraryAsync(repository, accessToken, threatLibrary);
         return res.status(200).json({
             status: 200,
-            message: `Import complete: ${results.created} created, ${results.skipped} skipped`,
+            message: `Import complete: ${results.created} created, ${results.skipped} skipped, ${results.threatsLinked} existing threat(s) updated, ${results.mitigationsCreated} new mitigation(s), ${results.standardsCreated} new standard(s)`,
             results
         });
     } catch (error) {
-        logger.error("Import threat library error:", error);
-        return serverError(error.message || "Failed to import threat library", res, logger);
+        return handleServerError(error, res, 'Failed to import threat library');
     }
 };
 

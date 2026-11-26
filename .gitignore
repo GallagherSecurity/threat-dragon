@@ -93,6 +93,8 @@
 !td.server/src/constants/
 !td.server/src/constants/*.js
 !td.server/src/repositories/*.js
+!td.server/src/repositories/github/
+!td.server/src/repositories/github/*.js
 !td.server/test/
 !td.server/test/.eslintrc.js
 !td.server/test/*.spec.js
@@ -171,6 +173,8 @@
 !td.vue/src/service/entity/
 !td.vue/src/service/entity/*.js
 !td.vue/src/service/migration/
+!td.vue/src/service/mitigations/
+!td.vue/src/service/mitigations/*.js
 !td.vue/src/service/migration/otm/
 !td.vue/src/service/migration/otm/*.js
 !td.vue/src/service/migration/otm/cells/

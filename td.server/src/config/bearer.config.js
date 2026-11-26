@@ -53,8 +53,8 @@ const adminMiddleware = (req, res, next) => {
     if (!req.user?.isAdmin) {
         logger.warn(`User ${req.user?.id} attempted to access admin resource ${req.url}`);
         return errors.forbidden(res, logger);
-      }
-        return next();
+    }
+    return next();
 };
 
 export default {
